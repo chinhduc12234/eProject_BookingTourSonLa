@@ -1,5 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 
 import LoginPage from "./pages/auth/LoginPage";
@@ -11,7 +10,7 @@ import CustomerHome from "./pages/customer/CustomerHome";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 
-function AnimatedRoutes() {
+export default function AnimatedRoutes() {
   const location = useLocation();
 
   return (
@@ -20,6 +19,7 @@ function AnimatedRoutes() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/" element={<CustomerHome />} />
+
         <Route
           path="/admin"
           element={
@@ -41,14 +41,3 @@ function AnimatedRoutes() {
     </AnimatePresence>
   );
 }
-
-function App() {
-  return (
-    <BrowserRouter>
-      <Toaster position="top-right" />
-      <AnimatedRoutes />
-    </BrowserRouter>
-  );
-}
-
-export default App;
