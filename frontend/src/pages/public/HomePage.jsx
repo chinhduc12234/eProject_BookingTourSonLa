@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Search } from "lucide-react";
+import { ArrowRight, CalendarDays, Search } from "lucide-react";
 import PublicLayout from "./PublicLayout";
 import {
     destinationGroups,
     featuredTours,
+    formatDate,
+    getFirstDeparture,
     heroStats,
     quickSearch,
     serviceHighlights,
@@ -47,10 +49,10 @@ export default function HomePage() {
                         </p>
                         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                             <Link
-                                to="/lien-he"
+                                to="/tour"
                                 className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-[#7FB77E] px-6 text-sm font-black text-[#020617] hover:bg-[#9de09c]"
                             >
-                                Tư vấn lịch trình
+                                Đặt vé ngay
                                 <ArrowRight size={18} />
                             </Link>
                             <Link
@@ -105,10 +107,10 @@ export default function HomePage() {
                         </div>
 
                         <Link
-                            to="/lien-he"
+                            to="/tour"
                             className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#A67C52] text-sm font-black text-white hover:bg-[#c29161]"
                         >
-                            Gửi yêu cầu tư vấn
+                            Xem ngày khởi hành
                         </Link>
                     </motion.div>
                 </div>
@@ -121,35 +123,62 @@ export default function HomePage() {
                             <p className="text-sm font-black uppercase text-[#7FB77E]">Tour nổi bật</p>
                             <h2 className="mt-3 text-3xl font-black text-white sm:text-4xl">Gợi ý hành trình Tây Bắc</h2>
                         </div>
-                        <Link to="/faq" className="text-sm font-bold text-[#A67C52] hover:text-[#d4a878]">
-                            Xem câu hỏi thường gặp
+                        <Link to="/tour" className="text-sm font-bold text-[#A67C52] hover:text-[#d4a878]">
+                            Xem tất cả tour
                         </Link>
                     </div>
 
                     <div className="mt-8 grid gap-6 md:grid-cols-3">
-                        {featuredTours.map((tour) => (
-                            <article key={tour.title} className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.04]">
-                                <img src={tour.image} alt={tour.title} className="h-56 w-full object-cover" />
-                                <div className="p-5">
-                                    <div className="flex items-center justify-between gap-3 text-sm">
-                                        <span className="font-bold text-[#7FB77E]">{tour.place}</span>
-                                        <span className="text-slate-300">{tour.duration}</span>
+                        {featuredTours.map((tour) => {
+                            const firstDeparture = getFirstDeparture(tour);
+
+                            return (
+                                <article key={tour.title} className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.04]">
+                                    <Link to={`/tour/${tour.slug}`} className="block">
+                                        <img src={tour.image} alt={tour.title} className="h-56 w-full object-cover" />
+                                    </Link>
+                                    <div className="p-5">
+                                        <div className="flex items-center justify-between gap-3 text-sm">
+                                            <span className="font-bold text-[#7FB77E]">{tour.place}</span>
+                                            <span className="text-slate-300">{tour.duration}</span>
+                                        </div>
+                                        <Link to={`/tour/${tour.slug}`} className="mt-3 block text-xl font-black text-white hover:text-[#9de09c]">
+                                            {tour.title}
+                                        </Link>
+                                        <div className="mt-4 flex flex-wrap gap-2">
+                                            {tour.tags.map((tag) => (
+                                                <span key={tag} className="rounded-lg bg-white/[0.08] px-3 py-1 text-xs font-bold text-slate-200">
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                        <div className="mt-4 flex items-center gap-2 rounded-lg bg-white/[0.08] px-3 py-2 text-sm font-bold text-slate-200">
+                                            <CalendarDays size={17} className="text-[#7FB77E]" />
+                                            <span>Khởi hành {formatDate(firstDeparture.date)}</span>
+                                        </div>
+                                        <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4">
+                                            <span className="text-sm text-slate-400">Từ</span>
+                                            <span className="text-lg font-black text-white">{tour.price}</span>
+                                        </div>
+                                        <div className="mt-4 flex items-center justify-between gap-3">
+                                            <Link
+                                                to={`/tour/${tour.slug}`}
+                                                className="text-sm font-black text-slate-300 hover:text-white"
+                                            >
+                                                Chi tiết
+                                            </Link>
+                                            <Link
+                                                to={`/dat-tour/${tour.slug}?date=${firstDeparture.id}`}
+                                                className="inline-flex items-center gap-2 text-sm font-black text-[#7FB77E] hover:text-[#9de09c]"
+                                            >
+                                                Đặt vé
+                                                <ArrowRight size={16} />
+                                            </Link>
+                                        </div>
                                     </div>
-                                    <h3 className="mt-3 text-xl font-black text-white">{tour.title}</h3>
-                                    <div className="mt-4 flex flex-wrap gap-2">
-                                        {tour.tags.map((tag) => (
-                                            <span key={tag} className="rounded-lg bg-white/[0.08] px-3 py-1 text-xs font-bold text-slate-200">
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
-                                    <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4">
-                                        <span className="text-sm text-slate-400">Từ</span>
-                                        <span className="text-lg font-black text-white">{tour.price}</span>
-                                    </div>
-                                </div>
-                            </article>
-                        ))}
+                                </article>
+                            );
+                        })}
                     </div>
                 </div>
             </section>

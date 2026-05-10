@@ -19,11 +19,11 @@ export default function ContactPage() {
                     <div className="mt-4 grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
                         <div>
                             <h1 className="text-5xl font-black leading-tight text-white sm:text-6xl">
-                                Cần tư vấn tour Tây Bắc?
+                                Cần hỗ trợ đặt tour Tây Bắc?
                             </h1>
                             <p className="mt-6 text-lg leading-8 text-slate-300">
-                                Gửi thông tin hành trình, số người, thời gian dự kiến và mức ngân sách. Đội tư vấn sẽ gợi
-                                ý lịch trình phù hợp cho Mộc Châu, Tà Xùa, Sơn La và các điểm Tây Bắc liên quan.
+                                Gửi thông tin hành trình, số người, thời gian dự kiến và mức ngân sách. Đội hỗ trợ sẽ
+                                phản hồi phương án phù hợp cho Mộc Châu, Tà Xùa, Sơn La và các điểm Tây Bắc liên quan.
                             </p>
                         </div>
                         <div className="grid gap-4 md:grid-cols-3">
@@ -46,7 +46,7 @@ export default function ContactPage() {
             <section className="bg-[#f7faf6] py-16 text-slate-900">
                 <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
                     <form onSubmit={handleSubmit} className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-                        <h2 className="text-2xl font-black">Gửi yêu cầu tư vấn</h2>
+                        <h2 className="text-2xl font-black">Gửi yêu cầu hỗ trợ</h2>
                         <div className="mt-6 grid gap-4 md:grid-cols-2">
                             <label className="block">
                                 <span className="text-sm font-bold text-slate-700">Họ và tên</span>
@@ -109,9 +109,9 @@ export default function ContactPage() {
                                 }}
                             />
                             <div className="p-6">
-                                <h2 className="text-xl font-black text-white">Văn phòng Sơn La</h2>
+                                <h2 className="text-xl font-black text-white">Văn phòng Hà Nội</h2>
                                 <p className="mt-3 text-sm leading-6 text-slate-300">
-                                    Điểm tiếp nhận tư vấn, điều hành tour và kết nối đối tác địa phương cho các hành
+                                    Điểm tiếp nhận đặt tour, điều hành tour và kết nối đối tác địa phương cho các hành
                                     trình Tây Bắc.
                                 </p>
                             </div>
