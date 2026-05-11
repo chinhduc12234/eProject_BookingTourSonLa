@@ -101,7 +101,7 @@ export default function LoginPage() {
             initial="hidden"
             animate="show"
             exit="exit"
-            className="min-h-screen relative flex items-center justify-center overflow-hidden bg-[#020617]"
+            className="min-h-screen relative flex items-center justify-center overflow-hidden"
         >
             <motion.div
                 className="absolute inset-0 z-0"
@@ -123,7 +123,7 @@ export default function LoginPage() {
                 <div className="hidden lg:flex flex-col justify-center">
                     <motion.div variants={fadeInUp}>
                         <h1 className="text-8xl font-black text-white tracking-tighter leading-[0.9]">
-                            SƠN LA <br />
+                            TÂY BẮC <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7FB77E] to-white/80">
                                 TRAVEL.
                             </span>

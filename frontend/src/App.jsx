@@ -9,7 +9,13 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import EmployeeDashboard from "./pages/employee/EmployeeDashboard";
 import CustomerHome from "./pages/customer/CustomerHome";
 
+import ProvincePage from "./pages/admin/ProvincePage";
+import DistrictPage from "./pages/admin/DistrictPage";
+import LocationPage from "./pages/admin/LocationPage";
+
 import ProtectedRoute from "./routes/ProtectedRoute";
+import AdminLayout from "./layouts/AdminLayout";
+import AuthLayout from "./layouts/AuthLayout";
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -17,18 +23,30 @@ function AnimatedRoutes() {
   return (
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/" element={<CustomerHome />} />
+
+        {/* AUTH */}
         <Route
-          path="/admin"
+          path="/login"
           element={
-            <ProtectedRoute allowRoles={["ADMIN"]}>
-              <AdminDashboard />
-            </ProtectedRoute>
+            <AuthLayout>
+              <LoginPage />
+            </AuthLayout>
           }
         />
 
+        <Route
+          path="/register"
+          element={
+            <AuthLayout>
+              <RegisterPage />
+            </AuthLayout>
+          }
+        />
+
+        {/* CUSTOMER */}
+        <Route path="/" element={<CustomerHome />} />
+
+        {/* EMPLOYEE */}
         <Route
           path="/employee"
           element={
@@ -37,12 +55,28 @@ function AnimatedRoutes() {
             </ProtectedRoute>
           }
         />
+
+        {/* ADMIN */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowRoles={["ADMIN"]}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="provinces" element={<ProvincePage />} />
+          <Route path="districts" element={<DistrictPage />} />
+          <Route path="locations" element={<LocationPage />} />
+        </Route>
+
       </Routes>
     </AnimatePresence>
   );
 }
 
-function App() {
+export default function App() {
   return (
     <BrowserRouter>
       <Toaster position="top-right" />
@@ -50,5 +84,3 @@ function App() {
     </BrowserRouter>
   );
 }
-
-export default App;
