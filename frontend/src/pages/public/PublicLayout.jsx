@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Menu, Mountain, Phone, X } from "lucide-react";
+import { Menu, Phone, X } from "lucide-react";
 import { brand, navLinks } from "./publicContent";
+import BrandLogo from "../../components/common/BrandLogo";
 
 const navClass = ({ isActive }) =>
     [
@@ -16,14 +17,8 @@ export default function PublicLayout({ children }) {
         <div className="min-h-screen bg-[#020617] text-slate-100">
             <header className="sticky top-0 z-50 border-b border-white/10 bg-[#020617]/95 backdrop-blur-xl">
                 <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-                    <Link to="/" className="flex items-center gap-3">
-                        <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#7FB77E] text-[#020617]">
-                            <Mountain size={24} strokeWidth={2.5} />
-                        </span>
-                        <span>
-                            <span className="block text-lg font-black leading-5 text-white">{brand.displayName}</span>
-                            <span className="block text-xs font-medium text-[#A67C52]">Booking tour du lịch Tây Bắc</span>
-                        </span>
+                    <Link to="/" className="flex items-center gap-3" aria-label={brand.displayName}>
+                        <BrandLogo dark />
                     </Link>
 
                     <nav className="hidden items-center gap-1 md:flex">
@@ -92,10 +87,7 @@ export default function PublicLayout({ children }) {
                 <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.2fr_0.8fr_0.8fr] lg:px-8">
                     <div>
                         <div className="flex items-center gap-3">
-                            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#7FB77E] text-[#020617]">
-                                <Mountain size={22} />
-                            </span>
-                            <span className="text-lg font-black text-white">{brand.displayName}</span>
+                            <BrandLogo size="sm" dark />
                         </div>
                         <p className="mt-5 max-w-md text-sm leading-7 text-slate-300">
                             Nền tảng booking tour du lịch Tây Bắc tập trung vào lịch trình rõ ràng, trải nghiệm địa phương

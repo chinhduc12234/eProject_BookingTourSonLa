@@ -1,7 +1,271 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 html, body, #root {
     height: 100%;
     margin: 0;
-    background-color: #020617; 
+    background-color: #020617;
+}
+
+/* =========================================================================
+   Travel theme tokens - scoped under .travel-theme so it does NOT leak to
+   login/register/admin pages. Mood vẫn theo login: sage green + nâu vàng.
+   ========================================================================= */
+
+.travel-theme {
+    --tv-primary: #7FB77E;
+    --tv-primary-hover: #9de09c;
+    --tv-primary-deep: #4f8f4d;
+    --tv-primary-darker: #2f6c31;
+    --tv-accent: #A67C52;
+    --tv-accent-hover: #c29161;
+    --tv-accent-soft: #f1e5d6;
+    --tv-success: #16a34a;
+    --tv-warning: #f59e0b;
+    --tv-danger: #dc2626;
+
+    --tv-bg: #f5f8f4;
+    --tv-bg-elevated: #ffffff;
+    --tv-bg-subtle: #ebf2ea;
+    --tv-bg-strong: #dceedb;
+    --tv-bg-hero: #0d2018;
+
+    --tv-text: #0b1f17;
+    --tv-text-muted: #4a5b52;
+    --tv-text-soft: #71807a;
+    --tv-text-inverse: #ffffff;
+
+    --tv-border: rgba(11, 31, 23, 0.08);
+    --tv-border-strong: rgba(11, 31, 23, 0.14);
+    --tv-ring: rgba(127, 183, 126, 0.35);
+
+    --tv-card: #ffffff;
+    --tv-card-soft: #f7faf6;
+
+    --tv-glass: rgba(255, 255, 255, 0.7);
+    --tv-glass-border: rgba(11, 31, 23, 0.08);
+
+    --tv-shadow-sm: 0 1px 2px rgba(11, 31, 23, 0.05);
+    --tv-shadow: 0 8px 24px rgba(11, 31, 23, 0.08);
+    --tv-shadow-lg: 0 20px 50px rgba(11, 31, 23, 0.15);
+
+    --tv-gradient-hero: linear-gradient(135deg, rgba(13, 32, 24, 0.85) 0%, rgba(13, 32, 24, 0.55) 50%, rgba(13, 32, 24, 0.85) 100%);
+    --tv-gradient-primary: linear-gradient(135deg, #7FB77E 0%, #4f8f4d 100%);
+    --tv-gradient-accent: linear-gradient(135deg, #A67C52 0%, #7a5a3a 100%);
+
+    background-color: var(--tv-bg);
+    color: var(--tv-text);
+    min-height: 100%;
+}
+
+.travel-theme[data-theme="dark"] {
+    --tv-primary: #7FB77E;
+    --tv-primary-hover: #9de09c;
+    --tv-primary-deep: #4f8f4d;
+    --tv-primary-darker: #2f6c31;
+    --tv-accent: #d4a878;
+    --tv-accent-hover: #e0b88a;
+    --tv-accent-soft: rgba(166, 124, 82, 0.18);
+
+    --tv-bg: #020617;
+    --tv-bg-elevated: #060e29;
+    --tv-bg-subtle: #0b1226;
+    --tv-bg-strong: #111a36;
+    --tv-bg-hero: #020617;
+
+    --tv-text: #f1f5f9;
+    --tv-text-muted: #cbd5e1;
+    --tv-text-soft: #94a3b8;
+    --tv-text-inverse: #020617;
+
+    --tv-border: rgba(255, 255, 255, 0.08);
+    --tv-border-strong: rgba(255, 255, 255, 0.16);
+    --tv-ring: rgba(127, 183, 126, 0.4);
+
+    --tv-card: rgba(255, 255, 255, 0.04);
+    --tv-card-soft: rgba(255, 255, 255, 0.06);
+
+    --tv-glass: rgba(2, 6, 23, 0.7);
+    --tv-glass-border: rgba(255, 255, 255, 0.08);
+
+    --tv-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --tv-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    --tv-shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.55);
+}
+
+.travel-theme img {
+    -webkit-user-drag: none;
+}
+
+/* ========================================================================
+   Utility classes scoped under .travel-theme
+   ======================================================================== */
+
+.travel-theme .tv-glass {
+    background: var(--tv-glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--tv-glass-border);
+}
+
+.travel-theme .tv-card {
+    background: var(--tv-card);
+    border: 1px solid var(--tv-border);
+    border-radius: 1rem;
+    transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.travel-theme .tv-card-hover:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--tv-shadow-lg);
+    border-color: var(--tv-primary);
+}
+
+.travel-theme .tv-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border: 1px solid var(--tv-border-strong);
+}
+
+.travel-theme .tv-btn-primary {
+    background: var(--tv-gradient-primary);
+    color: #06281c;
+    font-weight: 800;
+    border-radius: 999px;
+    padding: 0.85rem 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 12px 28px rgba(79, 143, 77, 0.28);
+    transition: transform 220ms ease, box-shadow 220ms ease, filter 220ms ease;
+    border: none;
+    cursor: pointer;
+}
+
+.travel-theme .tv-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 36px rgba(79, 143, 77, 0.36);
+    filter: brightness(1.05);
+}
+
+.travel-theme .tv-btn-primary:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.travel-theme .tv-btn-outline {
+    background: transparent;
+    color: var(--tv-text);
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 0.8rem 1.4rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--tv-border-strong);
+    transition: all 220ms ease;
+    cursor: pointer;
+}
+
+.travel-theme .tv-btn-outline:hover {
+    border-color: var(--tv-primary);
+    color: var(--tv-primary);
+}
+
+.travel-theme .tv-input {
+    width: 100%;
+    border-radius: 0.85rem;
+    border: 1px solid var(--tv-border-strong);
+    background: var(--tv-bg-elevated);
+    color: var(--tv-text);
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    transition: border 180ms, box-shadow 180ms;
+    outline: none;
+}
+
+.travel-theme .tv-input:focus {
+    border-color: var(--tv-primary);
+    box-shadow: 0 0 0 4px var(--tv-ring);
+}
+
+.travel-theme .tv-link {
+    color: var(--tv-primary-deep);
+    font-weight: 700;
+    transition: color 180ms;
+}
+.travel-theme[data-theme="dark"] .tv-link {
+    color: var(--tv-primary-hover);
+}
+.travel-theme .tv-link:hover {
+    color: var(--tv-primary-darker);
+}
+
+.travel-theme .tv-section-title {
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--tv-primary-deep);
+}
+.travel-theme[data-theme="dark"] .tv-section-title {
+    color: var(--tv-primary-hover);
+}
+
+.travel-theme .tv-shimmer {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(90deg, var(--tv-bg-subtle) 0%, var(--tv-bg-strong) 50%, var(--tv-bg-subtle) 100%);
+    background-size: 200% 100%;
+    animation: tv-shimmer 1.4s linear infinite;
+}
+
+@keyframes tv-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.travel-theme .tv-fade-in {
+    animation: tv-fade-in 0.6s ease-out both;
+}
+
+@keyframes tv-fade-in {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.travel-theme .tv-image-hover {
+    overflow: hidden;
+}
+.travel-theme .tv-image-hover img {
+    transition: transform 700ms ease;
+}
+.travel-theme .tv-image-hover:hover img {
+    transform: scale(1.08);
+}
+
+/* Scrollbar - subtle, theme aware */
+.travel-theme ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+.travel-theme ::-webkit-scrollbar-track {
+    background: transparent;
+}
+.travel-theme ::-webkit-scrollbar-thumb {
+    background: var(--tv-border-strong);
+    border-radius: 999px;
+}
+.travel-theme ::-webkit-scrollbar-thumb:hover {
+    background: var(--tv-primary);
 }

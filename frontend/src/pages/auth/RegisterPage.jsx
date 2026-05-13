@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { motion, useMotionValue, useMotionTemplate } from "framer-motion";
 import { User, Mail, Phone, Lock, ArrowRight, Sun, Wind, Cloud } from "lucide-react";
+import BrandLogo from "../../components/common/BrandLogo";
 
 const containerVars = {
     hidden: { opacity: 0 },
@@ -106,7 +107,7 @@ export default function RegisterPage() {
             await Swal.fire({
                 icon: "success",
                 title: "Dang ky thanh cong",
-                text: "Chao mung ban gia nhap Son La Travel",
+                text: "Chao mung ban gia nhap Tây Bắc Travel",
                 background: "#0b1f17",
                 color: "#fff",
                 confirmButtonColor: "#7FB77E",
@@ -151,7 +152,8 @@ export default function RegisterPage() {
 
             <div className="relative z-10 w-full max-w-6xl grid lg:grid-cols-2 gap-16 px-8">
                 <div className="hidden lg:flex flex-col justify-center">
-                    <motion.div variants={fadeInUp}>
+                    <motion.div variants={fadeInUp} className="space-y-6">
+                        <BrandLogo size="xl" showText={false} />
                         <h1 className="text-7xl font-black text-white tracking-tight leading-[1.3]">
                             GIA NHAP <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#A67C52] to-[#7FB77E]">

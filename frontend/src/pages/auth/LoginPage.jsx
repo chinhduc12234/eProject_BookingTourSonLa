@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { motion, useMotionValue, useMotionTemplate } from "framer-motion";
 import { Mail, Lock, ArrowRight, Mountain, Leaf, Droplets } from "lucide-react";
+import BrandLogo from "../../components/common/BrandLogo";
 
 const containerVars = {
     hidden: { opacity: 0 },
@@ -121,9 +122,10 @@ export default function LoginPage() {
             <div className="relative z-10 w-full max-w-6xl grid lg:grid-cols-2 gap-16 px-8">
 
                 <div className="hidden lg:flex flex-col justify-center">
-                    <motion.div variants={fadeInUp}>
-                        <h1 className="text-8xl font-black text-white tracking-tighter leading-[0.9]">
-                            SƠN LA <br />
+                    <motion.div variants={fadeInUp} className="space-y-6">
+                        <BrandLogo size="xl" showText={false} />
+                        <h1 className="text-7xl font-black text-white tracking-tight leading-[0.95]">
+                            TÂY BẮC <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7FB77E] to-white/80">
                                 TRAVEL.
                             </span>

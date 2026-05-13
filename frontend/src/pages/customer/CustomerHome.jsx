@@ -1,5 +1,5 @@
-import HomePage from "../public/HomePage";
+import HomeTravelPage from "../travel/HomeTravelPage";
 
 export default function CustomerHome() {
-    return <HomePage />;
+    return <HomeTravelPage />;
 }
