@@ -33,11 +33,15 @@ public class AuthService {
     public AuthResponse register(
             RegisterRequest request) {
 
-        if (userRepository.existsByEmail(request.getEmail())) {
+        String fullName = request.getFullName().trim();
+        String email = request.getEmail().trim().toLowerCase();
+        String phone = request.getPhone().trim();
+
+        if (userRepository.existsByEmail(email)) {
             throw new RuntimeException("Email already exists");
         }
 
-        if (userRepository.existsByPhone(request.getPhone())) {
+        if (userRepository.existsByPhone(phone)) {
             throw new RuntimeException("Phone already exists");
         }
 
@@ -47,11 +51,11 @@ public class AuthService {
 
         User user = new User();
 
-        user.setFullName(request.getFullName());
+        user.setFullName(fullName);
 
-        user.setEmail(request.getEmail());
+        user.setEmail(email);
 
-        user.setPhone(request.getPhone());
+        user.setPhone(phone);
 
         user.setPassword(
                 passwordEncoder.encode(request.getPassword()));
