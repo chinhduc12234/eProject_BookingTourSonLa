@@ -26,8 +26,26 @@ export default function Modal({ open, onClose, children, className = "" }) {
         {/* Nút đóng (X) */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 w-10 h-10 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-500 transition-all flex items-center justify-center text-2xl font-bold z-10"
-        >
+          className="
+            absolute
+            top-5
+            right-5
+            w-10
+            h-10
+            rounded-xl
+            bg-white
+            hover:bg-rose-100
+            text-slate-500
+            hover:text-rose-500
+            transition-all
+            flex
+            items-center
+            justify-center
+            text-2xl
+            font-bold
+            z-[60]
+            shadow-sm
+          "        >
           ×
         </button>
 

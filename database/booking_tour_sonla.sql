@@ -318,7 +318,8 @@ CREATE TABLE `tour_departures` (
   `current_people` int(11) DEFAULT '0',
   `status` enum('OPEN','FULL','CLOSED') COLLATE utf8mb4_unicode_ci DEFAULT 'OPEN',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY `uq_tour_departure_date` (`tour_id`,`departure_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -332,6 +333,7 @@ CREATE TABLE `tour_images` (
   `tour_id` bigint(20) NOT NULL,
   `image_url` varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL,
   `is_thumbnail` tinyint(1) DEFAULT '0',
+  `sort_order` int(11) DEFAULT '0',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

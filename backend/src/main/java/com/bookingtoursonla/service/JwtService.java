@@ -61,4 +61,9 @@ public class JwtService {
                                 .parseSignedClaims(token)
                                 .getPayload();
         }
+
+        public Claims extractClaims(String token) {
+
+                return extractAllClaims(token);
+        }
 }

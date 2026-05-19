@@ -12,19 +12,28 @@ import CustomerHome from "./pages/customer/CustomerHome";
 import ProvincePage from "./pages/admin/ProvincePage";
 import DistrictPage from "./pages/admin/DistrictPage";
 import LocationPage from "./pages/admin/LocationPage";
+import TourPage from "./pages/admin/TourPage";
+import TourDetailPage from "./pages/admin/TourDetailPage";
+import StaffPage from "./pages/admin/StaffPage";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import AdminLayout from "./layouts/AdminLayout";
 import AuthLayout from "./layouts/AuthLayout";
 
 function AnimatedRoutes() {
+
   const location = useLocation();
 
   return (
     <AnimatePresence mode="wait" initial={false}>
-      <Routes location={location} key={location.pathname}>
+
+      <Routes
+        location={location}
+        key={location.pathname}
+      >
 
         {/* AUTH */}
+
         <Route
           path="/login"
           element={
@@ -44,9 +53,14 @@ function AnimatedRoutes() {
         />
 
         {/* CUSTOMER */}
-        <Route path="/" element={<CustomerHome />} />
+
+        <Route
+          path="/"
+          element={<CustomerHome />}
+        />
 
         {/* EMPLOYEE */}
+
         <Route
           path="/employee"
           element={
@@ -57,6 +71,7 @@ function AnimatedRoutes() {
         />
 
         {/* ADMIN */}
+
         <Route
           path="/admin"
           element={
@@ -65,22 +80,32 @@ function AnimatedRoutes() {
             </ProtectedRoute>
           }
         >
+
           <Route index element={<AdminDashboard />} />
           <Route path="provinces" element={<ProvincePage />} />
           <Route path="districts" element={<DistrictPage />} />
           <Route path="locations" element={<LocationPage />} />
+          <Route path="tours" element={<TourPage />} />
+          <Route path="tours/:id" element={<TourDetailPage />} />
+          <Route path="staff" element={<StaffPage />} />
+
         </Route>
 
       </Routes>
+
     </AnimatePresence>
   );
 }
 
 export default function App() {
+
   return (
     <BrowserRouter>
+
       <Toaster position="top-right" />
+
       <AnimatedRoutes />
+
     </BrowserRouter>
   );
 }
