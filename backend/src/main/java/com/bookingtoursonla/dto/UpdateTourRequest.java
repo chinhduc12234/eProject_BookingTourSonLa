@@ -25,6 +25,10 @@ public class UpdateTourRequest {
 
     private String description;
 
+    private String includedServices;
+
+    private String excludedServices;
+
     @NotNull
     @Min(1)
     private Integer durationDays;

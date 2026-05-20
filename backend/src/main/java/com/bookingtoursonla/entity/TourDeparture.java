@@ -1,7 +1,9 @@
 package com.bookingtoursonla.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import com.bookingtoursonla.entity.enums.DepartureStatus;
 
@@ -45,11 +47,29 @@ public class TourDeparture {
     @Column(name = "departure_date", nullable = false)
     private LocalDate departureDate;
 
+    @Column(name = "booking_deadline")
+    private LocalDateTime bookingDeadline;
+
+    @Column(name = "departure_time")
+    private LocalTime departureTime;
+
     @Column(name = "max_people", nullable = false)
     private Integer maxPeople;
 
     @Column(name = "current_people", nullable = false)
     private Integer currentPeople;
+
+    @Column(name = "reserved_people")
+    private Integer reservedPeople;
+
+    @Column(name = "adult_price", precision = 12, scale = 2)
+    private BigDecimal adultPrice;
+
+    @Column(name = "child_price", precision = 12, scale = 2)
+    private BigDecimal childPrice;
+
+    @Column(name = "is_private_departure")
+    private Boolean isPrivateDeparture;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -67,6 +87,10 @@ public class TourDeparture {
 
         if (this.currentPeople == null)
             this.currentPeople = 0;
+        if (this.reservedPeople == null)
+            this.reservedPeople = 0;
+        if (this.isPrivateDeparture == null)
+            this.isPrivateDeparture = false;
         if (this.status == null) {
             this.status = (this.currentPeople >= this.maxPeople)
                     ? DepartureStatus.FULL

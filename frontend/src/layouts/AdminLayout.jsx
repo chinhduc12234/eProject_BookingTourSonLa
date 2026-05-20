@@ -21,7 +21,7 @@ export default function AdminLayout() {
           </Link>
 
           <Link to="/admin/staff">
-            Nhân viên
+            Staff
           </Link>
 
           <Link to="/admin/provinces">

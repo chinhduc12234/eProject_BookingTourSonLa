@@ -24,6 +24,10 @@ public class TourDto {
 
     private String description;
 
+    private String includedServices;
+
+    private String excludedServices;
+
     private Integer durationDays;
 
     private Integer durationNights;

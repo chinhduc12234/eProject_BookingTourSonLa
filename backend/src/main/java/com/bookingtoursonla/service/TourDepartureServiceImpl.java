@@ -59,8 +59,14 @@ public class TourDepartureServiceImpl implements TourDepartureService {
         TourDeparture d = new TourDeparture();
         d.setTour(tour);
         d.setDepartureDate(request.getDepartureDate());
+        d.setBookingDeadline(request.getBookingDeadline());
+        d.setDepartureTime(request.getDepartureTime());
         d.setMaxPeople(request.getMaxPeople());
         d.setCurrentPeople(defaultCurrent(request.getCurrentPeople()));
+        d.setReservedPeople(defaultZero(request.getReservedPeople()));
+        d.setAdultPrice(request.getAdultPrice());
+        d.setChildPrice(request.getChildPrice());
+        d.setIsPrivateDeparture(defaultFalse(request.getIsPrivateDeparture()));
 
         d.setStatus(resolveStatus(
                 request,
@@ -90,8 +96,14 @@ public class TourDepartureServiceImpl implements TourDepartureService {
         }
 
         d.setDepartureDate(request.getDepartureDate());
+        d.setBookingDeadline(request.getBookingDeadline());
+        d.setDepartureTime(request.getDepartureTime());
         d.setMaxPeople(request.getMaxPeople());
         d.setCurrentPeople(defaultCurrent(request.getCurrentPeople()));
+        d.setReservedPeople(defaultZero(request.getReservedPeople()));
+        d.setAdultPrice(request.getAdultPrice());
+        d.setChildPrice(request.getChildPrice());
+        d.setIsPrivateDeparture(defaultFalse(request.getIsPrivateDeparture()));
 
         d.setStatus(resolveStatus(
                 request,
@@ -134,8 +146,14 @@ public class TourDepartureServiceImpl implements TourDepartureService {
             TourDeparture d = new TourDeparture();
             d.setTour(tour);
             d.setDepartureDate(r.getDepartureDate());
+            d.setBookingDeadline(r.getBookingDeadline());
+            d.setDepartureTime(r.getDepartureTime());
             d.setMaxPeople(r.getMaxPeople());
             d.setCurrentPeople(defaultCurrent(r.getCurrentPeople()));
+            d.setReservedPeople(defaultZero(r.getReservedPeople()));
+            d.setAdultPrice(r.getAdultPrice());
+            d.setChildPrice(r.getChildPrice());
+            d.setIsPrivateDeparture(defaultFalse(r.getIsPrivateDeparture()));
             d.setStatus(resolveStatus(
                     r,
                     d.getCurrentPeople(),
@@ -173,6 +191,14 @@ public class TourDepartureServiceImpl implements TourDepartureService {
         return current == null ? 0 : current;
     }
 
+    private int defaultZero(Integer value) {
+        return value == null ? 0 : value;
+    }
+
+    private boolean defaultFalse(Boolean value) {
+        return value == null ? false : value;
+    }
+
     private DepartureStatus resolveStatus(
             TourDepartureRequest request,
             int current,
@@ -195,8 +221,14 @@ public class TourDepartureServiceImpl implements TourDepartureService {
 
         dto.setId(d.getId());
         dto.setDepartureDate(d.getDepartureDate());
+        dto.setBookingDeadline(d.getBookingDeadline());
+        dto.setDepartureTime(d.getDepartureTime());
         dto.setMaxPeople(d.getMaxPeople());
         dto.setCurrentPeople(d.getCurrentPeople());
+        dto.setReservedPeople(d.getReservedPeople());
+        dto.setAdultPrice(d.getAdultPrice());
+        dto.setChildPrice(d.getChildPrice());
+        dto.setIsPrivateDeparture(d.getIsPrivateDeparture());
         dto.setStatus(d.getStatus());
 
         return dto;

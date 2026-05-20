@@ -148,6 +148,12 @@ public class TourServiceImpl
                 tour.setDescription(
                                 request.getDescription());
 
+                tour.setIncludedServices(
+                                request.getIncludedServices());
+
+                tour.setExcludedServices(
+                                request.getExcludedServices());
+
                 tour.setDurationDays(
                                 request.getDurationDays());
 
@@ -206,6 +212,12 @@ public class TourServiceImpl
 
                 existing.setDescription(
                                 request.getDescription());
+
+                existing.setIncludedServices(
+                                request.getIncludedServices());
+
+                existing.setExcludedServices(
+                                request.getExcludedServices());
 
                 existing.setDurationDays(
                                 request.getDurationDays());
@@ -282,6 +294,12 @@ public class TourServiceImpl
 
                 dto.setDescription(
                                 tour.getDescription());
+
+                dto.setIncludedServices(
+                                tour.getIncludedServices());
+
+                dto.setExcludedServices(
+                                tour.getExcludedServices());
 
                 dto.setDurationDays(
                                 tour.getDurationDays());

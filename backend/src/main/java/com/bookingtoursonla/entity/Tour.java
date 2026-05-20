@@ -38,6 +38,12 @@ public class Tour {
     @Column(columnDefinition = "LONGTEXT")
     private String description;
 
+    @Column(name = "included_services", columnDefinition = "TEXT")
+    private String includedServices;
+
+    @Column(name = "excluded_services", columnDefinition = "TEXT")
+    private String excludedServices;
+
     @Column(name = "duration_days", nullable = false)
     private Integer durationDays;
 

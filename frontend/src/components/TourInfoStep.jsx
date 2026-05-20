@@ -429,6 +429,82 @@ export default function TourInfoStep({
         </div>
 
       </div>
+
+      {/* INCLUDED & EXCLUDED SERVICES */}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm">
+
+          <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 mb-2">
+            Dịch vụ bao gồm
+          </h2>
+
+          <p className="text-sm text-slate-600 mb-4">
+            Liệt kê các dịch vụ, mỗi dòng một dịch vụ
+          </p>
+
+          <textarea
+            rows={8}
+            value={data?.includedServices || ""}
+            onChange={(e) =>
+              set("includedServices", e.target.value)
+            }
+            className="
+              w-full
+              p-4
+              rounded-2xl
+              border
+              border-slate-200
+              focus:border-slate-900
+              focus:ring-2
+              focus:ring-slate-100
+              outline-none
+              transition-all
+              resize-none
+              bg-white
+            "
+            placeholder="- Khách sạn 3 sao&#10;- Ăn sáng buffet&#10;- Xe đưa đón..."
+          />
+
+        </div>
+
+        <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm">
+
+          <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 mb-2">
+            Dịch vụ không bao gồm
+          </h2>
+
+          <p className="text-sm text-slate-600 mb-4">
+            Liệt kê các dịch vụ không bao gồm, mỗi dòng một dịch vụ
+          </p>
+
+          <textarea
+            rows={8}
+            value={data?.excludedServices || ""}
+            onChange={(e) =>
+              set("excludedServices", e.target.value)
+            }
+            className="
+              w-full
+              p-4
+              rounded-2xl
+              border
+              border-slate-200
+              focus:border-slate-900
+              focus:ring-2
+              focus:ring-slate-100
+              outline-none
+              transition-all
+              resize-none
+              bg-white
+            "
+            placeholder="- Bảo hiểm du lịch&#10;- Chuyến bay quốc tế&#10;- Các chi phí cá nhân..."
+          />
+
+        </div>
+
+      </div>
     </div>
   );
 }

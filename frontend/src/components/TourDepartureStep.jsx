@@ -44,13 +44,26 @@ export default function TourDepartureStep({
 
     let value = rawValue;
 
-    if (field === "maxPeople" || field === "currentPeople") {
+    if (field === "maxPeople" || field === "currentPeople" || field === "reservedPeople") {
       if (rawValue === "" || rawValue === null) {
-        value = field === "currentPeople" ? 0 : "";
+        value = field === "currentPeople" || field === "reservedPeople" ? 0 : "";
       } else {
         const n = Number(rawValue);
         value = Number.isNaN(n) ? copy[index][field] : n;
       }
+    }
+
+    if (field === "adultPrice" || field === "childPrice") {
+      if (rawValue === "" || rawValue === null) {
+        value = "";
+      } else {
+        const n = Number(rawValue);
+        value = Number.isNaN(n) ? copy[index][field] : n;
+      }
+    }
+
+    if (field === "isPrivateDeparture") {
+      value = Boolean(rawValue);
     }
 
     copy[index] = {
@@ -268,6 +281,74 @@ export default function TourDepartureStep({
             <div>
 
               <label className="block text-xs font-bold text-slate-700 mb-2 uppercase">
+                Giờ khởi hành
+              </label>
+
+              <input
+                type="time"
+                value={row.departureTime || ""}
+                onChange={(e) =>
+                  updateField(
+                    index,
+                    "departureTime",
+                    e.target.value
+                  )
+                }
+                className="
+                  w-full
+                  h-12
+                  px-4
+                  rounded-2xl
+                  border
+                  border-slate-200
+                  focus:border-slate-900
+                  focus:ring-2
+                  focus:ring-slate-100
+                  transition-all
+                  duration-300
+                  bg-white
+                "
+              />
+
+            </div>
+
+            <div>
+
+              <label className="block text-xs font-bold text-slate-700 mb-2 uppercase">
+                Hạn đặt
+              </label>
+
+              <input
+                type="datetime-local"
+                value={row.bookingDeadline ? row.bookingDeadline.slice(0, 16) : ""}
+                onChange={(e) =>
+                  updateField(
+                    index,
+                    "bookingDeadline",
+                    e.target.value ? e.target.value + ":00" : ""
+                  )
+                }
+                className="
+                  w-full
+                  h-12
+                  px-4
+                  rounded-2xl
+                  border
+                  border-slate-200
+                  focus:border-slate-900
+                  focus:ring-2
+                  focus:ring-slate-100
+                  transition-all
+                  duration-300
+                  bg-white
+                "
+              />
+
+            </div>
+
+            <div>
+
+              <label className="block text-xs font-bold text-slate-700 mb-2 uppercase">
                 Số chỗ tối đa
               </label>
 
@@ -342,6 +423,117 @@ export default function TourDepartureStep({
             <div>
 
               <label className="block text-xs font-bold text-slate-700 mb-2 uppercase">
+                Giữ chỗ
+              </label>
+
+              <input
+                type="number"
+                min={0}
+                value={
+                  row.reservedPeople === 0 || row.reservedPeople
+                    ? row.reservedPeople
+                    : 0
+                }
+                onChange={(e) =>
+                  updateField(
+                    index,
+                    "reservedPeople",
+                    e.target.value
+                  )
+                }
+                className="
+                  w-full
+                  h-12
+                  px-4
+                  rounded-2xl
+                  border
+                  border-slate-200
+                  focus:border-slate-900
+                  focus:ring-2
+                  focus:ring-slate-100
+                  transition-all
+                  duration-300
+                  bg-white
+                "
+              />
+
+            </div>
+
+            <div>
+
+              <label className="block text-xs font-bold text-slate-700 mb-2 uppercase">
+                Giá người lớn
+              </label>
+
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={row.adultPrice ?? ""}
+                onChange={(e) =>
+                  updateField(
+                    index,
+                    "adultPrice",
+                    e.target.value
+                  )
+                }
+                className="
+                  w-full
+                  h-12
+                  px-4
+                  rounded-2xl
+                  border
+                  border-slate-200
+                  focus:border-slate-900
+                  focus:ring-2
+                  focus:ring-slate-100
+                  transition-all
+                  duration-300
+                  bg-white
+                "
+              />
+
+            </div>
+
+            <div>
+
+              <label className="block text-xs font-bold text-slate-700 mb-2 uppercase">
+                Giá trẻ em
+              </label>
+
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={row.childPrice ?? ""}
+                onChange={(e) =>
+                  updateField(
+                    index,
+                    "childPrice",
+                    e.target.value
+                  )
+                }
+                className="
+                  w-full
+                  h-12
+                  px-4
+                  rounded-2xl
+                  border
+                  border-slate-200
+                  focus:border-slate-900
+                  focus:ring-2
+                  focus:ring-slate-100
+                  transition-all
+                  duration-300
+                  bg-white
+                "
+              />
+
+            </div>
+
+            <div>
+
+              <label className="block text-xs font-bold text-slate-700 mb-2 uppercase">
                 Trạng thái
               </label>
 
@@ -372,6 +564,24 @@ export default function TourDepartureStep({
 
             </div>
 
+            <div className="flex items-end">
+
+              <label className="flex items-center gap-3 h-12 px-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-slate-400 transition-all cursor-pointer bg-slate-50">
+                <input
+                  type="checkbox"
+                  checked={row.isPrivateDeparture || false}
+                  onChange={(e) =>
+                    updateField(index, "isPrivateDeparture", e.target.checked)
+                  }
+                  className="w-5 h-5 cursor-pointer"
+                />
+                <span className="text-xs font-bold text-slate-700 uppercase">
+                  Tour riêng
+                </span>
+              </label>
+
+            </div>
+
           </div>
 
         </div>
@@ -379,8 +589,9 @@ export default function TourDepartureStep({
 
       <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
         <p className="text-sm text-slate-700">
-          Mỗi dòng là một đợt khởi hành (cần chọn ngày và số chỗ lớn hơn 0). Một tour có thể có nhiều đợt.
-          Chỉ khi bạn nhấn &quot;Lưu tất cả&quot; ở bước cuối thì dữ liệu mới được ghi vào database.
+          Mỗi dòng là một đợt khởi hành (cần chọn ngày và số chỗ lớn hơn 0). 
+          Các trường như giờ khởi hành, hạn đặt, giá người lớn/trẻ em là tùy chọn. 
+          Một tour có thể có nhiều đợt. Chỉ khi bạn nhấn &quot;Lưu tất cả&quot; ở bước cuối thì dữ liệu mới được ghi vào database.
         </p>
       </div>
 

@@ -42,12 +42,36 @@ function buildDeparturesPayload(list) {
           ? 0
           : Number(currentRaw);
 
+      const reservedRaw = d.reservedPeople;
+      const reservedPeople =
+        reservedRaw === "" ||
+        reservedRaw === null ||
+        reservedRaw === undefined
+          ? 0
+          : Number(reservedRaw);
+
+      const adultPrice =
+        d.adultPrice === "" || d.adultPrice == null
+          ? null
+          : Number(d.adultPrice);
+
+      const childPrice =
+        d.childPrice === "" || d.childPrice == null
+          ? null
+          : Number(d.childPrice);
+
       const status = d.status || null;
 
       return {
         departureDate,
+        departureTime: d.departureTime || null,
+        bookingDeadline: d.bookingDeadline || null,
         maxPeople,
         currentPeople: Number.isNaN(currentPeople) ? 0 : currentPeople,
+        reservedPeople: Number.isNaN(reservedPeople) ? 0 : reservedPeople,
+        adultPrice: Number.isFinite(adultPrice) ? adultPrice : null,
+        childPrice: Number.isFinite(childPrice) ? childPrice : null,
+        isPrivateDeparture: d.isPrivateDeparture || false,
         status,
       };
     })
@@ -77,6 +101,8 @@ function buildTourUpdateBody(tour) {
     thumbnail: t.thumbnail || null,
     shortDescription: t.shortDescription || null,
     description: t.description || null,
+    includedServices: t.includedServices || null,
+    excludedServices: t.excludedServices || null,
     durationDays: Math.max(1, Number(t.durationDays) || 1),
     durationNights: Math.max(0, Number(t.durationNights) || 0),
     departureLocation: t.departureLocation || null,

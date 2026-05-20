@@ -25,6 +25,10 @@ public class CreateTourRequest {
 
     private String description;
 
+    private String includedServices;
+
+    private String excludedServices;
+
     @NotNull(message = "Duration days is required")
     @Min(value = 1)
     private Integer durationDays;
