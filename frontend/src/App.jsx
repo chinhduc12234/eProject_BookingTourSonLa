@@ -24,29 +24,13 @@ import AdminLayout from "./layouts/AdminLayout";
 import AuthLayout from "./layouts/AuthLayout";
 
 function AnimatedRoutes() {
-
   const location = useLocation();
 
   return (
     <AnimatePresence mode="wait" initial={false}>
-<<<<<<< Updated upstream
-
-      <Routes
-        location={location}
-        key={location.pathname}
-      >
-
+      <Routes location={location} key={location.pathname}>
         {/* AUTH */}
 
-=======
-      <Routes location={location} key={location.pathname}>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/" element={<CustomerHome />} />
-        <Route path="/gioi-thieu" element={<AboutPage />} />
-        <Route path="/lien-he" element={<ContactPage />} />
-        <Route path="/faq" element={<FaqPage />} />
->>>>>>> Stashed changes
         <Route
           path="/login"
           element={
@@ -67,10 +51,10 @@ function AnimatedRoutes() {
 
         {/* CUSTOMER */}
 
-        <Route
-          path="/"
-          element={<CustomerHome />}
-        />
+        <Route path="/" element={<CustomerHome />} />
+        <Route path="/gioi-thieu" element={<AboutPage />} />
+        <Route path="/lien-he" element={<ContactPage />} />
+        <Route path="/faq" element={<FaqPage />} />
 
         {/* EMPLOYEE */}
 
@@ -93,7 +77,6 @@ function AnimatedRoutes() {
             </ProtectedRoute>
           }
         >
-
           <Route index element={<AdminDashboard />} />
           <Route path="provinces" element={<ProvincePage />} />
           <Route path="districts" element={<DistrictPage />} />
@@ -101,30 +84,17 @@ function AnimatedRoutes() {
           <Route path="tours" element={<TourPage />} />
           <Route path="tours/:id" element={<TourDetailPage />} />
           <Route path="staff" element={<StaffPage />} />
-
         </Route>
-
       </Routes>
-
     </AnimatePresence>
   );
 }
 
 export default function App() {
-
   return (
     <BrowserRouter>
-
       <Toaster position="top-right" />
-
       <AnimatedRoutes />
-
     </BrowserRouter>
   );
-<<<<<<< Updated upstream
 }
-=======
-}
-
-export default App;
->>>>>>> Stashed changes
