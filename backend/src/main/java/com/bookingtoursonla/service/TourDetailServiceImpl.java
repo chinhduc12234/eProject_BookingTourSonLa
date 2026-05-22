@@ -90,6 +90,8 @@ public class TourDetailServiceImpl implements TourDetailService {
         dto.setThumbnail(t.getThumbnail());
         dto.setShortDescription(t.getShortDescription());
         dto.setDescription(t.getDescription());
+        dto.setIncludedServices(t.getIncludedServices());
+        dto.setExcludedServices(t.getExcludedServices());
         dto.setDurationDays(t.getDurationDays());
         dto.setDurationNights(t.getDurationNights());
         dto.setDepartureLocation(t.getDepartureLocation());
@@ -164,8 +166,14 @@ public class TourDetailServiceImpl implements TourDetailService {
 
             dto.setId(d.getId());
             dto.setDepartureDate(d.getDepartureDate());
+            dto.setDepartureTime(d.getDepartureTime());
+            dto.setBookingDeadline(d.getBookingDeadline());
             dto.setMaxPeople(d.getMaxPeople());
             dto.setCurrentPeople(d.getCurrentPeople());
+            dto.setReservedPeople(d.getReservedPeople());
+            dto.setAdultPrice(d.getAdultPrice());
+            dto.setChildPrice(d.getChildPrice());
+            dto.setIsPrivateDeparture(d.getIsPrivateDeparture());
             dto.setStatus(d.getStatus());
 
             return dto;
