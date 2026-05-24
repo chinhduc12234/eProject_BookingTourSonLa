@@ -1,11 +1,19 @@
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { Loader2, Plus, Send, Trash2, UserRound } from "lucide-react";
+import {
+  Loader2,
+  Plus,
+  Send,
+  Trash2,
+  UserRound,
+} from "lucide-react";
 
 import { createBooking } from "../api/bookingApi";
 
 const formatCurrency = (value) =>
   Number(value || 0).toLocaleString("vi-VN") + " đ";
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const emptyCustomer = {
   customerType: "ADULT",
@@ -85,6 +93,8 @@ export default function BookingForm({
 
     if (!form.email.trim()) {
       nextErrors.email = "Vui lòng nhập email";
+    } else if (!emailPattern.test(form.email.trim())) {
+      nextErrors.email = "Email không đúng định dạng";
     }
 
     if (!form.phone.trim()) {
@@ -165,7 +175,7 @@ export default function BookingForm({
         <div>
           <h2 className="text-lg font-black text-white">Thông tin đặt tour</h2>
           <p className="text-xs text-slate-400">
-            {userProfile ? "Đã tự điền từ tài khoản" : "Booking không cần đăng nhập"}
+            Đã tự điền từ tài khoản khách hàng
           </p>
         </div>
       </div>

@@ -25,6 +25,7 @@ import com.bookingtoursonla.entity.enums.BookingType;
 import com.bookingtoursonla.entity.enums.DepartureStatus;
 import com.bookingtoursonla.entity.enums.Gender;
 import com.bookingtoursonla.entity.enums.PaymentStatus;
+import com.bookingtoursonla.entity.enums.RoleName;
 import com.bookingtoursonla.entity.enums.TourStatus;
 import com.bookingtoursonla.repository.BookingCustomerRepository;
 import com.bookingtoursonla.repository.BookingRepository;
@@ -63,7 +64,8 @@ public class BookingServiceImpl implements BookingService {
             CreateBookingRequest request,
             String authenticatedEmail) {
 
-        User user = findAuthenticatedUser(authenticatedEmail);
+        User user = requireAuthenticatedUser(authenticatedEmail);
+        ensureCustomer(user);
 
         int adultCount = valueOrZero(request.getAdultCount());
         int childCount = valueOrZero(request.getChildCount());
@@ -149,11 +151,10 @@ public class BookingServiceImpl implements BookingService {
                 .findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
 
-        if (!isBlank(authenticatedEmail) && booking.getUser() != null) {
-            User user = requireAuthenticatedUser(authenticatedEmail);
-            if (!booking.getUser().getId().equals(user.getId())) {
-                throw new RuntimeException("Bạn không có quyền xem booking này");
-            }
+        User user = requireAuthenticatedUser(authenticatedEmail);
+
+        if (booking.getUser() == null || !booking.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Bạn không có quyền xem booking này");
         }
 
         List<BookingCustomer> customers = bookingCustomerRepository
@@ -341,26 +342,22 @@ public class BookingServiceImpl implements BookingService {
         return code;
     }
 
-    private User findAuthenticatedUser(String authenticatedEmail) {
-
-        if (isBlank(authenticatedEmail)) {
-            return null;
-        }
-
-        return userRepository
-                .findByEmail(authenticatedEmail)
-                .orElse(null);
-    }
-
     private User requireAuthenticatedUser(String authenticatedEmail) {
 
         if (isBlank(authenticatedEmail)) {
-            throw new RuntimeException("Bạn cần đăng nhập để xem thông tin booking");
+            throw new RuntimeException("Bạn cần đăng nhập bằng tài khoản khách hàng");
         }
 
         return userRepository
                 .findByEmail(authenticatedEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    private void ensureCustomer(User user) {
+
+        if (user.getRole() == null || !RoleName.CUSTOMER.equals(user.getRole().getName())) {
+            throw new RuntimeException("Chỉ tài khoản khách hàng mới được đặt tour");
+        }
     }
 
     private BookingType parseBookingType(String value) {

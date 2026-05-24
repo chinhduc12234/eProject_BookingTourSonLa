@@ -10,6 +10,3 @@ export const getMyBookings = () =>
 
 export const getBookingDetail = (id) =>
   axiosClient.get(`${BASE}/${id}`);
-
-export const getCurrentUserProfile = () =>
-  axiosClient.get("/users/me");

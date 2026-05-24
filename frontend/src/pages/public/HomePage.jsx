@@ -9,7 +9,6 @@ import {
     PlayCircle,
     Search,
     Sparkles,
-    Star,
 } from "lucide-react";
 import { getPublicTours } from "../../api/publicTourApi";
 import TourCard from "../../components/TourCard";
@@ -36,30 +35,6 @@ const heroBackdrops = [
     "https://datviettour.com.vn/uploads/images/tin-tuc-SEO/mien-bac/danh-thang/du-lich-son-la-3.jpg",
     "https://media-dwrm.mae.gov.vn/Image/6509b7f5-3d98-ec62-450e-890bfc931115/2025/7/11/muong-la-son-la_ab4356465f.jpg",
     "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=80",
-];
-
-const testimonials = [
-    {
-        name: "Chị Mai Anh",
-        role: "Du khách Hà Nội",
-        comment:
-            "Lịch trình Mộc Châu được sắp xếp hợp lý, có thời gian nghỉ, hướng dẫn viên thân thiện và am hiểu địa phương.",
-        rating: 5,
-    },
-    {
-        name: "Anh Tuấn",
-        role: "Doanh nghiệp HCM",
-        comment:
-            "Tour team building được thiết kế riêng, chi phí minh bạch, đội điều hành phản hồi nhanh trước và trong chuyến đi.",
-        rating: 5,
-    },
-    {
-        name: "Bạn Linh",
-        role: "Phượt thủ Tà Xùa",
-        comment:
-            "Săn mây Tà Xùa rất ấn tượng, homestay sạch và ấm. Sẽ đặt lại tour cho lần đi gia đình sắp tới.",
-        rating: 5,
-    },
 ];
 
 const marqueeWords = [
@@ -125,8 +100,8 @@ export default function HomePage() {
                         transition={{ duration: 1.6, ease: "easeOut" }}
                     />
                 ))}
-                <div className="absolute inset-0 bg-gradient-to-br from-[#020617] via-[#020617]/85 to-[#020617]/40" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent" />
+                <div className="hero-theme-overlay absolute inset-0" />
+                <div className="hero-theme-bottom absolute inset-0" />
                 <div className="absolute inset-0 bg-grid-fade opacity-60" />
                 <div className="absolute -top-20 left-1/4 h-72 w-72 rounded-full bg-[#7FB77E]/25 blur-[120px] animate-float-slow" />
                 <div className="absolute bottom-10 right-1/4 h-72 w-72 rounded-full bg-[#A67C52]/25 blur-[120px] animate-float-slow" />
@@ -527,69 +502,6 @@ export default function HomePage() {
                                 </div>
                             );
                         })}
-                    </div>
-                </div>
-            </section>
-
-            {/* TESTIMONIALS */}
-            <section className="relative overflow-hidden bg-gradient-to-b from-[#04120d] to-[#020617] py-20">
-                <div className="absolute -top-20 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-[#7FB77E]/15 blur-[120px]" />
-                <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <motion.div
-                        initial={{ opacity: 0, y: 16 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.55 }}
-                        className="text-center"
-                    >
-                        <span className="section-tag mx-auto">
-                            <Star size={12} /> Cảm nhận khách hàng
-                        </span>
-                        <h2 className="mt-4 text-4xl font-black leading-tight text-white sm:text-5xl">
-                            Câu chuyện thật từ{" "}
-                            <span className="text-gradient-green">khách đã đi tour</span>
-                        </h2>
-                    </motion.div>
-
-                    <div className="mt-12 grid gap-6 md:grid-cols-3">
-                        {testimonials.map((item, idx) => (
-                            <motion.figure
-                                key={item.name}
-                                initial={{ opacity: 0, y: 26 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.55, delay: idx * 0.12 }}
-                                whileHover={{ y: -6 }}
-                                className="relative rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-md transition-all hover:border-[#7FB77E]/40"
-                            >
-                                <div className="absolute -top-4 left-6 text-6xl leading-none text-[#7FB77E]/40">
-                                    "
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    {Array.from({ length: item.rating }).map((_, i) => (
-                                        <Star
-                                            key={i}
-                                            size={14}
-                                            className="fill-[#f4c27a] text-[#f4c27a]"
-                                        />
-                                    ))}
-                                </div>
-                                <blockquote className="mt-4 text-sm leading-7 text-slate-200">
-                                    {item.comment}
-                                </blockquote>
-                                <figcaption className="mt-5 flex items-center gap-3 border-t border-white/10 pt-4">
-                                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#7FB77E] to-[#4f8f4d] text-sm font-black text-[#020617]">
-                                        {item.name.charAt(item.name.length - 1)}
-                                    </span>
-                                    <div>
-                                        <div className="text-sm font-black text-white">
-                                            {item.name}
-                                        </div>
-                                        <div className="text-xs text-[#d4a878]">{item.role}</div>
-                                    </div>
-                                </figcaption>
-                            </motion.figure>
-                        ))}
                     </div>
                 </div>
             </section>

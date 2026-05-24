@@ -5,14 +5,20 @@ import {
     Globe,
     Mail,
     MapPin,
+    LogOut,
     Menu,
     MessageCircle,
-    Mountain,
+    Moon,
     Phone,
     Send,
     Share2,
+    Sun,
+    UserRound,
     X,
 } from "lucide-react";
+import { getCurrentUserProfile, resolveUploadedFileUrl } from "../../api/userApi";
+import { getAuthName, getRole, isLoggedIn, logout } from "../../utils/auth";
+import { applyTheme, getInitialTheme } from "../../utils/theme";
 import { brand, navLinks } from "./publicContent";
 
 const navClass = ({ isActive }) =>
@@ -21,6 +27,9 @@ const navClass = ({ isActive }) =>
 export default function PublicLayout({ children }) {
     const [open, setOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [authenticated, setAuthenticated] = useState(isLoggedIn());
+    const [profile, setProfile] = useState(null);
+    const [theme, setTheme] = useState(getInitialTheme);
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 12);
@@ -28,6 +37,75 @@ export default function PublicLayout({ children }) {
         window.addEventListener("scroll", handleScroll, { passive: true });
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
+
+    useEffect(() => {
+        const syncTheme = (event) => {
+            setTheme(event.detail || getInitialTheme());
+        };
+
+        window.addEventListener("theme-change", syncTheme);
+        return () => window.removeEventListener("theme-change", syncTheme);
+    }, []);
+
+    useEffect(() => {
+        let mounted = true;
+
+        const syncProfile = async () => {
+            const hasToken = isLoggedIn();
+            setAuthenticated(hasToken);
+
+            if (!hasToken) {
+                setProfile(null);
+                return;
+            }
+
+            try {
+                const response = await getCurrentUserProfile();
+                if (mounted) setProfile(response.data);
+            } catch {
+                if (mounted) {
+                    setAuthenticated(false);
+                    setProfile(null);
+                }
+            }
+        };
+
+        syncProfile();
+        window.addEventListener("auth-change", syncProfile);
+        window.addEventListener("storage", syncProfile);
+
+        return () => {
+            mounted = false;
+            window.removeEventListener("auth-change", syncProfile);
+            window.removeEventListener("storage", syncProfile);
+        };
+    }, []);
+
+    const accountName = profile?.fullName || getAuthName() || "Tài khoản";
+    const accountAvatar = resolveUploadedFileUrl(profile?.avatar);
+    const accountPath =
+        getRole() === "ADMIN"
+            ? "/admin"
+            : getRole() === "EMPLOYEE"
+                ? "/employee"
+                : "/tai-khoan";
+    const isLightTheme = theme === "light";
+
+    const toggleTheme = () => {
+        setTheme(applyTheme(isLightTheme ? "dark" : "light"));
+    };
+
+    const themeButton = (
+        <button
+            type="button"
+            onClick={toggleTheme}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white transition hover:border-[#7FB77E]/60 hover:bg-[#7FB77E]/10"
+            aria-label={isLightTheme ? "Chuyển sang nền tối" : "Chuyển sang nền sáng"}
+            title={isLightTheme ? "Nền tối" : "Nền sáng"}
+        >
+            {isLightTheme ? <Moon size={18} /> : <Sun size={18} />}
+        </button>
+    );
 
     return (
         <div className="min-h-screen bg-[#020617] text-slate-100">
@@ -41,19 +119,12 @@ export default function PublicLayout({ children }) {
                 ].join(" ")}
             >
                 <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-                    <Link to="/" className="group flex items-center gap-3">
-                        <span className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#9de09c] via-[#7FB77E] to-[#4f8f4d] text-[#020617] shadow-[0_8px_24px_-8px_rgba(127,183,126,0.7)]">
-                            <span className="absolute inset-0 rounded-xl bg-[#7FB77E]/40 blur-lg opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                            <Mountain size={24} strokeWidth={2.5} className="relative" />
-                        </span>
-                        <span>
-                            <span className="block text-lg font-black leading-5 text-white">
-                                {brand.displayName}
-                            </span>
-                            <span className="block text-[11px] font-semibold tracking-widest text-[#d4a878]">
-                                BOOKING TOUR TÂY BẮC
-                            </span>
-                        </span>
+                    <Link to="/" className="group flex items-center" aria-label={brand.displayName}>
+                        <img
+                            src="/logo-main-tay-bac.png"
+                            alt={brand.displayName}
+                            className="h-14 w-40 object-contain drop-shadow-[0_10px_22px_rgba(127,183,126,0.45)] transition group-hover:drop-shadow-[0_14px_28px_rgba(127,183,126,0.65)]"
+                        />
                     </Link>
 
                     <nav className="hidden items-center gap-1 md:flex">
@@ -65,6 +136,7 @@ export default function PublicLayout({ children }) {
                     </nav>
 
                     <div className="hidden items-center gap-3 md:flex">
+                        {themeButton}
                         <a
                             href={`tel:${brand.phone.replace(/\s/g, "")}`}
                             className="group inline-flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm font-bold text-white transition-all hover:border-[#7FB77E]/60 hover:bg-[#7FB77E]/10"
@@ -74,9 +146,41 @@ export default function PublicLayout({ children }) {
                             </span>
                             {brand.phone}
                         </a>
-                        <Link to="/login" className="btn-primary px-5 text-sm">
-                            Đăng nhập
-                        </Link>
+                        {authenticated ? (
+                            <>
+                                <Link
+                                    to={accountPath}
+                                    className="inline-flex h-11 max-w-[220px] items-center gap-2 rounded-xl border border-[#7FB77E]/35 bg-[#7FB77E]/10 px-4 text-sm font-black text-white transition hover:border-[#7FB77E]/70 hover:bg-[#7FB77E]/20"
+                                    title="Trang cá nhân"
+                                >
+                                    <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#7FB77E] text-[#020617]">
+                                        {accountAvatar ? (
+                                            <img
+                                                src={accountAvatar}
+                                                alt={accountName}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        ) : (
+                                            <UserRound size={15} />
+                                        )}
+                                    </span>
+                                    <span className="truncate">{accountName}</span>
+                                </Link>
+                                <button
+                                    type="button"
+                                    onClick={logout}
+                                    className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white transition hover:border-rose-300/50 hover:bg-rose-300/10 hover:text-rose-100"
+                                    aria-label="Đăng xuất"
+                                    title="Đăng xuất"
+                                >
+                                    <LogOut size={18} />
+                                </button>
+                            </>
+                        ) : (
+                            <Link to="/login" className="btn-primary px-5 text-sm">
+                                Đăng nhập
+                            </Link>
+                        )}
                     </div>
 
                     <button
@@ -106,15 +210,55 @@ export default function PublicLayout({ children }) {
                                     className={navClass}
                                 >
                                     {item.label}
-                                </NavLink>
+                        </NavLink>
                             ))}
-                            <Link
-                                to="/login"
-                                onClick={() => setOpen(false)}
-                                className="btn-primary mt-3 w-full"
-                            >
-                                Đăng nhập
-                            </Link>
+                            <div className="mt-3 flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2">
+                                <span className="text-sm font-bold text-slate-200">
+                                    {isLightTheme ? "Nền sáng" : "Nền tối"}
+                                </span>
+                                {themeButton}
+                            </div>
+                            {authenticated ? (
+                                <>
+                                    <Link
+                                        to={accountPath}
+                                        onClick={() => setOpen(false)}
+                                        className="mt-3 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#7FB77E]/35 bg-[#7FB77E]/10 px-4 text-sm font-black text-white"
+                                    >
+                                        <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#7FB77E] text-[#020617]">
+                                            {accountAvatar ? (
+                                                <img
+                                                    src={accountAvatar}
+                                                    alt={accountName}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            ) : (
+                                                <UserRound size={17} />
+                                            )}
+                                        </span>
+                                        {accountName}
+                                    </Link>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setOpen(false);
+                                            logout();
+                                        }}
+                                        className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-rose-300/30 bg-rose-300/10 px-4 text-sm font-black text-rose-100"
+                                    >
+                                        <LogOut size={18} />
+                                        Đăng xuất
+                                    </button>
+                                </>
+                            ) : (
+                                <Link
+                                    to="/login"
+                                    onClick={() => setOpen(false)}
+                                    className="btn-primary mt-3 w-full"
+                                >
+                                    Đăng nhập
+                                </Link>
+                            )}
                         </div>
                     </motion.div>
                 )}
@@ -154,12 +298,11 @@ export default function PublicLayout({ children }) {
                     <div className="grid gap-12 py-14 md:grid-cols-[1.2fr_0.8fr_0.8fr_0.9fr]">
                         <div>
                             <div className="flex items-center gap-3">
-                                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#9de09c] via-[#7FB77E] to-[#4f8f4d] text-[#020617]">
-                                    <Mountain size={22} />
-                                </span>
-                                <span className="text-lg font-black text-white">
-                                    {brand.displayName}
-                                </span>
+                                <img
+                                    src="/logo-main-tay-bac.png"
+                                    alt={brand.displayName}
+                                    className="h-24 w-56 object-contain drop-shadow-[0_12px_28px_rgba(127,183,126,0.35)]"
+                                />
                             </div>
                             <p className="mt-5 max-w-md text-sm leading-7 text-slate-300">
                                 Nền tảng booking tour du lịch Tây Bắc tập trung vào lịch trình rõ ràng, trải nghiệm

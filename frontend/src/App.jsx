@@ -8,6 +8,7 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import EmployeeDashboard from "./pages/employee/EmployeeDashboard";
 import CustomerHome from "./pages/customer/CustomerHome";
+import AccountPage from "./pages/customer/AccountPage";
 import AboutPage from "./pages/public/AboutPage";
 import ContactPage from "./pages/public/ContactPage";
 import FaqPage from "./pages/public/FaqPage";
@@ -58,6 +59,14 @@ function AnimatedRoutes() {
         <Route path="/tours/:id" element={<TourDetailPublicPage />} />
         <Route path="/booking" element={<TourListPage />} />
         <Route path="/booking/:id" element={<TourDetailPublicPage />} />
+        <Route
+          path="/tai-khoan"
+          element={
+            <ProtectedRoute allowRoles={["CUSTOMER"]}>
+              <AccountPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/gioi-thieu" element={<AboutPage />} />
         <Route path="/lien-he" element={<ContactPage />} />
         <Route path="/faq" element={<FaqPage />} />

@@ -8,21 +8,23 @@ import {
   Clock3,
   Image as ImageIcon,
   Loader2,
+  LogIn,
   MapPin,
   ShieldCheck,
   Sparkles,
   Tag,
+  UserPlus,
   Users,
   X,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
-import { getCurrentUserProfile } from "../../api/bookingApi";
 import { getPublicTourDetail } from "../../api/publicTourApi";
+import { getCurrentUserProfile } from "../../api/userApi";
 import BookingForm from "../../components/BookingForm";
 import DepartureSelector from "../../components/DepartureSelector";
 import PublicLayout from "./PublicLayout";
-import { isLoggedIn } from "../../utils/auth";
+import { getRole, isLoggedIn } from "../../utils/auth";
 
 const formatCurrency = (value) =>
   Number(value || 0).toLocaleString("vi-VN") + " đ";
@@ -39,6 +41,7 @@ export default function TourDetailPublicPage() {
   const { id } = useParams();
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [selectedDepartureId, setSelectedDepartureId] = useState("");
   const [bookingSuccess, setBookingSuccess] = useState(null);
@@ -78,14 +81,20 @@ export default function TourDetailPublicPage() {
   }, [id]);
 
   useEffect(() => {
-    if (!isLoggedIn()) return;
+    if (!isLoggedIn()) {
+      setProfileLoading(false);
+      return;
+    }
 
     const loadProfile = async () => {
       try {
+        setProfileLoading(true);
         const response = await getCurrentUserProfile();
         setUserProfile(response.data);
       } catch {
         setUserProfile(null);
+      } finally {
+        setProfileLoading(false);
       }
     };
 
@@ -97,6 +106,10 @@ export default function TourDetailPublicPage() {
       (departure) => Number(departure.id) === Number(selectedDepartureId),
     );
   }, [detail, selectedDepartureId]);
+
+  const authenticated = isLoggedIn();
+  const role = getRole();
+  const canBook = authenticated && role === "CUSTOMER" && userProfile;
 
   if (loading) {
     return (
@@ -510,14 +523,65 @@ export default function TourDetailPublicPage() {
               </div>
             </motion.div>
 
-            <BookingForm
-              key={userProfile?.id || "guest"}
-              tour={tour}
-              selectedDeparture={selectedDeparture}
-              selectedDepartureId={selectedDepartureId}
-              userProfile={userProfile}
-              onSuccess={setBookingSuccess}
-            />
+            {profileLoading ? (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-center">
+                <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#7FB77E]" />
+                <p className="mt-3 text-sm font-bold text-slate-300">
+                  Đang kiểm tra tài khoản khách hàng...
+                </p>
+              </div>
+            ) : canBook ? (
+              <BookingForm
+                key={userProfile.id}
+                tour={tour}
+                selectedDeparture={selectedDeparture}
+                selectedDepartureId={selectedDepartureId}
+                userProfile={userProfile}
+                onSuccess={setBookingSuccess}
+              />
+            ) : (
+              <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-5">
+                <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
+                    <ShieldCheck size={20} />
+                  </span>
+                  <div>
+                    <h2 className="text-lg font-black text-white">
+                      Đặt tour dành cho khách hàng
+                    </h2>
+                    <p className="text-xs text-slate-400">
+                      Khách vãng lai chỉ được tìm kiếm và xem thông tin tour.
+                    </p>
+                  </div>
+                </div>
+
+                {authenticated && role !== "CUSTOMER" ? (
+                  <div className="mt-5 rounded-xl border border-amber-300/25 bg-amber-300/10 p-4 text-sm leading-6 text-amber-100">
+                    Tài khoản hiện tại không phải tài khoản khách hàng. Vui
+                    lòng dùng tài khoản khách hàng để đặt tour.
+                  </div>
+                ) : (
+                  <>
+                    <p className="mt-5 text-sm leading-7 text-slate-300">
+                      Theo phân quyền hệ thống, khách vãng lai có thể xem tour,
+                      tìm kiếm tour và xem thông tin điểm đến. Để đặt tour và
+                      theo dõi lịch sử booking, bạn cần đăng nhập tài khoản
+                      khách hàng.
+                    </p>
+                    <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                      <Link to="/login" className="btn-primary text-sm">
+                        <LogIn size={17} />
+                        Đăng nhập
+                      </Link>
+                      <Link to="/register" className="btn-outline text-sm">
+                        <UserPlus size={17} />
+                        Đăng ký
+                      </Link>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </aside>
         </div>
       </section>

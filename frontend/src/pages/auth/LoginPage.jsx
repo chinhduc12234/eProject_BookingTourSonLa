@@ -81,7 +81,7 @@ export default function LoginPage() {
             const role = res.data.role;
             if (role === "ADMIN") navigate("/admin");
             else if (role === "EMPLOYEE") navigate("/employee");
-            else navigate("/");
+            else navigate("/tai-khoan");
         } catch (err) {
             Swal.fire({
                 icon: "error",
@@ -124,10 +124,14 @@ export default function LoginPage() {
 
             <Link
                 to="/"
-                className="absolute left-6 top-6 z-20 inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold text-white backdrop-blur-md transition hover:border-[#7FB77E]/60 hover:bg-[#7FB77E]/15"
+                className="absolute left-6 top-6 z-20 inline-flex items-center transition"
+                aria-label="Tây Bắc Travel"
             >
-                <Mountain size={14} />
-                Tây Bắc Travel
+                <img
+                    src="/logo-main-tay-bac.png"
+                    alt="Tây Bắc Travel"
+                    className="h-16 w-40 object-contain drop-shadow-[0_12px_28px_rgba(127,183,126,0.45)]"
+                />
             </Link>
 
             <div className="relative z-10 grid w-full max-w-6xl gap-16 px-6 sm:px-8 lg:grid-cols-2">

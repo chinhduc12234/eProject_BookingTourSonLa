@@ -45,6 +45,14 @@ public class SecurityConfig {
                                                 .permitAll()
 
                                                 .requestMatchers(
+                                                                "/uploads/**")
+                                                .permitAll()
+
+                                                .requestMatchers(
+                                                                "/error")
+                                                .permitAll()
+
+                                                .requestMatchers(
                                                                 HttpMethod.GET,
                                                                 "/api/tours/**")
                                                 .permitAll()
@@ -52,7 +60,7 @@ public class SecurityConfig {
                                                 .requestMatchers(
                                                                 HttpMethod.POST,
                                                                 "/api/bookings")
-                                                .permitAll()
+                                                .authenticated()
 
                                                 .requestMatchers(
                                                                 HttpMethod.GET,
@@ -62,7 +70,7 @@ public class SecurityConfig {
                                                 .requestMatchers(
                                                                 HttpMethod.GET,
                                                                 "/api/bookings/*")
-                                                .permitAll()
+                                                .authenticated()
 
                                                 .requestMatchers(
                                                                 "/api/admin/**")

@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.bookingtoursonla.dto.CreateStaffRequest;
 import com.bookingtoursonla.dto.StaffResponse;
 import com.bookingtoursonla.dto.UpdateStaffRequest;
+import com.bookingtoursonla.dto.UpdateUserProfileRequest;
 import com.bookingtoursonla.dto.UserProfileResponse;
-import com.bookingtoursonla.entity.User;
-import com.bookingtoursonla.repository.UserRepository;
 import com.bookingtoursonla.service.UserService;
 
 import jakarta.validation.Valid;
@@ -32,20 +32,33 @@ import lombok.RequiredArgsConstructor;
 @CrossOrigin("*")
 public class UserController {
 
-    private final UserRepository userRepository;
     private final UserService userService;
 
     @GetMapping("/me")
     public UserProfileResponse getCurrentUser(
             Authentication authentication) {
 
-        String email = authentication.getName();
+        return userService.getCurrentUser(authentication.getName());
+    }
 
-        User user = userRepository
-                .findByEmail(email)
-                .orElseThrow();
+    @PutMapping("/me")
+    public UserProfileResponse updateCurrentUser(
+            Authentication authentication,
+            @Valid @RequestBody UpdateUserProfileRequest request) {
 
-        return new UserProfileResponse(user);
+        return userService.updateCurrentUser(
+                authentication.getName(),
+                request);
+    }
+
+    @PostMapping("/me/avatar")
+    public UserProfileResponse updateCurrentUserAvatar(
+            Authentication authentication,
+            @RequestParam("file") MultipartFile file) {
+
+        return userService.updateCurrentUserAvatar(
+                authentication.getName(),
+                file);
     }
 
     @GetMapping("/admin/staff")
