@@ -26,6 +26,8 @@ public class TourDepartureDto {
 
     private Integer reservedPeople;
 
+    private Integer availableSeats;
+
     private BigDecimal adultPrice;
 
     private BigDecimal childPrice;

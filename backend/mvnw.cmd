@@ -31,6 +31,14 @@
 @SET __MVNW_CMD__=
 @SET __MVNW_ERROR__=
 @SET __MVNW_PSMODULEP_SAVE=%PSModulePath%
+@IF "%MVNW_ASCII_REDIRECT%"=="" (
+  @FOR /F "usebackq delims=" %%A IN (`powershell -NoProfile -ExecutionPolicy Bypass -Command "$p=(Get-Location).ProviderPath; if ($p -match '[^\x00-\x7F]') { $link=Join-Path $env:TEMP 'bookingtoursonla-backend-mvnw'; if (Test-Path $link) { $item=Get-Item $link -Force; if ($item.LinkType -ne 'Junction' -or $item.Target[0] -ne $p) { Remove-Item $link -Force } }; if (!(Test-Path $link)) { New-Item -ItemType Junction -Path $link -Target $p | Out-Null }; Write-Output $link }"`) DO @(
+    SET "MVNW_ASCII_REDIRECT=1"
+    CD /D "%%A"
+    CALL ".\%~nx0" %*
+    EXIT /B %ERRORLEVEL%
+  )
+)
 @SET PSModulePath=
 @FOR /F "usebackq tokens=1* delims==" %%A IN (`powershell -noprofile "& {$scriptDir='%~dp0'; $script='%__MVNW_ARG0_NAME__%'; icm -ScriptBlock ([Scriptblock]::Create((Get-Content -Raw '%~f0'))) -NoNewScope}"`) DO @(
   IF "%%A"=="MVN_CMD" (set __MVNW_CMD__=%%B) ELSE IF "%%B"=="" (echo %%A) ELSE (echo %%A=%%B)

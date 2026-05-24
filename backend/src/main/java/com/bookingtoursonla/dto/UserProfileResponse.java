@@ -12,6 +12,8 @@ public class UserProfileResponse {
 
     private String phone;
 
+    private String address;
+
     private String role;
 
     public UserProfileResponse(User user) {
@@ -19,6 +21,7 @@ public class UserProfileResponse {
         this.fullName = user.getFullName();
         this.email = user.getEmail();
         this.phone = user.getPhone();
+        this.address = user.getAddress();
         this.role = user.getRole().getName().name();
     }
 
@@ -36,6 +39,10 @@ public class UserProfileResponse {
 
     public String getPhone() {
         return phone;
+    }
+
+    public String getAddress() {
+        return address;
     }
 
     public String getRole() {

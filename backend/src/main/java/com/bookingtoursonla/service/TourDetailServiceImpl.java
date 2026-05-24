@@ -150,6 +150,16 @@ public class TourDetailServiceImpl implements TourDetailService {
         dto.setId(a.getId());
         dto.setLocationId(a.getLocation() != null ? a.getLocation().getId() : null);
         dto.setLocationName(a.getLocation() != null ? a.getLocation().getName() : null);
+        dto.setLocationAddress(a.getLocation() != null ? a.getLocation().getAddress() : null);
+
+        if (a.getLocation() != null && a.getLocation().getDistrict() != null) {
+            dto.setDistrictName(a.getLocation().getDistrict().getName());
+
+            if (a.getLocation().getDistrict().getProvince() != null) {
+                dto.setProvinceName(a.getLocation().getDistrict().getProvince().getName());
+            }
+        }
+
         dto.setTitle(a.getTitle());
         dto.setDescription(a.getDescription());
         dto.setStartTime(a.getStartTime() != null ? a.getStartTime().toString() : null);
@@ -171,6 +181,10 @@ public class TourDetailServiceImpl implements TourDetailService {
             dto.setMaxPeople(d.getMaxPeople());
             dto.setCurrentPeople(d.getCurrentPeople());
             dto.setReservedPeople(d.getReservedPeople());
+            dto.setAvailableSeats(Math.max(0,
+                    nullToZero(d.getMaxPeople())
+                            - nullToZero(d.getCurrentPeople())
+                            - nullToZero(d.getReservedPeople())));
             dto.setAdultPrice(d.getAdultPrice());
             dto.setChildPrice(d.getChildPrice());
             dto.setIsPrivateDeparture(d.getIsPrivateDeparture());
@@ -178,5 +192,9 @@ public class TourDetailServiceImpl implements TourDetailService {
 
             return dto;
         }).toList();
+    }
+
+    private int nullToZero(Integer value) {
+        return value == null ? 0 : value;
     }
 }

@@ -11,6 +11,12 @@ public class TourActivityDto {
 
     private String locationName;
 
+    private String districtName;
+
+    private String provinceName;
+
+    private String locationAddress;
+
     private String title;
 
     private String description;

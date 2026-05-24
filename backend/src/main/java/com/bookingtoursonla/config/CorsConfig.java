@@ -17,8 +17,10 @@ public class CorsConfig {
 
         CorsConfiguration config = new CorsConfiguration();
 
-        // FRONTEND
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        // FRONTEND DEV SERVERS
+        config.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "http://127.0.0.1:*"));
 
         // METHODS
         config.setAllowedMethods(List.of(

@@ -11,6 +11,8 @@ import CustomerHome from "./pages/customer/CustomerHome";
 import AboutPage from "./pages/public/AboutPage";
 import ContactPage from "./pages/public/ContactPage";
 import FaqPage from "./pages/public/FaqPage";
+import TourListPage from "./pages/public/TourListPage";
+import TourDetailPublicPage from "./pages/public/TourDetailPublicPage";
 
 import ProvincePage from "./pages/admin/ProvincePage";
 import DistrictPage from "./pages/admin/DistrictPage";
@@ -52,6 +54,10 @@ function AnimatedRoutes() {
         {/* CUSTOMER */}
 
         <Route path="/" element={<CustomerHome />} />
+        <Route path="/tours" element={<TourListPage />} />
+        <Route path="/tours/:id" element={<TourDetailPublicPage />} />
+        <Route path="/booking" element={<TourListPage />} />
+        <Route path="/booking/:id" element={<TourDetailPublicPage />} />
         <Route path="/gioi-thieu" element={<AboutPage />} />
         <Route path="/lien-he" element={<ContactPage />} />
         <Route path="/faq" element={<FaqPage />} />

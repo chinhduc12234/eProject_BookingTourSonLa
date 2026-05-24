@@ -4,34 +4,36 @@ import { saveAuth } from "../../utils/auth";
 import { useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { motion, useMotionValue, useMotionTemplate } from "framer-motion";
-import { Mail, Lock, ArrowRight, Mountain, Leaf, Droplets } from "lucide-react";
+import {
+    ArrowRight,
+    Droplets,
+    Leaf,
+    Lock,
+    Mail,
+    Mountain,
+    ShieldCheck,
+    Sparkles,
+} from "lucide-react";
 
 const containerVars = {
     hidden: { opacity: 0 },
     show: {
         opacity: 1,
-        transition: {
-            staggerChildren: 0.15,
-            delayChildren: 0.3
-        }
+        transition: { staggerChildren: 0.12, delayChildren: 0.25 },
     },
-    exit: { opacity: 0, transition: { duration: 0.3 } }
+    exit: { opacity: 0, transition: { duration: 0.3 } },
 };
 
 const fadeInUp = {
-    hidden: { opacity: 0, y: 30 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 80 } }
+    hidden: { opacity: 0, y: 28 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 80 } },
 };
 
 const floatAnim = {
     animate: {
         y: [0, -8, 0],
-        transition: {
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut"
-        }
-    }
+        transition: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+    },
 };
 
 export default function LoginPage() {
@@ -43,7 +45,7 @@ export default function LoginPage() {
     const mouseY = useMotionValue(0);
 
     function handleMouseMove({ currentTarget, clientX, clientY }) {
-        let { left, top } = currentTarget.getBoundingClientRect();
+        const { left, top } = currentTarget.getBoundingClientRect();
         mouseX.set(clientX - left);
         mouseY.set(clientY - top);
     }
@@ -80,7 +82,6 @@ export default function LoginPage() {
             if (role === "ADMIN") navigate("/admin");
             else if (role === "EMPLOYEE") navigate("/employee");
             else navigate("/");
-
         } catch (err) {
             Swal.fire({
                 icon: "error",
@@ -101,7 +102,7 @@ export default function LoginPage() {
             initial="hidden"
             animate="show"
             exit="exit"
-            className="min-h-screen relative flex items-center justify-center overflow-hidden"
+            className="relative flex min-h-screen items-center justify-center overflow-hidden"
         >
             <motion.div
                 className="absolute inset-0 z-0"
@@ -109,93 +110,155 @@ export default function LoginPage() {
                 animate={{ scale: 1.05, opacity: 0.95 }}
                 transition={{ duration: 2, ease: "easeOut" }}
                 style={{
-                    backgroundImage: "url('https://datviettour.com.vn/uploads/images/tin-tuc-SEO/mien-bac/danh-thang/du-lich-son-la-3.jpg')",
+                    backgroundImage:
+                        "url('https://datviettour.com.vn/uploads/images/tin-tuc-SEO/mien-bac/danh-thang/du-lich-son-la-3.jpg')",
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                 }}
             />
 
-            <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/70 via-[#020617]/10 to-transparent z-[1]" />
-            <div className="absolute inset-0 bg-[#7FB77E]/5 z-[1]" />
+            <div className="absolute inset-0 z-[1] bg-gradient-to-br from-[#020617] via-[#020617]/85 to-[#020617]/40" />
+            <div className="absolute inset-0 z-[1] bg-grid-fade opacity-50" />
+            <div className="absolute -top-32 left-1/4 z-[1] h-80 w-80 rounded-full bg-[#7FB77E]/25 blur-[120px] animate-float-slow" />
+            <div className="absolute -bottom-32 right-1/4 z-[1] h-80 w-80 rounded-full bg-[#A67C52]/25 blur-[120px] animate-float-slow" />
 
-            <div className="relative z-10 w-full max-w-6xl grid lg:grid-cols-2 gap-16 px-8">
+            <Link
+                to="/"
+                className="absolute left-6 top-6 z-20 inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold text-white backdrop-blur-md transition hover:border-[#7FB77E]/60 hover:bg-[#7FB77E]/15"
+            >
+                <Mountain size={14} />
+                Tây Bắc Travel
+            </Link>
 
-                <div className="hidden lg:flex flex-col justify-center">
+            <div className="relative z-10 grid w-full max-w-6xl gap-16 px-6 sm:px-8 lg:grid-cols-2">
+                {/* LEFT */}
+                <div className="hidden flex-col justify-center lg:flex">
                     <motion.div variants={fadeInUp}>
-                        <h1 className="text-8xl font-black text-white tracking-tighter leading-[0.9]">
-                            TÂY BẮC <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7FB77E] to-white/80">
-                                TRAVEL.
-                            </span>
-                        </h1>
+                        <span className="section-tag">
+                            <Sparkles size={12} /> Đăng nhập hệ thống
+                        </span>
                     </motion.div>
+                    <motion.h1
+                        variants={fadeInUp}
+                        className="mt-6 text-7xl font-black leading-[0.95] tracking-tighter text-white sm:text-8xl"
+                    >
+                        TÂY BẮC <br />
+                        <span className="text-gradient-mountain animate-gradient-pan">
+                            TRAVEL.
+                        </span>
+                    </motion.h1>
 
-                    <motion.p variants={fadeInUp} className="mt-8 text-xl text-slate-200 font-light max-w-md leading-relaxed drop-shadow-lg">
-                        Khám phá vẻ đẹp hùng vĩ của núi rừng Tây Bắc. Nơi mây ngàn chạm ngõ hồn người.
+                    <motion.p
+                        variants={fadeInUp}
+                        className="mt-8 max-w-md text-xl font-light leading-relaxed text-slate-200 drop-shadow-lg"
+                    >
+                        Khám phá vẻ đẹp hùng vĩ của núi rừng Tây Bắc. Nơi mây ngàn chạm ngõ hồn
+                        người.
                     </motion.p>
 
-                    <motion.div className="mt-10 flex gap-4" variants={fadeInUp}>
+                    <motion.div className="mt-10 flex flex-wrap gap-3" variants={fadeInUp}>
                         {[
-                            { icon: <Mountain size={16} />, label: "Núi rừng" },
-                            { icon: <Leaf size={16} />, label: "Thiên nhiên" },
-                            { icon: <Droplets size={16} />, label: "Sông hồ" }
+                            { icon: <Mountain size={14} />, label: "Núi rừng" },
+                            { icon: <Leaf size={14} />, label: "Thiên nhiên" },
+                            { icon: <Droplets size={14} />, label: "Sông hồ" },
                         ].map((tag, i) => (
                             <motion.div
                                 key={i}
                                 variants={floatAnim}
                                 animate="animate"
-                                className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-md text-white text-sm font-medium shadow-xl"
+                                style={{ animationDelay: `${i * 0.3}s` }}
+                                className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-medium text-white shadow-xl backdrop-blur-md"
                             >
                                 {tag.icon} {tag.label}
                             </motion.div>
                         ))}
                     </motion.div>
+
+                    <motion.div
+                        variants={fadeInUp}
+                        className="mt-10 inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-md"
+                    >
+                        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
+                            <ShieldCheck size={18} />
+                        </span>
+                        <div>
+                            <div className="text-xs font-bold uppercase tracking-widest text-[#d4a878]">
+                                Bảo mật
+                            </div>
+                            <div className="text-sm font-bold text-white">
+                                Thông tin được mã hoá và bảo vệ
+                            </div>
+                        </div>
+                    </motion.div>
                 </div>
 
-                <div className="flex justify-center items-center">
+                {/* RIGHT FORM */}
+                <div className="flex items-center justify-center">
                     <motion.div
                         variants={fadeInUp}
                         onMouseMove={handleMouseMove}
-                        className="group relative w-full max-w-[450px]"
+                        className="group relative w-full max-w-[460px]"
                     >
                         <motion.div
-                            className="pointer-events-none absolute -inset-px rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition duration-500 z-0"
+                            className="pointer-events-none absolute -inset-px z-0 rounded-[2.5rem] opacity-0 transition duration-500 group-hover:opacity-100"
                             style={{
                                 background: useMotionTemplate`
                                     radial-gradient(
                                         500px circle at ${mouseX}px ${mouseY}px,
-                                        rgba(127, 183, 126, 0.2),
+                                        rgba(127, 183, 126, 0.22),
                                         transparent 80%
                                     )
                                 `,
                             }}
                         />
+                        <div className="absolute -inset-2 rounded-[2.5rem] bg-gradient-to-br from-[#7FB77E]/30 via-transparent to-[#A67C52]/30 opacity-60 blur-2xl" />
 
-                        <div className="relative overflow-hidden rounded-[2.5rem] bg-black/40 backdrop-blur-2xl border border-white/10 p-12 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                        <div className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#020617]/65 p-10 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-2xl sm:p-12">
                             <motion.div variants={fadeInUp}>
-                                <h2 className="text-4xl font-bold text-white mb-3">Đăng nhập</h2>
-                                <p className="text-slate-300 mb-10 text-base">Hành trình của bạn bắt đầu tại đây.</p>
+                                <span className="section-tag">
+                                    <Sparkles size={12} /> Welcome back
+                                </span>
+                                <h2 className="mt-4 text-4xl font-black text-white">
+                                    Đăng nhập
+                                </h2>
+                                <p className="mt-2 text-base text-slate-300">
+                                    Hành trình của bạn bắt đầu tại đây.
+                                </p>
                             </motion.div>
 
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <motion.div variants={fadeInUp} className="relative flex items-center">
-                                    <Mail className="absolute left-5 text-[#7FB77E] w-5 h-5" />
-                                    <input
-                                        type="email"
-                                        placeholder="Email của bạn"
-                                        onChange={(e) => setForm({ ...form, email: e.target.value })}
-                                        className="w-full pl-14 pr-6 py-5 rounded-2xl bg-white/10 border border-white/15 text-white/95 outline-none focus:border-[#7FB77E] focus:bg-white/15 transition-all placeholder:text-white/60"
-                                    />
+                            <form onSubmit={handleSubmit} className="mt-10 space-y-5">
+                                <motion.div variants={fadeInUp} className="relative">
+                                    <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
+                                        Email
+                                    </label>
+                                    <div className="relative flex items-center">
+                                        <Mail className="absolute left-5 h-5 w-5 text-[#9de09c]" />
+                                        <input
+                                            type="email"
+                                            placeholder="Email của bạn"
+                                            onChange={(e) =>
+                                                setForm({ ...form, email: e.target.value })
+                                            }
+                                            className="w-full rounded-2xl border border-white/15 bg-white/[0.08] py-4 pl-14 pr-5 text-white outline-none transition-all placeholder:text-white/45 focus:border-[#7FB77E] focus:bg-[#7FB77E]/10 focus:ring-4 focus:ring-[#7FB77E]/20"
+                                        />
+                                    </div>
                                 </motion.div>
 
-                                <motion.div variants={fadeInUp} className="relative flex items-center">
-                                    <Lock className="absolute left-5 text-[#7FB77E] w-5 h-5" />
-                                    <input
-                                        type="password"
-                                        placeholder="Mật khẩu"
-                                        onChange={(e) => setForm({ ...form, password: e.target.value })}
-                                        className="w-full pl-14 pr-6 py-5 rounded-2xl bg-white/10 border border-white/15 text-white/95 outline-none focus:border-[#7FB77E] focus:bg-white/15 transition-all placeholder:text-white/60"
-                                    />
+                                <motion.div variants={fadeInUp} className="relative">
+                                    <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
+                                        Mật khẩu
+                                    </label>
+                                    <div className="relative flex items-center">
+                                        <Lock className="absolute left-5 h-5 w-5 text-[#9de09c]" />
+                                        <input
+                                            type="password"
+                                            placeholder="Mật khẩu"
+                                            onChange={(e) =>
+                                                setForm({ ...form, password: e.target.value })
+                                            }
+                                            className="w-full rounded-2xl border border-white/15 bg-white/[0.08] py-4 pl-14 pr-5 text-white outline-none transition-all placeholder:text-white/45 focus:border-[#7FB77E] focus:bg-[#7FB77E]/10 focus:ring-4 focus:ring-[#7FB77E]/20"
+                                        />
+                                    </div>
                                 </motion.div>
 
                                 <motion.button
@@ -203,17 +266,23 @@ export default function LoginPage() {
                                     whileHover={{ scale: 1.02, y: -2 }}
                                     whileTap={{ scale: 0.98 }}
                                     disabled={loading}
-                                    className="w-full py-5 rounded-2xl font-black text-black bg-[#7FB77E] hover:bg-[#9de09c] flex items-center justify-center gap-3 transition-all shadow-[0_10px_30px_rgba(127,183,126,0.3)] disabled:opacity-50 mt-4 tracking-wider"
+                                    className="relative mt-2 flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-[#9de09c] via-[#7FB77E] to-[#4f8f4d] bg-[length:200%_200%] bg-[position:0%_50%] py-5 font-black tracking-wider text-[#020617] shadow-[0_10px_30px_rgba(127,183,126,0.4)] transition-all hover:bg-[position:100%_50%] disabled:opacity-50"
                                 >
                                     {loading ? "ĐANG XỬ LÝ..." : "BẮT ĐẦU TRẢI NGHIỆM"}
-                                    {!loading && <ArrowRight className="w-6 h-6" />}
+                                    {!loading && <ArrowRight className="h-6 w-6" />}
                                 </motion.button>
                             </form>
 
-                            <motion.div variants={fadeInUp} className="mt-10 pt-8 border-t border-white/10 text-center">
-                                <p className="text-slate-400 text-sm">
+                            <motion.div
+                                variants={fadeInUp}
+                                className="mt-10 border-t border-white/10 pt-8 text-center"
+                            >
+                                <p className="text-sm text-slate-400">
                                     Chưa có tài khoản?
-                                    <Link to="/register" className="text-[#7FB77E] font-bold ml-2 hover:underline decoration-2 underline-offset-4">
+                                    <Link
+                                        to="/register"
+                                        className="ml-2 font-bold text-[#9de09c] underline-offset-4 hover:underline"
+                                    >
                                         Đăng ký ngay
                                     </Link>
                                 </p>

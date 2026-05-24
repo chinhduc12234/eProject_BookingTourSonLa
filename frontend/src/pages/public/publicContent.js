@@ -27,6 +27,7 @@ export const brand = {
 
 export const navLinks = [
     { label: "Trang chủ", to: "/" },
+    { label: "Tour", to: "/tours" },
     { label: "Giới thiệu", to: "/gioi-thieu" },
     { label: "FAQ", to: "/faq" },
     { label: "Liên hệ", to: "/lien-he" },

@@ -1,10 +1,21 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Search } from "lucide-react";
+import {
+    ArrowRight,
+    Compass,
+    Loader2,
+    MapPin,
+    PlayCircle,
+    Search,
+    Sparkles,
+    Star,
+} from "lucide-react";
+import { getPublicTours } from "../../api/publicTourApi";
+import TourCard from "../../components/TourCard";
 import PublicLayout from "./PublicLayout";
 import {
     destinationGroups,
-    featuredTours,
     heroStats,
     quickSearch,
     serviceHighlights,
@@ -13,205 +24,615 @@ import {
 } from "./publicContent";
 
 const fadeUp = {
-    hidden: { opacity: 0, y: 22 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: "easeOut" } },
+    hidden: { opacity: 0, y: 28 },
+    show: (i = 0) => ({
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.55, ease: "easeOut", delay: i * 0.08 },
+    }),
 };
 
+const heroBackdrops = [
+    "https://datviettour.com.vn/uploads/images/tin-tuc-SEO/mien-bac/danh-thang/du-lich-son-la-3.jpg",
+    "https://media-dwrm.mae.gov.vn/Image/6509b7f5-3d98-ec62-450e-890bfc931115/2025/7/11/muong-la-son-la_ab4356465f.jpg",
+    "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=80",
+];
+
+const testimonials = [
+    {
+        name: "Chị Mai Anh",
+        role: "Du khách Hà Nội",
+        comment:
+            "Lịch trình Mộc Châu được sắp xếp hợp lý, có thời gian nghỉ, hướng dẫn viên thân thiện và am hiểu địa phương.",
+        rating: 5,
+    },
+    {
+        name: "Anh Tuấn",
+        role: "Doanh nghiệp HCM",
+        comment:
+            "Tour team building được thiết kế riêng, chi phí minh bạch, đội điều hành phản hồi nhanh trước và trong chuyến đi.",
+        rating: 5,
+    },
+    {
+        name: "Bạn Linh",
+        role: "Phượt thủ Tà Xùa",
+        comment:
+            "Săn mây Tà Xùa rất ấn tượng, homestay sạch và ấm. Sẽ đặt lại tour cho lần đi gia đình sắp tới.",
+        rating: 5,
+    },
+];
+
+const marqueeWords = [
+    "Mộc Châu",
+    "Tà Xùa",
+    "Sông Đà",
+    "Mường La",
+    "Ngọc Chiến",
+    "Pha Luông",
+    "Mai Châu",
+    "Sơn La",
+];
+
 export default function HomePage() {
+    const [featuredTours, setFeaturedTours] = useState([]);
+    const [featuredLoading, setFeaturedLoading] = useState(false);
+    const [heroIndex, setHeroIndex] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(
+            () => setHeroIndex((idx) => (idx + 1) % heroBackdrops.length),
+            6500,
+        );
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        const loadFeaturedTours = async () => {
+            try {
+                setFeaturedLoading(true);
+
+                const response = await getPublicTours({
+                    page: 0,
+                    size: 3,
+                    keyword: "",
+                });
+
+                setFeaturedTours(response.data.content || []);
+            } catch {
+                setFeaturedTours([]);
+            } finally {
+                setFeaturedLoading(false);
+            }
+        };
+
+        loadFeaturedTours();
+    }, []);
+
     return (
         <PublicLayout>
+            {/* HERO */}
             <section className="relative overflow-hidden">
-                <div
-                    className="absolute inset-0"
-                    style={{
-                        backgroundImage:
-                            "url('https://datviettour.com.vn/uploads/images/tin-tuc-SEO/mien-bac/danh-thang/du-lich-son-la-3.jpg')",
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                    }}
-                />
-                <div className="absolute inset-0 bg-[#020617]/70" />
-                <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#020617] to-transparent" />
+                {heroBackdrops.map((src, idx) => (
+                    <motion.div
+                        key={src}
+                        className="absolute inset-0 bg-cover bg-center"
+                        style={{ backgroundImage: `url('${src}')` }}
+                        initial={{ opacity: 0, scale: 1.12 }}
+                        animate={{
+                            opacity: idx === heroIndex ? 1 : 0,
+                            scale: idx === heroIndex ? 1.04 : 1.12,
+                        }}
+                        transition={{ duration: 1.6, ease: "easeOut" }}
+                    />
+                ))}
+                <div className="absolute inset-0 bg-gradient-to-br from-[#020617] via-[#020617]/85 to-[#020617]/40" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-grid-fade opacity-60" />
+                <div className="absolute -top-20 left-1/4 h-72 w-72 rounded-full bg-[#7FB77E]/25 blur-[120px] animate-float-slow" />
+                <div className="absolute bottom-10 right-1/4 h-72 w-72 rounded-full bg-[#A67C52]/25 blur-[120px] animate-float-slow" />
 
-                <div className="relative mx-auto grid min-h-[calc(100vh-80px)] max-w-7xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
+                <div className="relative mx-auto grid min-h-[calc(100vh-80px)] max-w-7xl items-center gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
                     <motion.div initial="hidden" animate="show" variants={fadeUp}>
-                        <span className="inline-flex rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-bold text-[#d9f5d8] backdrop-blur">
+                        <motion.span
+                            className="section-tag"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.6 }}
+                        >
+                            <Sparkles size={14} className="text-[#9de09c]" />
                             Booking tour du lịch Tây Bắc
-                        </span>
-                        <h1 className="mt-6 max-w-3xl text-5xl font-black leading-tight text-white sm:text-6xl lg:text-7xl">
-                            Lên lịch cho hành trình núi rừng Tây Bắc.
-                        </h1>
-                        <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-200">
-                            Khám phá Mộc Châu, Tà Xùa, Sông Đà và các bản làng Sơn La với lịch trình rõ ràng, dịch vụ
-                            đồng hành và trải nghiệm địa phương được chọn lọc.
-                        </p>
-                        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                            <Link
-                                to="/lien-he"
-                                className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-[#7FB77E] px-6 text-sm font-black text-[#020617] hover:bg-[#9de09c]"
-                            >
-                                Tư vấn lịch trình
+                        </motion.span>
+
+                        <motion.h1
+                            custom={1}
+                            initial="hidden"
+                            animate="show"
+                            variants={fadeUp}
+                            className="mt-6 max-w-3xl text-5xl font-black leading-[1.05] text-white sm:text-6xl lg:text-7xl"
+                        >
+                            Lên lịch cho hành trình{" "}
+                            <span className="text-gradient-mountain animate-gradient-pan">
+                                núi rừng Tây Bắc
+                            </span>
+                            .
+                        </motion.h1>
+
+                        <motion.p
+                            custom={2}
+                            initial="hidden"
+                            animate="show"
+                            variants={fadeUp}
+                            className="mt-6 max-w-2xl text-lg leading-8 text-slate-200"
+                        >
+                            Khám phá Mộc Châu, Tà Xùa, Sông Đà và các bản làng Sơn La với lịch trình
+                            rõ ràng, dịch vụ đồng hành và trải nghiệm địa phương được chọn lọc.
+                        </motion.p>
+
+                        <motion.div
+                            custom={3}
+                            initial="hidden"
+                            animate="show"
+                            variants={fadeUp}
+                            className="mt-8 flex flex-col gap-3 sm:flex-row"
+                        >
+                            <Link to="/tours" className="btn-primary px-6 text-sm">
+                                Xem tour
                                 <ArrowRight size={18} />
                             </Link>
-                            <Link
-                                to="/gioi-thieu"
-                                className="inline-flex h-12 items-center justify-center rounded-lg border border-white/20 px-6 text-sm font-bold text-white hover:border-[#7FB77E]"
-                            >
+                            <Link to="/gioi-thieu" className="btn-outline px-6 text-sm">
+                                <PlayCircle size={18} />
                                 Về chúng tôi
                             </Link>
-                        </div>
+                        </motion.div>
 
-                        <div className="mt-10 grid max-w-2xl grid-cols-3 gap-3">
-                            {heroStats.map((item) => (
-                                <div key={item.label} className="rounded-lg border border-white/10 bg-white/10 p-4 backdrop-blur">
-                                    <div className="text-2xl font-black text-white">{item.value}</div>
-                                    <div className="mt-1 text-xs font-semibold text-slate-300">{item.label}</div>
-                                </div>
+                        <motion.div
+                            custom={4}
+                            initial="hidden"
+                            animate="show"
+                            variants={fadeUp}
+                            className="mt-12 grid max-w-2xl grid-cols-3 gap-3"
+                        >
+                            {heroStats.map((item, idx) => (
+                                <motion.div
+                                    key={item.label}
+                                    whileHover={{ y: -4 }}
+                                    className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.07] p-4 backdrop-blur-md"
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-br from-[#7FB77E]/0 via-transparent to-[#A67C52]/0 opacity-0 transition-opacity duration-500 group-hover:from-[#7FB77E]/20 group-hover:to-[#A67C52]/15 group-hover:opacity-100" />
+                                    <div className="relative text-3xl font-black text-white">
+                                        {item.value}
+                                    </div>
+                                    <div className="relative mt-1 text-xs font-semibold uppercase tracking-wider text-[#d4a878]">
+                                        {item.label}
+                                    </div>
+                                    <span
+                                        className="absolute right-3 top-3 h-2 w-2 rounded-full bg-[#9de09c]"
+                                        style={{ animationDelay: `${idx * 0.4}s` }}
+                                    />
+                                </motion.div>
+                            ))}
+                        </motion.div>
+
+                        {/* hero indicators */}
+                        <div className="mt-10 flex items-center gap-2">
+                            {heroBackdrops.map((_, idx) => (
+                                <button
+                                    key={idx}
+                                    type="button"
+                                    aria-label={`Ảnh nền ${idx + 1}`}
+                                    onClick={() => setHeroIndex(idx)}
+                                    className={[
+                                        "h-1.5 rounded-full transition-all",
+                                        idx === heroIndex
+                                            ? "w-10 bg-gradient-to-r from-[#9de09c] to-[#A67C52]"
+                                            : "w-4 bg-white/25 hover:bg-white/40",
+                                    ].join(" ")}
+                                />
                             ))}
                         </div>
                     </motion.div>
 
+                    {/* HERO QUICK SEARCH */}
                     <motion.div
-                        initial={{ opacity: 0, y: 24 }}
+                        initial={{ opacity: 0, y: 26 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.12 }}
-                        className="rounded-lg border border-white/15 bg-[#020617]/70 p-5 shadow-2xl backdrop-blur-xl"
+                        transition={{ duration: 0.6, delay: 0.18 }}
+                        className="relative"
                     >
-                        <div className="flex items-center gap-3 border-b border-white/10 pb-5">
-                            <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#7FB77E] text-[#020617]">
-                                <Search size={21} />
-                            </span>
-                            <div>
-                                <h2 className="text-xl font-black text-white">Tìm tour phù hợp</h2>
-                                <p className="text-sm text-slate-300">Chọn nhanh nhu cầu cho chuyến đi sắp tới.</p>
+                        <div className="absolute -inset-3 rounded-3xl bg-gradient-to-br from-[#7FB77E]/30 via-transparent to-[#A67C52]/30 blur-2xl" />
+                        <div className="relative overflow-hidden rounded-3xl border border-white/15 bg-[#020617]/75 p-6 shadow-soft-dark backdrop-blur-xl">
+                            <div className="flex items-center gap-3 border-b border-white/10 pb-5">
+                                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#9de09c] to-[#4f8f4d] text-[#020617] shadow-soft-green animate-pulse-glow">
+                                    <Search size={22} />
+                                </span>
+                                <div>
+                                    <h2 className="text-xl font-black text-white">
+                                        Tìm tour phù hợp
+                                    </h2>
+                                    <p className="text-sm text-slate-300">
+                                        Chọn nhanh nhu cầu cho chuyến đi sắp tới.
+                                    </p>
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="mt-5 grid gap-3">
-                            {quickSearch.map((item) => {
-                                const Icon = item.icon;
-                                return (
-                                    <div key={item.label} className="flex items-center gap-4 rounded-lg bg-white/[0.08] p-4">
-                                        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-[#7FB77E]">
-                                            <Icon size={20} />
-                                        </span>
-                                        <div>
-                                            <div className="text-xs font-bold uppercase text-slate-400">{item.label}</div>
-                                            <div className="mt-1 text-sm font-bold text-white">{item.value}</div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                            <div className="mt-5 grid gap-3">
+                                {quickSearch.map((item, idx) => {
+                                    const Icon = item.icon;
+                                    return (
+                                        <motion.div
+                                            key={item.label}
+                                            initial={{ opacity: 0, x: 18 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ duration: 0.5, delay: 0.3 + idx * 0.08 }}
+                                            className="group flex items-center gap-4 rounded-xl border border-white/5 bg-white/[0.05] p-4 transition-all hover:border-[#7FB77E]/40 hover:bg-[#7FB77E]/10"
+                                        >
+                                            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c] transition-transform group-hover:scale-110">
+                                                <Icon size={20} />
+                                            </span>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-[11px] font-bold uppercase tracking-widest text-[#d4a878]">
+                                                    {item.label}
+                                                </div>
+                                                <div className="mt-1 truncate text-sm font-bold text-white">
+                                                    {item.value}
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
 
-                        <Link
-                            to="/lien-he"
-                            className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#A67C52] text-sm font-black text-white hover:bg-[#c29161]"
-                        >
-                            Gửi yêu cầu tư vấn
-                        </Link>
+                            <Link
+                                to="/lien-he"
+                                className="btn-gold mt-5 w-full text-sm"
+                            >
+                                Gửi yêu cầu tư vấn
+                                <ArrowRight size={16} />
+                            </Link>
+                        </div>
                     </motion.div>
                 </div>
             </section>
 
-            <section className="bg-[#020617] py-16">
+            {/* DESTINATION MARQUEE */}
+            <section className="relative overflow-hidden border-y border-white/5 bg-[#04120d] py-6">
+                <div className="marquee-track gap-12 text-2xl font-black uppercase tracking-widest text-white/[0.08]">
+                    {[...marqueeWords, ...marqueeWords].map((word, idx) => (
+                        <span key={idx} className="flex items-center gap-12 whitespace-nowrap">
+                            {word}
+                            <Compass size={22} className="text-[#7FB77E]/50" />
+                        </span>
+                    ))}
+                </div>
+            </section>
+
+            {/* FEATURED TOURS */}
+            <section className="relative bg-[#020617] py-20">
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#7FB77E]/40 to-transparent" />
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-                        <div>
-                            <p className="text-sm font-black uppercase text-[#7FB77E]">Tour nổi bật</p>
-                            <h2 className="mt-3 text-3xl font-black text-white sm:text-4xl">Gợi ý hành trình Tây Bắc</h2>
-                        </div>
-                        <Link to="/faq" className="text-sm font-bold text-[#A67C52] hover:text-[#d4a878]">
-                            Xem câu hỏi thường gặp
+                        <motion.div
+                            initial={{ opacity: 0, y: 16 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: "-80px" }}
+                            transition={{ duration: 0.6 }}
+                        >
+                            <span className="section-tag">
+                                <Sparkles size={12} /> Tour nổi bật
+                            </span>
+                            <h2 className="mt-4 text-4xl font-black leading-tight text-white sm:text-5xl">
+                                Gợi ý hành trình{" "}
+                                <span className="text-gradient-green">Tây Bắc</span>
+                            </h2>
+                            <p className="mt-3 max-w-xl text-sm leading-7 text-slate-400">
+                                Những lịch trình được chọn lọc dựa trên đánh giá thật và mùa
+                                khởi hành đẹp nhất trong năm.
+                            </p>
+                        </motion.div>
+                        <Link
+                            to="/tours"
+                            className="group inline-flex items-center gap-2 text-sm font-bold text-[#d4a878] transition-colors hover:text-[#f4c27a]"
+                        >
+                            Xem tất cả tour
+                            <ArrowRight
+                                size={16}
+                                className="transition-transform group-hover:translate-x-1"
+                            />
                         </Link>
                     </div>
 
-                    <div className="mt-8 grid gap-6 md:grid-cols-3">
-                        {featuredTours.map((tour) => (
-                            <article key={tour.title} className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.04]">
-                                <img src={tour.image} alt={tour.title} className="h-56 w-full object-cover" />
-                                <div className="p-5">
-                                    <div className="flex items-center justify-between gap-3 text-sm">
-                                        <span className="font-bold text-[#7FB77E]">{tour.place}</span>
-                                        <span className="text-slate-300">{tour.duration}</span>
+                    {featuredLoading ? (
+                        <div className="mt-10 flex min-h-[260px] items-center justify-center">
+                            <Loader2 className="h-10 w-10 animate-spin text-[#7FB77E]" />
+                        </div>
+                    ) : featuredTours.length === 0 ? (
+                        <div className="mt-10 rounded-2xl border border-white/10 bg-white/[0.04] py-16 text-center text-slate-300">
+                            Chưa có tour đang mở bán.
+                        </div>
+                    ) : (
+                        <motion.div
+                            initial="hidden"
+                            whileInView="show"
+                            viewport={{ once: true, margin: "-50px" }}
+                            variants={{
+                                hidden: {},
+                                show: { transition: { staggerChildren: 0.12 } },
+                            }}
+                            className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+                        >
+                            {featuredTours.map((tour) => (
+                                <motion.div
+                                    key={tour.id}
+                                    variants={{
+                                        hidden: { opacity: 0, y: 26 },
+                                        show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+                                    }}
+                                >
+                                    <TourCard tour={tour} />
+                                </motion.div>
+                            ))}
+                        </motion.div>
+                    )}
+                </div>
+            </section>
+
+            {/* SERVICES */}
+            <section className="relative overflow-hidden bg-gradient-to-b from-[#f7faf6] via-[#eef6ed] to-[#f7faf6] py-20 text-slate-900">
+                <div className="absolute inset-0 bg-dots-fade opacity-50" />
+                <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
+                        <motion.div
+                            initial={{ opacity: 0, y: 18 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: "-50px" }}
+                            transition={{ duration: 0.55 }}
+                        >
+                            <span className="section-tag-light">
+                                <Sparkles size={12} /> Dịch vụ
+                            </span>
+                            <h2 className="mt-4 text-4xl font-black leading-tight sm:text-5xl">
+                                Đặt tour nhanh, thông tin rõ,{" "}
+                                <span className="text-gradient-green">đồng hành sát</span>.
+                            </h2>
+                            <ul className="mt-6 space-y-3">
+                                {whyChooseUs.map((item, idx) => (
+                                    <motion.li
+                                        key={item}
+                                        initial={{ opacity: 0, x: -12 }}
+                                        whileInView={{ opacity: 1, x: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ duration: 0.45, delay: idx * 0.08 }}
+                                        className="flex items-start gap-3 text-sm leading-7 text-slate-700"
+                                    >
+                                        <span className="mt-1.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#7FB77E] text-white">
+                                            ✓
+                                        </span>
+                                        <span>{item}</span>
+                                    </motion.li>
+                                ))}
+                            </ul>
+
+                            <div className="mt-8 flex flex-wrap gap-3">
+                                <Link
+                                    to="/tours"
+                                    className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#020617] px-5 text-sm font-black text-white transition hover:bg-[#0b1f17]"
+                                >
+                                    Xem tour mở bán <ArrowRight size={16} />
+                                </Link>
+                                <Link
+                                    to="/faq"
+                                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-300 px-5 text-sm font-bold text-slate-700 transition hover:border-[#7FB77E] hover:text-[#4f8f4d]"
+                                >
+                                    Câu hỏi thường gặp
+                                </Link>
+                            </div>
+                        </motion.div>
+
+                        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                            {serviceHighlights.map((item, idx) => {
+                                const Icon = item.icon;
+                                return (
+                                    <motion.div
+                                        key={item.title}
+                                        initial={{ opacity: 0, y: 24 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ duration: 0.55, delay: idx * 0.1 }}
+                                        whileHover={{ y: -6 }}
+                                        className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-[#7FB77E]/60 hover:shadow-soft-green"
+                                    >
+                                        <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-gradient-to-br from-[#7FB77E]/20 to-[#A67C52]/10 blur-xl transition-all group-hover:scale-150" />
+                                        <span className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#edf7ec] to-[#c8e6c5] text-[#4f8f4d]">
+                                            <Icon size={22} />
+                                        </span>
+                                        <h3 className="relative mt-6 text-lg font-black">
+                                            {item.title}
+                                        </h3>
+                                        <p className="relative mt-3 text-sm leading-6 text-slate-600">
+                                            {item.desc}
+                                        </p>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* DESTINATIONS */}
+            <section className="relative overflow-hidden bg-[#020617] py-20">
+                <div className="absolute inset-0 bg-grid-fade opacity-40" />
+                <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <motion.div
+                        initial={{ opacity: 0, y: 16 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.55 }}
+                        className="max-w-2xl"
+                    >
+                        <span className="section-tag">
+                            <MapPin size={12} /> Điểm đến
+                        </span>
+                        <h2 className="mt-4 text-4xl font-black leading-tight text-white sm:text-5xl">
+                            Cảnh quan & văn hóa{" "}
+                            <span className="text-gradient-gold">đặc trưng Tây Bắc</span>
+                        </h2>
+                    </motion.div>
+
+                    <div className="mt-10 grid gap-6 md:grid-cols-3">
+                        {destinationGroups.map((item, idx) => {
+                            const Icon = item.icon;
+                            return (
+                                <motion.div
+                                    key={item.title}
+                                    initial={{ opacity: 0, y: 24 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.55, delay: idx * 0.1 }}
+                                    whileHover={{ y: -8 }}
+                                    className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.01] p-6 transition-all hover:border-[#7FB77E]/50"
+                                >
+                                    <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-gradient-to-br from-[#7FB77E]/25 via-[#A67C52]/15 to-transparent blur-2xl transition-all duration-500 group-hover:scale-150" />
+                                    <span className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
+                                        <Icon size={26} />
+                                    </span>
+                                    <h3 className="relative mt-6 text-xl font-black text-white">
+                                        {item.title}
+                                    </h3>
+                                    <p className="relative mt-3 text-sm leading-6 text-slate-300">
+                                        {item.desc}
+                                    </p>
+                                    <div className="relative mt-6 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#d4a878] transition-all group-hover:translate-x-1">
+                                        Khám phá <ArrowRight size={14} />
                                     </div>
-                                    <h3 className="mt-3 text-xl font-black text-white">{tour.title}</h3>
-                                    <div className="mt-4 flex flex-wrap gap-2">
-                                        {tour.tags.map((tag) => (
-                                            <span key={tag} className="rounded-lg bg-white/[0.08] px-3 py-1 text-xs font-bold text-slate-200">
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
-                                    <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4">
-                                        <span className="text-sm text-slate-400">Từ</span>
-                                        <span className="text-lg font-black text-white">{tour.price}</span>
-                                    </div>
+                                </motion.div>
+                            );
+                        })}
+                    </div>
+
+                    <div className="mt-10 grid gap-3 md:grid-cols-3">
+                        {trustBadges.map((item) => {
+                            const Icon = item.icon;
+                            return (
+                                <div
+                                    key={item.label}
+                                    className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 backdrop-blur-sm"
+                                >
+                                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#A67C52]/20 text-[#d4a878]">
+                                        <Icon size={17} />
+                                    </span>
+                                    <span className="text-sm font-bold text-slate-200">
+                                        {item.label}
+                                    </span>
                                 </div>
-                            </article>
+                            );
+                        })}
+                    </div>
+                </div>
+            </section>
+
+            {/* TESTIMONIALS */}
+            <section className="relative overflow-hidden bg-gradient-to-b from-[#04120d] to-[#020617] py-20">
+                <div className="absolute -top-20 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-[#7FB77E]/15 blur-[120px]" />
+                <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <motion.div
+                        initial={{ opacity: 0, y: 16 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.55 }}
+                        className="text-center"
+                    >
+                        <span className="section-tag mx-auto">
+                            <Star size={12} /> Cảm nhận khách hàng
+                        </span>
+                        <h2 className="mt-4 text-4xl font-black leading-tight text-white sm:text-5xl">
+                            Câu chuyện thật từ{" "}
+                            <span className="text-gradient-green">khách đã đi tour</span>
+                        </h2>
+                    </motion.div>
+
+                    <div className="mt-12 grid gap-6 md:grid-cols-3">
+                        {testimonials.map((item, idx) => (
+                            <motion.figure
+                                key={item.name}
+                                initial={{ opacity: 0, y: 26 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.55, delay: idx * 0.12 }}
+                                whileHover={{ y: -6 }}
+                                className="relative rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-md transition-all hover:border-[#7FB77E]/40"
+                            >
+                                <div className="absolute -top-4 left-6 text-6xl leading-none text-[#7FB77E]/40">
+                                    "
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    {Array.from({ length: item.rating }).map((_, i) => (
+                                        <Star
+                                            key={i}
+                                            size={14}
+                                            className="fill-[#f4c27a] text-[#f4c27a]"
+                                        />
+                                    ))}
+                                </div>
+                                <blockquote className="mt-4 text-sm leading-7 text-slate-200">
+                                    {item.comment}
+                                </blockquote>
+                                <figcaption className="mt-5 flex items-center gap-3 border-t border-white/10 pt-4">
+                                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#7FB77E] to-[#4f8f4d] text-sm font-black text-[#020617]">
+                                        {item.name.charAt(item.name.length - 1)}
+                                    </span>
+                                    <div>
+                                        <div className="text-sm font-black text-white">
+                                            {item.name}
+                                        </div>
+                                        <div className="text-xs text-[#d4a878]">{item.role}</div>
+                                    </div>
+                                </figcaption>
+                            </motion.figure>
                         ))}
                     </div>
                 </div>
             </section>
 
-            <section className="bg-[#f7faf6] py-16 text-slate-900">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
-                        <div>
-                            <p className="text-sm font-black uppercase text-[#4f8f4d]">Dịch vụ</p>
-                            <h2 className="mt-3 text-3xl font-black sm:text-4xl">Đặt tour nhanh, thông tin rõ, đồng hành sát.</h2>
-                            <ul className="mt-6 space-y-3">
-                                {whyChooseUs.map((item) => (
-                                    <li key={item} className="flex gap-3 text-sm leading-6 text-slate-700">
-                                        <span className="mt-2 h-2 w-2 rounded-full bg-[#7FB77E]" />
-                                        <span>{item}</span>
-                                    </li>
-                                ))}
-                            </ul>
+            {/* CTA */}
+            <section className="relative overflow-hidden bg-[#020617] py-20">
+                <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+                    <motion.div
+                        initial={{ opacity: 0, y: 28 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
+                        className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#0b1f17] via-[#04120d] to-[#0b1f17] p-10 sm:p-14"
+                    >
+                        <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[#7FB77E]/30 blur-[100px]" />
+                        <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-[#A67C52]/30 blur-[100px]" />
+                        <div className="relative grid gap-8 md:grid-cols-[1.2fr_0.8fr] md:items-center">
+                            <div>
+                                <span className="section-tag">
+                                    <Sparkles size={12} /> Sẵn sàng lên đường?
+                                </span>
+                                <h2 className="mt-4 text-3xl font-black leading-tight text-white sm:text-4xl">
+                                    Để Tây Bắc Travel sắp xếp hành trình{" "}
+                                    <span className="text-gradient-mountain animate-gradient-pan">
+                                        của bạn
+                                    </span>
+                                </h2>
+                                <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300">
+                                    Chia sẻ nhu cầu của bạn - chúng tôi sẽ phản hồi trong vòng 24h
+                                    với lịch trình mẫu, báo giá minh bạch và phương án dự phòng.
+                                </p>
+                            </div>
+                            <div className="flex flex-col gap-3 sm:flex-row md:flex-col md:items-end">
+                                <Link to="/lien-he" className="btn-primary w-full text-sm sm:w-auto md:w-full md:justify-center">
+                                    Gửi yêu cầu tư vấn
+                                    <ArrowRight size={16} />
+                                </Link>
+                                <Link to="/tours" className="btn-outline w-full text-sm sm:w-auto md:w-full md:justify-center">
+                                    Xem lịch khởi hành
+                                </Link>
+                            </div>
                         </div>
-                        <div className="grid gap-4 md:grid-cols-3">
-                            {serviceHighlights.map((item) => {
-                                const Icon = item.icon;
-                                return (
-                                    <div key={item.title} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-                                        <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#edf7ec] text-[#4f8f4d]">
-                                            <Icon size={22} />
-                                        </span>
-                                        <h3 className="mt-5 text-lg font-black">{item.title}</h3>
-                                        <p className="mt-3 text-sm leading-6 text-slate-600">{item.desc}</p>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section className="bg-[#020617] py-16">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="grid gap-6 md:grid-cols-3">
-                        {destinationGroups.map((item) => {
-                            const Icon = item.icon;
-                            return (
-                                <div key={item.title} className="rounded-lg border border-white/10 bg-white/[0.04] p-6">
-                                    <Icon className="text-[#7FB77E]" size={28} />
-                                    <h3 className="mt-5 text-xl font-black text-white">{item.title}</h3>
-                                    <p className="mt-3 text-sm leading-6 text-slate-300">{item.desc}</p>
-                                </div>
-                            );
-                        })}
-                    </div>
-                    <div className="mt-8 grid gap-3 md:grid-cols-3">
-                        {trustBadges.map((item) => {
-                            const Icon = item.icon;
-                            return (
-                                <div key={item.label} className="flex items-center gap-3 rounded-lg border border-white/10 px-4 py-3">
-                                    <Icon size={18} className="text-[#A67C52]" />
-                                    <span className="text-sm font-bold text-slate-200">{item.label}</span>
-                                </div>
-                            );
-                        })}
-                    </div>
+                    </motion.div>
                 </div>
             </section>
         </PublicLayout>
