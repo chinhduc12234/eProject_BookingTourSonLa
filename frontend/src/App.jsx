@@ -8,7 +8,11 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import EmployeeDashboard from "./pages/employee/EmployeeDashboard";
 import CustomerHome from "./pages/customer/CustomerHome";
-import AccountPage from "./pages/customer/AccountPage";
+import AccountHomePage from "./pages/customer/AccountHomePage";
+import BookingDetailPage from "./pages/customer/BookingDetailPage";
+import BookingHistoryPage from "./pages/customer/BookingHistoryPage";
+import ProfilePage from "./pages/customer/ProfilePage";
+import TourBookingPage from "./pages/customer/TourBookingPage";
 import AboutPage from "./pages/public/AboutPage";
 import ContactPage from "./pages/public/ContactPage";
 import FaqPage from "./pages/public/FaqPage";
@@ -21,6 +25,7 @@ import LocationPage from "./pages/admin/LocationPage";
 import TourPage from "./pages/admin/TourPage";
 import TourDetailPage from "./pages/admin/TourDetailPage";
 import StaffPage from "./pages/admin/StaffPage";
+import BookingPage from "./pages/admin/BookingPage";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import AdminLayout from "./layouts/AdminLayout";
@@ -58,12 +63,43 @@ function AnimatedRoutes() {
         <Route path="/tours" element={<TourListPage />} />
         <Route path="/tours/:id" element={<TourDetailPublicPage />} />
         <Route path="/booking" element={<TourListPage />} />
-        <Route path="/booking/:id" element={<TourDetailPublicPage />} />
+        <Route
+          path="/booking/:id"
+          element={
+            <ProtectedRoute allowRoles={["CUSTOMER"]}>
+              <TourBookingPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/tai-khoan"
           element={
             <ProtectedRoute allowRoles={["CUSTOMER"]}>
-              <AccountPage />
+              <AccountHomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tai-khoan/thong-tin"
+          element={
+            <ProtectedRoute allowRoles={["CUSTOMER"]}>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tai-khoan/booking"
+          element={
+            <ProtectedRoute allowRoles={["CUSTOMER"]}>
+              <BookingHistoryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tai-khoan/booking/:bookingId"
+          element={
+            <ProtectedRoute allowRoles={["CUSTOMER"]}>
+              <BookingDetailPage />
             </ProtectedRoute>
           }
         />
@@ -98,6 +134,7 @@ function AnimatedRoutes() {
           <Route path="locations" element={<LocationPage />} />
           <Route path="tours" element={<TourPage />} />
           <Route path="tours/:id" element={<TourDetailPage />} />
+          <Route path="bookings" element={<BookingPage />} />
           <Route path="staff" element={<StaffPage />} />
         </Route>
       </Routes>

@@ -102,8 +102,21 @@ public class TourDeparture {
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
 
-        this.status = (this.currentPeople >= this.maxPeople)
-                ? DepartureStatus.FULL
-                : DepartureStatus.OPEN;
+        if (this.currentPeople == null)
+            this.currentPeople = 0;
+        if (this.reservedPeople == null)
+            this.reservedPeople = 0;
+        if (this.isPrivateDeparture == null)
+            this.isPrivateDeparture = false;
+
+        if (this.status == null) {
+            this.status = DepartureStatus.OPEN;
+        }
+
+        if (this.status != DepartureStatus.CLOSED && this.currentPeople >= this.maxPeople) {
+            this.status = DepartureStatus.FULL;
+        } else if (this.status == DepartureStatus.FULL) {
+            this.status = DepartureStatus.OPEN;
+        }
     }
 }

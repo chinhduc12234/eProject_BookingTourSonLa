@@ -6,6 +6,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +18,7 @@ import com.bookingtoursonla.dto.BookingCustomerResponse;
 import com.bookingtoursonla.dto.BookingDetailResponse;
 import com.bookingtoursonla.dto.BookingResponse;
 import com.bookingtoursonla.dto.CreateBookingRequest;
+import com.bookingtoursonla.dto.UpdateBookingAdminRequest;
 import com.bookingtoursonla.entity.Booking;
 import com.bookingtoursonla.entity.BookingCustomer;
 import com.bookingtoursonla.entity.Tour;
@@ -163,6 +168,81 @@ public class BookingServiceImpl implements BookingService {
         return mapToDetailResponse(booking, customers);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<BookingResponse> getAdminBookings(
+            int page,
+            int size,
+            String keyword,
+            String status,
+            String paymentStatus) {
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by("bookedAt").descending());
+
+        BookingStatus bookingStatus = parseNullableBookingStatus(status);
+        PaymentStatus payStatus = parseNullablePaymentStatus(paymentStatus);
+        String normalizedKeyword = isBlank(keyword) ? null : keyword.trim();
+
+        return bookingRepository
+                .searchAdminBookings(
+                        normalizedKeyword,
+                        bookingStatus,
+                        payStatus,
+                        pageable)
+                .map(this::mapToResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BookingDetailResponse getAdminBookingDetail(Long id) {
+
+        Booking booking = bookingRepository
+                .findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
+
+        List<BookingCustomer> customers = bookingCustomerRepository
+                .findByBookingIdOrderByIdAsc(booking.getId());
+
+        return mapToDetailResponse(booking, customers);
+    }
+
+    @Override
+    @Transactional
+    public BookingDetailResponse updateAdminBooking(
+            Long id,
+            UpdateBookingAdminRequest request,
+            String adminEmail) {
+
+        Booking booking = bookingRepository
+                .findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
+
+        BookingStatus nextStatus = parseNullableBookingStatus(request.getStatus());
+        PaymentStatus nextPaymentStatus = parseNullablePaymentStatus(request.getPaymentStatus());
+
+        if (nextStatus != null && nextStatus != booking.getStatus()) {
+            applyBookingStatusTransition(booking, nextStatus, adminEmail);
+        }
+
+        if (nextPaymentStatus != null) {
+            booking.setPaymentStatus(nextPaymentStatus);
+        }
+
+        if (request.getInternalNote() != null) {
+            booking.setInternalNote(trimToNull(request.getInternalNote()));
+        }
+
+        Booking saved = bookingRepository.save(booking);
+
+        List<BookingCustomer> customers = bookingCustomerRepository
+                .findByBookingIdOrderByIdAsc(saved.getId());
+
+        return mapToDetailResponse(saved, customers);
+    }
+
     private void validateBookableDeparture(
             Tour tour,
             TourDeparture departure,
@@ -244,6 +324,64 @@ public class BookingServiceImpl implements BookingService {
         return customer;
     }
 
+    private void applyBookingStatusTransition(
+            Booking booking,
+            BookingStatus nextStatus,
+            String adminEmail) {
+
+        BookingStatus currentStatus = booking.getStatus();
+        TourDeparture departure = booking.getTourDeparture();
+        int totalPeople = valueOrZero(booking.getTotalPeople());
+
+        if (currentStatus == BookingStatus.PENDING) {
+            departure.setReservedPeople(Math.max(
+                    0,
+                    valueOrZero(departure.getReservedPeople()) - totalPeople));
+        } else if (currentStatus == BookingStatus.CONFIRMED
+                || currentStatus == BookingStatus.IN_PROGRESS
+                || currentStatus == BookingStatus.COMPLETED) {
+            departure.setCurrentPeople(Math.max(
+                    0,
+                    valueOrZero(departure.getCurrentPeople()) - totalPeople));
+        }
+
+        if (nextStatus == BookingStatus.PENDING) {
+            ensureCapacity(departure, totalPeople);
+            departure.setReservedPeople(valueOrZero(departure.getReservedPeople()) + totalPeople);
+        } else if (nextStatus == BookingStatus.CONFIRMED
+                || nextStatus == BookingStatus.IN_PROGRESS
+                || nextStatus == BookingStatus.COMPLETED) {
+            ensureCapacity(departure, totalPeople);
+            departure.setCurrentPeople(valueOrZero(departure.getCurrentPeople()) + totalPeople);
+
+            if (booking.getConfirmedAt() == null) {
+                booking.setConfirmedAt(LocalDateTime.now());
+            }
+
+            if (booking.getConfirmedBy() == null && !isBlank(adminEmail)) {
+                userRepository
+                        .findByEmail(adminEmail)
+                        .ifPresent(booking::setConfirmedBy);
+            }
+        } else if (nextStatus == BookingStatus.CANCELLED) {
+            booking.setCancelledAt(LocalDateTime.now());
+        }
+
+        booking.setStatus(nextStatus);
+        tourDepartureRepository.save(departure);
+    }
+
+    private void ensureCapacity(
+            TourDeparture departure,
+            int totalPeople) {
+
+        int availableSeats = calculateAvailableSeats(departure);
+
+        if (availableSeats < totalPeople) {
+            throw new RuntimeException("Không đủ chỗ trống cho trạng thái booking này");
+        }
+    }
+
     private BookingResponse mapToResponse(Booking booking) {
 
         TourDeparture departure = booking.getTourDeparture();
@@ -257,10 +395,16 @@ public class BookingServiceImpl implements BookingService {
         response.setPaymentStatus(booking.getPaymentStatus().name());
         response.setTotalPrice(booking.getTotalPrice());
         response.setCustomerName(booking.getFullName());
+        response.setEmail(booking.getEmail());
+        response.setPhone(booking.getPhone());
+        response.setTourId(tour.getId());
+        response.setDepartureId(departure.getId());
         response.setTourName(tour.getTitle());
         response.setDepartureDate(departure.getDepartureDate());
         response.setAdultCount(booking.getAdultCount());
         response.setChildCount(booking.getChildCount());
+        response.setTotalPeople(booking.getTotalPeople());
+        response.setBookedAt(booking.getBookedAt());
 
         return response;
     }
@@ -370,6 +514,32 @@ public class BookingServiceImpl implements BookingService {
             return BookingType.valueOf(value.trim().toUpperCase());
         } catch (IllegalArgumentException ex) {
             throw new RuntimeException("Loại booking không hợp lệ");
+        }
+    }
+
+    private BookingStatus parseNullableBookingStatus(String value) {
+
+        if (isBlank(value)) {
+            return null;
+        }
+
+        try {
+            return BookingStatus.valueOf(value.trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new RuntimeException("Trạng thái booking không hợp lệ");
+        }
+    }
+
+    private PaymentStatus parseNullablePaymentStatus(String value) {
+
+        if (isBlank(value)) {
+            return null;
+        }
+
+        try {
+            return PaymentStatus.valueOf(value.trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new RuntimeException("Trạng thái thanh toán không hợp lệ");
         }
     }
 

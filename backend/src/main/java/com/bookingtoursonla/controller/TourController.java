@@ -1,5 +1,7 @@
 package com.bookingtoursonla.controller;
 
+import java.util.Map;
+
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.bookingtoursonla.dto.CreateTourRequest;
 import com.bookingtoursonla.dto.TourDto;
@@ -68,6 +71,15 @@ public class TourController {
             @Valid @RequestBody CreateTourRequest request) {
 
         return tourService.create(request);
+    }
+
+    @PostMapping("/thumbnail")
+    public Map<String, String> uploadThumbnail(
+            @RequestParam("file") MultipartFile file) {
+
+        return Map.of(
+                "url",
+                tourService.uploadThumbnail(file));
     }
 
     @PutMapping("/{id}")

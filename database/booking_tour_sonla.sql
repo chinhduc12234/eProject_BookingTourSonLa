@@ -176,7 +176,7 @@ CREATE TABLE tours (
 
     slug VARCHAR(255) NOT NULL UNIQUE,
 
-    thumbnail VARCHAR(1000),
+    thumbnail TEXT,
 
     short_description TEXT,
 

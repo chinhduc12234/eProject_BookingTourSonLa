@@ -28891,3 +28891,4 @@ Hibernate:
         t1_0.created_at desc 
     limit
         ?
+2026-05-24T19:45:31.381+07:00  WARN 26224 --- [backend] [l-1:housekeeper] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@2ced4880 (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value.

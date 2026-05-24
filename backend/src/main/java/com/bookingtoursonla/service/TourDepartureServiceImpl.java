@@ -226,6 +226,11 @@ public class TourDepartureServiceImpl implements TourDepartureService {
         dto.setMaxPeople(d.getMaxPeople());
         dto.setCurrentPeople(d.getCurrentPeople());
         dto.setReservedPeople(d.getReservedPeople());
+        dto.setAvailableSeats(Math.max(
+                0,
+                defaultZero(d.getMaxPeople())
+                        - defaultZero(d.getCurrentPeople())
+                        - defaultZero(d.getReservedPeople())));
         dto.setAdultPrice(d.getAdultPrice());
         dto.setChildPrice(d.getChildPrice());
         dto.setIsPrivateDeparture(d.getIsPrivateDeparture());

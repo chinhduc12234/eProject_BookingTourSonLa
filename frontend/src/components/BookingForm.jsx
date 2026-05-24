@@ -175,7 +175,8 @@ export default function BookingForm({
         <div>
           <h2 className="text-lg font-black text-white">Thông tin đặt tour</h2>
           <p className="text-xs text-slate-400">
-            Đã tự điền từ tài khoản khách hàng
+            Thông tin được tự điền từ tài khoản khách hàng, bạn có thể chỉnh lại
+            cho booking này.
           </p>
         </div>
       </div>

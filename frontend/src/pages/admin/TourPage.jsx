@@ -5,7 +5,9 @@ import {
     createTour,
     updateTour,
     deleteTour,
+    uploadTourThumbnail,
 } from "../../api/tourApi";
+import { resolveUploadedFileUrl } from "../../api/userApi";
 
 import Modal from "../../components/Modal";
 
@@ -43,6 +45,9 @@ export default function TourPage() {
         useState(false);
 
     const [tableLoading, setTableLoading] =
+        useState(false);
+
+    const [uploadingImage, setUploadingImage] =
         useState(false);
 
     const [errors, setErrors] =
@@ -212,20 +217,47 @@ export default function TourPage() {
 
     // ================= UPLOAD IMAGE =================
 
-    const handleImageUpload = (e) => {
+    const handleImageUpload = async (e) => {
 
         const file = e.target.files?.[0];
+        e.target.value = "";
 
         if (!file) return;
 
-        const reader = new FileReader();
+        if (!file.type.startsWith("image/")) {
+            toast.error("Vui lòng chọn file ảnh");
+            return;
+        }
 
-        reader.onloadend = () => {
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error("Ảnh tour không được vượt quá 10MB");
+            return;
+        }
 
-            setThumbnail(reader.result);
-        };
+        try {
 
-        reader.readAsDataURL(file);
+            setUploadingImage(true);
+
+            const response =
+                await uploadTourThumbnail(file);
+
+            setThumbnail(response.data.url);
+
+            toast.success(
+                "Đã tải ảnh tour"
+            );
+
+        } catch (err) {
+
+            toast.error(
+                err?.response?.data?.message ||
+                "Không thể tải ảnh tour"
+            );
+
+        } finally {
+
+            setUploadingImage(false);
+        }
     };
 
     // ================= SAVE =================
@@ -233,6 +265,7 @@ export default function TourPage() {
     const handleSave = async () => {
 
         const newErrors = {};
+        const normalizedThumbnail = thumbnail.trim();
 
         if (!title.trim()) {
 
@@ -258,11 +291,26 @@ export default function TourPage() {
                 "Nhập giá tour";
         }
 
+        if (normalizedThumbnail.startsWith("data:")) {
+
+            newErrors.thumbnail =
+                "Không thể lưu ảnh base64. Hãy dùng Upload ảnh để tải file lên server.";
+        }
+
+        if (normalizedThumbnail.length > 4000) {
+
+            newErrors.thumbnail =
+                "URL ảnh tour không được vượt quá 4000 ký tự. Hãy dùng Upload ảnh hoặc URL ngắn hơn.";
+        }
+
         setErrors(newErrors);
 
         if (
             Object.keys(newErrors).length > 0
         ) {
+            toast.error(
+                Object.values(newErrors)[0]
+            );
             return;
         }
 
@@ -273,7 +321,8 @@ export default function TourPage() {
             const payload = {
                 title,
                 slug,
-                thumbnail,
+                thumbnail:
+                    normalizedThumbnail || null,
                 shortDescription,
                 durationDays:
                     Number(durationDays),
@@ -548,7 +597,7 @@ export default function TourPage() {
                                     {tour.thumbnail ? (
 
                                         <img
-                                            src={tour.thumbnail}
+                                            src={resolveUploadedFileUrl(tour.thumbnail)}
                                             alt={tour.title}
                                             className="w-full h-full object-cover"
                                         />
@@ -652,6 +701,7 @@ export default function TourPage() {
                                                 setMaxPeople(tour.maxPeople);
                                                 setPrice(tour.price);
                                                 setStatus(tour.status);
+                                                setImageMode("url");
                                                 setOpen(true);
                                             }}
                                             className="h-11 px-4 rounded-xl bg-amber-50 hover:bg-amber-500 hover:text-white text-amber-600 font-bold transition-all flex items-center justify-center gap-2"
@@ -865,19 +915,29 @@ export default function TourPage() {
                                             <input
                                                 type="file"
                                                 accept="image/*"
+                                                disabled={uploadingImage}
                                                 hidden
                                                 onChange={
                                                     handleImageUpload
                                                 }
                                             />
 
-                                            <Upload
-                                                size={42}
-                                                className="text-slate-400 mb-3"
-                                            />
+                                            {uploadingImage ? (
+                                                <Loader2
+                                                    size={42}
+                                                    className="mb-3 animate-spin text-amber-500"
+                                                />
+                                            ) : (
+                                                <Upload
+                                                    size={42}
+                                                    className="text-slate-400 mb-3"
+                                                />
+                                            )}
 
                                             <p className="font-bold text-slate-700">
-                                                Chọn ảnh từ máy tính
+                                                {uploadingImage
+                                                    ? "Đang tải ảnh..."
+                                                    : "Chọn ảnh từ máy tính"}
                                             </p>
 
                                             <p className="text-sm text-slate-400 mt-1">
@@ -896,7 +956,7 @@ export default function TourPage() {
                                             <div className="relative w-full h-64 rounded-3xl overflow-hidden bg-slate-100 border border-slate-200">
 
                                                 <img
-                                                    src={thumbnail}
+                                                    src={resolveUploadedFileUrl(thumbnail)}
                                                     alt="preview"
                                                     className="w-full h-full object-cover"
                                                 />
@@ -1067,11 +1127,11 @@ export default function TourPage() {
 
                             <button
                                 onClick={handleSave}
-                                disabled={loading}
+                                disabled={loading || uploadingImage}
                                 className="min-w-[180px] h-14 px-8 rounded-2xl bg-slate-900 hover:bg-amber-500 text-white font-bold flex items-center justify-center gap-2 disabled:opacity-50"
                             >
 
-                                {loading && (
+                                {(loading || uploadingImage) && (
                                     <Loader2
                                         className="animate-spin"
                                         size={18}

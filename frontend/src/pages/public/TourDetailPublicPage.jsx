@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -20,8 +20,7 @@ import {
 import toast from "react-hot-toast";
 
 import { getPublicTourDetail } from "../../api/publicTourApi";
-import { getCurrentUserProfile } from "../../api/userApi";
-import BookingForm from "../../components/BookingForm";
+import { resolveUploadedFileUrl } from "../../api/userApi";
 import DepartureSelector from "../../components/DepartureSelector";
 import PublicLayout from "./PublicLayout";
 import { getRole, isLoggedIn } from "../../utils/auth";
@@ -41,10 +40,7 @@ export default function TourDetailPublicPage() {
   const { id } = useParams();
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [profileLoading, setProfileLoading] = useState(false);
-  const [userProfile, setUserProfile] = useState(null);
   const [selectedDepartureId, setSelectedDepartureId] = useState("");
-  const [bookingSuccess, setBookingSuccess] = useState(null);
   const [lightboxImage, setLightboxImage] = useState(null);
 
   useEffect(() => {
@@ -80,36 +76,8 @@ export default function TourDetailPublicPage() {
     loadDetail();
   }, [id]);
 
-  useEffect(() => {
-    if (!isLoggedIn()) {
-      setProfileLoading(false);
-      return;
-    }
-
-    const loadProfile = async () => {
-      try {
-        setProfileLoading(true);
-        const response = await getCurrentUserProfile();
-        setUserProfile(response.data);
-      } catch {
-        setUserProfile(null);
-      } finally {
-        setProfileLoading(false);
-      }
-    };
-
-    loadProfile();
-  }, []);
-
-  const selectedDeparture = useMemo(() => {
-    return (detail?.departures || []).find(
-      (departure) => Number(departure.id) === Number(selectedDepartureId),
-    );
-  }, [detail, selectedDepartureId]);
-
   const authenticated = isLoggedIn();
   const role = getRole();
-  const canBook = authenticated && role === "CUSTOMER" && userProfile;
 
   if (loading) {
     return (
@@ -138,7 +106,7 @@ export default function TourDetailPublicPage() {
   }
 
   const { tour, images = [], days = [], departures = [] } = detail;
-  const coverImage = tour.thumbnail || images[0]?.imageUrl;
+  const coverImage = resolveUploadedFileUrl(tour.thumbnail || images[0]?.imageUrl);
 
   return (
     <PublicLayout>
@@ -289,7 +257,7 @@ export default function TourDetailPublicPage() {
                     <motion.button
                       key={image.id}
                       type="button"
-                      onClick={() => setLightboxImage(image.imageUrl)}
+                      onClick={() => setLightboxImage(resolveUploadedFileUrl(image.imageUrl))}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className={[
@@ -298,7 +266,7 @@ export default function TourDetailPublicPage() {
                       ].join(" ")}
                     >
                       <img
-                        src={image.imageUrl}
+                        src={resolveUploadedFileUrl(image.imageUrl)}
                         alt={tour.title}
                         loading="lazy"
                         className="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -451,48 +419,6 @@ export default function TourDetailPublicPage() {
           </div>
 
           <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
-            {bookingSuccess && (
-              <motion.div
-                initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                className="relative overflow-hidden rounded-2xl border border-[#7FB77E]/40 bg-gradient-to-br from-[#7FB77E]/20 to-[#4f8f4d]/10 p-5 shadow-soft-green"
-              >
-                <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#7FB77E]/30 blur-2xl" />
-                <div className="relative flex items-center gap-3">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#7FB77E] text-[#020617] animate-pulse-glow">
-                    <CheckCircle2 size={24} />
-                  </span>
-                  <div>
-                    <h2 className="text-lg font-black text-white">
-                      Đặt tour thành công!
-                    </h2>
-                    <p className="text-sm text-slate-200">
-                      Mã booking:{" "}
-                      <span className="font-black text-[#9de09c]">
-                        {bookingSuccess.bookingCode}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-                <div className="relative mt-4 grid gap-2 text-sm text-slate-200">
-                  <div className="flex justify-between gap-3 rounded-lg bg-black/20 px-3 py-2">
-                    <span>Trạng thái</span>
-                    <span className="font-bold">{bookingSuccess.status}</span>
-                  </div>
-                  <div className="flex justify-between gap-3 rounded-lg bg-black/20 px-3 py-2">
-                    <span>Thanh toán</span>
-                    <span className="font-bold">{bookingSuccess.paymentStatus}</span>
-                  </div>
-                  <div className="flex justify-between gap-3 rounded-lg bg-black/20 px-3 py-2">
-                    <span>Tổng tiền</span>
-                    <span className="font-black text-[#f4c27a]">
-                      {formatCurrency(bookingSuccess.totalPrice)}
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
             <motion.div
               initial={{ opacity: 0, y: 18 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -523,65 +449,69 @@ export default function TourDetailPublicPage() {
               </div>
             </motion.div>
 
-            {profileLoading ? (
-              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-center">
-                <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#7FB77E]" />
-                <p className="mt-3 text-sm font-bold text-slate-300">
-                  Đang kiểm tra tài khoản khách hàng...
-                </p>
-              </div>
-            ) : canBook ? (
-              <BookingForm
-                key={userProfile.id}
-                tour={tour}
-                selectedDeparture={selectedDeparture}
-                selectedDepartureId={selectedDepartureId}
-                userProfile={userProfile}
-                onSuccess={setBookingSuccess}
-              />
-            ) : (
-              <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-5">
-                <div className="flex items-center gap-3 border-b border-white/10 pb-4">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
-                    <ShieldCheck size={20} />
-                  </span>
-                  <div>
-                    <h2 className="text-lg font-black text-white">
-                      Đặt tour dành cho khách hàng
-                    </h2>
-                    <p className="text-xs text-slate-400">
-                      Khách vãng lai chỉ được tìm kiếm và xem thông tin tour.
-                    </p>
-                  </div>
+            <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-5">
+              <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
+                  <ShieldCheck size={20} />
+                </span>
+                <div>
+                  <h2 className="text-lg font-black text-white">
+                    Đặt tour dành cho khách hàng
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    Khách vãng lai có thể xem và tìm kiếm tour. Đăng nhập để đặt tour.
+                  </p>
                 </div>
-
-                {authenticated && role !== "CUSTOMER" ? (
-                  <div className="mt-5 rounded-xl border border-amber-300/25 bg-amber-300/10 p-4 text-sm leading-6 text-amber-100">
-                    Tài khoản hiện tại không phải tài khoản khách hàng. Vui
-                    lòng dùng tài khoản khách hàng để đặt tour.
-                  </div>
-                ) : (
-                  <>
-                    <p className="mt-5 text-sm leading-7 text-slate-300">
-                      Theo phân quyền hệ thống, khách vãng lai có thể xem tour,
-                      tìm kiếm tour và xem thông tin điểm đến. Để đặt tour và
-                      theo dõi lịch sử booking, bạn cần đăng nhập tài khoản
-                      khách hàng.
-                    </p>
-                    <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                      <Link to="/login" className="btn-primary text-sm">
-                        <LogIn size={17} />
-                        Đăng nhập
-                      </Link>
-                      <Link to="/register" className="btn-outline text-sm">
-                        <UserPlus size={17} />
-                        Đăng ký
-                      </Link>
-                    </div>
-                  </>
-                )}
               </div>
-            )}
+
+              {authenticated && role === "CUSTOMER" ? (
+                <>
+                  <p className="mt-5 text-sm leading-7 text-slate-300">
+                    Lịch đã chọn sẽ được chuyển sang trang đặt tour riêng để bạn
+                    kiểm tra thông tin gọn hơn trước khi gửi yêu cầu.
+                  </p>
+                  <Link
+                    to={`/booking/${tour.id}${
+                      selectedDepartureId ? `?departureId=${selectedDepartureId}` : ""
+                    }`}
+                    className="btn-primary mt-5 w-full text-sm"
+                  >
+                    <CheckCircle2 size={17} />
+                    Tiếp tục đặt tour
+                  </Link>
+                </>
+              ) : authenticated ? (
+                <div className="mt-5 rounded-xl border border-amber-300/25 bg-amber-300/10 p-4 text-sm leading-6 text-amber-100">
+                  Tài khoản hiện tại không phải tài khoản khách hàng. Vui lòng
+                  dùng tài khoản khách hàng để đặt tour.
+                </div>
+              ) : (
+                <>
+                  <p className="mt-5 text-sm leading-7 text-slate-300">
+                    Bạn cần đăng nhập hoặc đăng ký tài khoản khách hàng trước khi
+                    đặt tour. Sau khi đăng nhập, hệ thống sẽ đưa bạn tới trang
+                    đặt tour riêng.
+                  </p>
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                    <Link
+                      to={`/booking/${tour.id}${
+                        selectedDepartureId
+                          ? `?departureId=${selectedDepartureId}`
+                          : ""
+                      }`}
+                      className="btn-primary text-sm"
+                    >
+                      <LogIn size={17} />
+                      Đăng nhập để đặt
+                    </Link>
+                    <Link to="/register" className="btn-outline text-sm">
+                      <UserPlus size={17} />
+                      Đăng ký
+                    </Link>
+                  </div>
+                </>
+              )}
+            </div>
           </aside>
         </div>
       </section>

@@ -10,3 +10,12 @@ export const getMyBookings = () =>
 
 export const getBookingDetail = (id) =>
   axiosClient.get(`${BASE}/${id}`);
+
+export const getAdminBookings = (params) =>
+  axiosClient.get("/admin/bookings", { params });
+
+export const getAdminBookingDetail = (id) =>
+  axiosClient.get(`/admin/bookings/${id}`);
+
+export const updateAdminBooking = (id, data) =>
+  axiosClient.put(`/admin/bookings/${id}`, data);

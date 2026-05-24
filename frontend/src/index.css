@@ -531,3 +531,41 @@ html[data-theme="light"] .hero-theme-bottom {
 html[data-theme="light"] .bg-grid-fade {
     opacity: 0.3 !important;
 }
+
+/* Keep the admin shell independent from the public light-theme overrides. */
+html[data-theme="light"] .admin-shell [class~="text-white"] {
+    color: #ffffff !important;
+}
+
+html[data-theme="light"] .admin-shell [class~="bg-slate-900"] {
+    background-color: #0f172a !important;
+}
+
+html[data-theme="light"] .admin-shell [class*="hover:bg-slate-900"]:hover {
+    background-color: #0f172a !important;
+}
+
+html[data-theme="light"] .admin-shell [class*="hover:text-white"]:hover {
+    color: #ffffff !important;
+}
+
+html[data-theme="light"] .admin-sidebar {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="light"] .admin-sidebar [class~="text-slate-300"] {
+    color: #cbd5e1 !important;
+}
+
+html[data-theme="light"] .admin-sidebar [class~="text-rose-200"] {
+    color: #fecdd3 !important;
+}
+
+html[data-theme="light"] .admin-sidebar [class*="bg-white/["] {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+html[data-theme="light"] .admin-sidebar [class*="border-white/"] {
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}

@@ -2,6 +2,7 @@ package com.bookingtoursonla.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import lombok.Data;
 
@@ -20,6 +21,14 @@ public class BookingResponse {
 
     private String customerName;
 
+    private String email;
+
+    private String phone;
+
+    private Long tourId;
+
+    private Long departureId;
+
     private String tourName;
 
     private LocalDate departureDate;
@@ -27,4 +36,8 @@ public class BookingResponse {
     private Integer adultCount;
 
     private Integer childCount;
+
+    private Integer totalPeople;
+
+    private LocalDateTime bookedAt;
 }

@@ -1,5 +1,4 @@
 import {
-  CalendarRange,
   Plus,
   Trash2,
 } from "lucide-react";
@@ -8,6 +7,41 @@ function toDateInputValue(value) {
   if (value == null || value === "") return "";
   if (typeof value === "string") return value.slice(0, 10);
   return "";
+}
+
+function formatDateInput(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getTomorrowDate() {
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+  return formatDateInput(date);
+}
+
+function getDefaultDeadline(departureDate) {
+  if (!departureDate) return "";
+
+  const date = new Date(`${departureDate}T00:00:00`);
+  date.setDate(date.getDate() - 1);
+  date.setHours(23, 59, 0, 0);
+
+  if (date < new Date()) {
+    const fallback = new Date(`${departureDate}T23:59:00`);
+    return fallback >= new Date()
+      ? `${formatDateInput(fallback)}T23:59:00`
+      : "";
+  }
+
+  return `${formatDateInput(date)}T23:59:00`;
+}
+
+function isExpiredDeadline(value) {
+  return Boolean(value) && new Date(value) < new Date();
 }
 
 function statusLabel(status) {
@@ -28,12 +62,17 @@ export default function TourDepartureStep({
   };
 
   const addDeparture = () => {
+    const departureDate = getTomorrowDate();
+
     setDepartures([
       ...data,
       {
-        departureDate: "",
+        departureDate,
+        bookingDeadline: getDefaultDeadline(departureDate),
         maxPeople: defaultMaxPeople > 0 ? defaultMaxPeople : 30,
         currentPeople: 0,
+        reservedPeople: 0,
+        status: "OPEN",
       },
     ]);
   };
@@ -70,6 +109,10 @@ export default function TourDepartureStep({
       ...copy[index],
       [field]: value,
     };
+
+    if (field === "departureDate" && !copy[index].bookingDeadline) {
+      copy[index].bookingDeadline = getDefaultDeadline(value);
+    }
 
     setDepartures(copy);
   };
@@ -343,6 +386,12 @@ export default function TourDepartureStep({
                   bg-white
                 "
               />
+
+              {isExpiredDeadline(row.bookingDeadline) && (
+                <p className="mt-2 text-xs font-bold text-rose-600">
+                  Hạn đặt đã qua, khách sẽ không thể đặt lịch này.
+                </p>
+              )}
 
             </div>
 

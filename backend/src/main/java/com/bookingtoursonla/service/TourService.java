@@ -1,6 +1,7 @@
 package com.bookingtoursonla.service;
 
 import org.springframework.data.domain.Page;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.bookingtoursonla.dto.CreateTourRequest;
 import com.bookingtoursonla.dto.TourDto;
@@ -28,4 +29,7 @@ public interface TourService {
 
         TourDto getById(
                         Long id);
+
+        String uploadThumbnail(
+                        MultipartFile file);
 }

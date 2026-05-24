@@ -29,7 +29,7 @@ public class Tour {
     @Column(nullable = false, unique = true)
     private String slug;
 
-    @Column(length = 1000)
+    @Column(columnDefinition = "TEXT")
     private String thumbnail;
 
     @Column(name = "short_description", columnDefinition = "TEXT")

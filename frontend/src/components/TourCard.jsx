@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, CalendarDays, Clock3, MapPin, Users } from "lucide-react";
+import { resolveUploadedFileUrl } from "../api/userApi";
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return "Liên hệ";
@@ -26,7 +27,7 @@ export default function TourCard({ tour }) {
         <div className="relative aspect-[4/3] overflow-hidden bg-slate-800">
           {tour.thumbnail ? (
             <img
-              src={tour.thumbnail}
+              src={resolveUploadedFileUrl(tour.thumbnail)}
               alt={tour.title}
               loading="lazy"
               className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110"

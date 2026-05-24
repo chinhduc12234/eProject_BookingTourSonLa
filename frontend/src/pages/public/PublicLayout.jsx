@@ -137,15 +137,6 @@ export default function PublicLayout({ children }) {
 
                     <div className="hidden items-center gap-3 md:flex">
                         {themeButton}
-                        <a
-                            href={`tel:${brand.phone.replace(/\s/g, "")}`}
-                            className="group inline-flex h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm font-bold text-white transition-all hover:border-[#7FB77E]/60 hover:bg-[#7FB77E]/10"
-                        >
-                            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#7FB77E]/20 text-[#9de09c] group-hover:bg-[#7FB77E]/30">
-                                <Phone size={15} />
-                            </span>
-                            {brand.phone}
-                        </a>
                         {authenticated ? (
                             <>
                                 <Link
@@ -267,13 +258,13 @@ export default function PublicLayout({ children }) {
             <main>{children}</main>
 
             {/* FOOTER */}
-            <footer className="relative overflow-hidden border-t border-white/10 bg-gradient-to-b from-[#04120d] via-[#04120d] to-[#020617]">
+            <footer className="relative overflow-hidden border-t border-white/10 bg-gradient-to-b from-[#04120d] via-[#04120d] to-[#020617] pt-8 sm:pt-10">
                 <div className="absolute -top-32 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-[#7FB77E]/10 blur-[120px]" />
                 <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-[#A67C52]/10 blur-[120px]" />
 
                 <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     {/* Newsletter band */}
-                    <div className="grid gap-6 rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-8 backdrop-blur-md md:grid-cols-[1.1fr_0.9fr] md:items-center md:px-10 mt-[-2rem] md:mt-[-3rem]">
+                    <div className="grid gap-6 rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-8 backdrop-blur-md md:grid-cols-[1.1fr_0.9fr] md:items-center md:px-10">
                         <div>
                             <span className="section-tag">
                                 <Send size={12} /> Nhận tin Tây Bắc

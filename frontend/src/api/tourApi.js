@@ -14,6 +14,17 @@ export const getTourDetail = (id) =>
 export const createTour = (data) =>
   axiosClient.post(BASE, data);
 
+export const uploadTourThumbnail = (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return axiosClient.post(`${BASE}/thumbnail`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
 export const updateTour = (id, data) =>
   axiosClient.put(`${BASE}/${id}`, data);
 

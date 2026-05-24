@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axiosClient from "../../api/axiosClient";
 import { saveAuth } from "../../utils/auth";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import { motion, useMotionValue, useMotionTemplate } from "framer-motion";
 import {
@@ -38,6 +38,7 @@ const floatAnim = {
 
 export default function LoginPage() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [loading, setLoading] = useState(false);
     const [form, setForm] = useState({ email: "", password: "" });
 
@@ -79,9 +80,14 @@ export default function LoginPage() {
             });
 
             const role = res.data.role;
+            const from = location.state?.from;
+            const redirectPath = from
+                ? `${from.pathname}${from.search || ""}`
+                : "/tai-khoan";
+
             if (role === "ADMIN") navigate("/admin");
             else if (role === "EMPLOYEE") navigate("/employee");
-            else navigate("/tai-khoan");
+            else navigate(redirectPath);
         } catch (err) {
             Swal.fire({
                 icon: "error",

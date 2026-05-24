@@ -1,13 +1,21 @@
 package com.bookingtoursonla.service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.bookingtoursonla.config.UploadPathUtils;
 import com.bookingtoursonla.dto.CreateTourRequest;
 import com.bookingtoursonla.dto.TourDto;
 import com.bookingtoursonla.dto.UpdateTourRequest;
@@ -22,16 +30,30 @@ import com.bookingtoursonla.security.SecurityUtils;
 public class TourServiceImpl
                 implements TourService {
 
+        private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
+                        "image/jpeg",
+                        "image/png",
+                        "image/webp",
+                        "image/gif");
+
+        private static final long MAX_TOUR_IMAGE_SIZE = 10 * 1024 * 1024;
+
+        private static final int MAX_THUMBNAIL_LENGTH = 4000;
+
         private final TourRepository tourRepository;
 
         private final UserRepository userRepository;
 
+        private final String uploadDir;
+
         public TourServiceImpl(
                         TourRepository tourRepository,
-                        UserRepository userRepository) {
+                        UserRepository userRepository,
+                        @Value("${upload.dir:uploads}") String uploadDir) {
 
                 this.tourRepository = tourRepository;
                 this.userRepository = userRepository;
+                this.uploadDir = uploadDir;
         }
 
         @Override
@@ -140,7 +162,7 @@ public class TourServiceImpl
                                 request.getSlug().trim());
 
                 tour.setThumbnail(
-                                request.getThumbnail());
+                                normalizeThumbnail(request.getThumbnail()));
 
                 tour.setShortDescription(
                                 request.getShortDescription());
@@ -205,7 +227,7 @@ public class TourServiceImpl
                                 request.getSlug().trim());
 
                 existing.setThumbnail(
-                                request.getThumbnail());
+                                normalizeThumbnail(request.getThumbnail()));
 
                 existing.setShortDescription(
                                 request.getShortDescription());
@@ -267,6 +289,79 @@ public class TourServiceImpl
                                                 "Tour not found"));
 
                 return mapToDto(tour);
+        }
+
+        @Override
+        public String uploadThumbnail(
+                        MultipartFile file) {
+
+                if (file == null || file.isEmpty()) {
+                        throw new RuntimeException("Vui lòng chọn ảnh tour");
+                }
+
+                if (file.getSize() > MAX_TOUR_IMAGE_SIZE) {
+                        throw new RuntimeException("Ảnh tour không được vượt quá 10MB");
+                }
+
+                String contentType = file.getContentType();
+
+                if (contentType == null
+                                || !ALLOWED_IMAGE_TYPES.contains(contentType.toLowerCase())) {
+                        throw new RuntimeException("Ảnh tour chỉ hỗ trợ JPG, PNG, WEBP hoặc GIF");
+                }
+
+                try {
+                        Path tourImageDir = UploadPathUtils.resolveUploadRoot(uploadDir)
+                                        .resolve("tours");
+                        Files.createDirectories(tourImageDir);
+
+                        String filename = "tour-" + UUID.randomUUID()
+                                        + getExtension(contentType);
+                        Path target = tourImageDir.resolve(filename).normalize();
+
+                        if (!target.startsWith(tourImageDir)) {
+                                throw new RuntimeException("Tên file ảnh tour không hợp lệ");
+                        }
+
+                        file.transferTo(target);
+
+                        return "/uploads/tours/" + filename;
+                } catch (IOException ex) {
+                        throw new RuntimeException("Không thể lưu ảnh tour");
+                }
+        }
+
+        private String normalizeThumbnail(
+                        String thumbnail) {
+
+                if (thumbnail == null || thumbnail.trim().isEmpty()) {
+                        return null;
+                }
+
+                String value = thumbnail.trim();
+
+                if (value.startsWith("data:")) {
+                        throw new RuntimeException(
+                                        "Không thể lưu ảnh base64 vào tour. Vui lòng dùng nút Upload ảnh.");
+                }
+
+                if (value.length() > MAX_THUMBNAIL_LENGTH) {
+                        throw new RuntimeException(
+                                        "URL ảnh tour không được vượt quá 4000 ký tự. Vui lòng dùng Upload ảnh hoặc URL ảnh ngắn hơn.");
+                }
+
+                return value;
+        }
+
+        private String getExtension(
+                        String contentType) {
+
+                return switch (contentType.toLowerCase()) {
+                        case "image/png" -> ".png";
+                        case "image/webp" -> ".webp";
+                        case "image/gif" -> ".gif";
+                        default -> ".jpg";
+                };
         }
 
         private TourDto mapToDto(

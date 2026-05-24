@@ -42,6 +42,14 @@ export default function DepartureSelector({
           departure.bookingDeadline && new Date(departure.bookingDeadline) < new Date();
         const disabled =
           departure.status !== "OPEN" || availableSeats <= 0 || deadlineExpired;
+        const disabledReason =
+          departure.status !== "OPEN"
+            ? "Lịch chưa mở đặt"
+            : availableSeats <= 0
+              ? "Hết chỗ"
+              : deadlineExpired
+                ? "Quá hạn đặt chỗ"
+                : "";
         const selected = Number(selectedId) === Number(departure.id);
         const adultPrice = departure.adultPrice ?? tourPrice;
         const childPrice = departure.childPrice ?? adultPrice;
@@ -107,7 +115,7 @@ export default function DepartureSelector({
                   disabled ? "bg-rose-400" : "bg-[#9de09c]",
                 ].join(" ")}
               />
-              {disabled ? "Không thể đặt" : departure.status}
+              {disabled ? disabledReason || "Không thể đặt" : "Có thể đặt"}
             </div>
           </button>
         );
