@@ -1,9 +1,11 @@
 package com.bookingtoursonla.service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
@@ -32,8 +34,6 @@ public class TourDepartureServiceImpl implements TourDepartureService {
         this.tourRepository = tourRepository;
     }
 
-    // ===================== GET =====================
-
     @Override
     public List<TourDepartureDto> getByTourId(Long tourId) {
         return departureRepository.findByTourIdOrderByDepartureDateAsc(tourId)
@@ -42,148 +42,173 @@ public class TourDepartureServiceImpl implements TourDepartureService {
                 .toList();
     }
 
-    // ===================== CREATE =====================
-
     @Override
+    @Transactional
     public TourDepartureDto create(Long tourId, TourDepartureRequest request) {
-
         validateRequest(request);
 
         Tour tour = getTourOrThrow(tourId);
+        TourDeparture departure = createOrRestoreDeparture(tour, request);
+        applyRequest(departure, request);
 
-        // prevent duplicate date
-        if (departureRepository.existsByTourIdAndDepartureDate(tourId, request.getDepartureDate())) {
-            throw new RuntimeException("Departure date already exists");
-        }
-
-        TourDeparture d = new TourDeparture();
-        d.setTour(tour);
-        d.setDepartureDate(request.getDepartureDate());
-        d.setBookingDeadline(request.getBookingDeadline());
-        d.setDepartureTime(request.getDepartureTime());
-        d.setMaxPeople(request.getMaxPeople());
-        d.setCurrentPeople(defaultCurrent(request.getCurrentPeople()));
-        d.setReservedPeople(defaultZero(request.getReservedPeople()));
-        d.setAdultPrice(request.getAdultPrice());
-        d.setChildPrice(request.getChildPrice());
-        d.setIsPrivateDeparture(defaultFalse(request.getIsPrivateDeparture()));
-
-        d.setStatus(resolveStatus(
-                request,
-                d.getCurrentPeople(),
-                d.getMaxPeople()));
-
-        return map(departureRepository.save(d));
+        return map(departureRepository.save(departure));
     }
-
-    // ===================== UPDATE =====================
-
-    @Override
-    public TourDepartureDto update(Long id, TourDepartureRequest request) {
-
-        validateRequest(request);
-
-        TourDeparture d = departureRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Departure not found"));
-
-        // check duplicate date if changed
-        if (!d.getDepartureDate().equals(request.getDepartureDate())) {
-            if (departureRepository.existsByTourIdAndDepartureDate(
-                    d.getTour().getId(),
-                    request.getDepartureDate())) {
-                throw new RuntimeException("Departure date already exists");
-            }
-        }
-
-        d.setDepartureDate(request.getDepartureDate());
-        d.setBookingDeadline(request.getBookingDeadline());
-        d.setDepartureTime(request.getDepartureTime());
-        d.setMaxPeople(request.getMaxPeople());
-        d.setCurrentPeople(defaultCurrent(request.getCurrentPeople()));
-        d.setReservedPeople(defaultZero(request.getReservedPeople()));
-        d.setAdultPrice(request.getAdultPrice());
-        d.setChildPrice(request.getChildPrice());
-        d.setIsPrivateDeparture(defaultFalse(request.getIsPrivateDeparture()));
-
-        d.setStatus(resolveStatus(
-                request,
-                d.getCurrentPeople(),
-                d.getMaxPeople()));
-
-        return map(departureRepository.save(d));
-    }
-
-    // ===================== DELETE =====================
-
-    @Override
-    public void delete(Long id) {
-        departureRepository.deleteById(id);
-    }
-
-    // ===================== REPLACE ALL =====================
 
     @Override
     @Transactional
-    public void replaceAll(Long tourId, List<TourDepartureRequest> requests) {
+    public TourDepartureDto update(Long id, TourDepartureRequest request) {
+        validateRequest(request);
 
-        Tour tour = getTourOrThrow(tourId);
+        TourDeparture departure = departureRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new RuntimeException("Departure not found"));
 
-        departureRepository.deleteAllByTour_Id(tourId);
-        departureRepository.flush();
+        validateUniqueDateForUpdate(departure, request.getDepartureDate());
+        applyRequest(departure, request);
 
-        List<TourDeparture> list = new ArrayList<>();
-
-        Set<LocalDate> seenDates = new HashSet<>();
-
-        for (TourDepartureRequest r : requests) {
-
-            validateRequest(r);
-
-            if (!seenDates.add(r.getDepartureDate())) {
-                throw new RuntimeException("Duplicate departure dates are not allowed");
-            }
-
-            TourDeparture d = new TourDeparture();
-            d.setTour(tour);
-            d.setDepartureDate(r.getDepartureDate());
-            d.setBookingDeadline(r.getBookingDeadline());
-            d.setDepartureTime(r.getDepartureTime());
-            d.setMaxPeople(r.getMaxPeople());
-            d.setCurrentPeople(defaultCurrent(r.getCurrentPeople()));
-            d.setReservedPeople(defaultZero(r.getReservedPeople()));
-            d.setAdultPrice(r.getAdultPrice());
-            d.setChildPrice(r.getChildPrice());
-            d.setIsPrivateDeparture(defaultFalse(r.getIsPrivateDeparture()));
-            d.setStatus(resolveStatus(
-                    r,
-                    d.getCurrentPeople(),
-                    d.getMaxPeople()));
-
-            list.add(d);
-        }
-
-        departureRepository.saveAll(list);
+        return map(departureRepository.save(departure));
     }
 
-    // ===================== HELPERS =====================
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        TourDeparture departure = departureRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new RuntimeException("Departure not found"));
+
+        softDelete(departure);
+        departureRepository.save(departure);
+    }
+
+    @Override
+    @Transactional
+    public void syncAll(Long tourId, List<TourDepartureRequest> requests) {
+        Tour tour = getTourOrThrow(tourId);
+        List<TourDepartureRequest> safeRequests = requests == null ? List.of() : requests;
+
+        validateNoDuplicateIdsOrDates(safeRequests);
+
+        List<TourDeparture> existing = departureRepository.findAllByTourIdIncludingDeleted(tourId);
+        Map<Long, TourDeparture> existingById = new HashMap<>();
+        Set<Long> retainedIds = new HashSet<>();
+
+        for (TourDeparture departure : existing) {
+            existingById.put(departure.getId(), departure);
+        }
+
+        for (TourDepartureRequest request : safeRequests) {
+            validateRequest(request);
+
+            TourDeparture departure;
+            if (request.getId() != null) {
+                departure = existingById.get(request.getId());
+                if (departure == null) {
+                    throw new RuntimeException("Departure does not belong to this tour");
+                }
+                if (departure.getDeletedAt() != null) {
+                    throw new RuntimeException("Deleted departure cannot be updated");
+                }
+                validateUniqueDateForUpdate(departure, request.getDepartureDate());
+            } else {
+                departure = createOrRestoreDeparture(tour, request);
+            }
+
+            applyRequest(departure, request);
+            departureRepository.save(departure);
+            retainedIds.add(departure.getId());
+        }
+
+        for (TourDeparture departure : existing) {
+            if (departure.getDeletedAt() == null && !retainedIds.contains(departure.getId())) {
+                softDelete(departure);
+                departureRepository.save(departure);
+            }
+        }
+    }
 
     private Tour getTourOrThrow(Long tourId) {
         return tourRepository.findById(tourId)
                 .orElseThrow(() -> new RuntimeException("Tour not found"));
     }
 
-    private void validateRequest(TourDepartureRequest r) {
+    private TourDeparture createOrRestoreDeparture(Tour tour, TourDepartureRequest request) {
+        return departureRepository.findAnyByTourIdAndDepartureDate(tour.getId(), request.getDepartureDate())
+                .map(existing -> {
+                    if (existing.getDeletedAt() == null) {
+                        throw new RuntimeException("Departure date already exists");
+                    }
+                    existing.setDeletedAt(null);
+                    existing.setTour(tour);
+                    return existing;
+                })
+                .orElseGet(() -> {
+                    TourDeparture departure = new TourDeparture();
+                    departure.setTour(tour);
+                    return departure;
+                });
+    }
 
-        if (r.getDepartureDate() == null) {
+    private void applyRequest(TourDeparture departure, TourDepartureRequest request) {
+        departure.setDepartureDate(request.getDepartureDate());
+        departure.setBookingDeadline(request.getBookingDeadline());
+        departure.setDepartureTime(request.getDepartureTime());
+        departure.setMaxPeople(request.getMaxPeople());
+        departure.setCurrentPeople(defaultCurrent(request.getCurrentPeople()));
+        departure.setReservedPeople(defaultZero(request.getReservedPeople()));
+        departure.setAdultPrice(request.getAdultPrice());
+        departure.setChildPrice(request.getChildPrice());
+        departure.setIsPrivateDeparture(defaultFalse(request.getIsPrivateDeparture()));
+        departure.setDeletedAt(null);
+
+        departure.setStatus(resolveStatus(
+                request,
+                departure.getCurrentPeople(),
+                departure.getMaxPeople()));
+    }
+
+    private void softDelete(TourDeparture departure) {
+        departure.setDeletedAt(LocalDateTime.now());
+        departure.setStatus(DepartureStatus.CLOSED);
+    }
+
+    private void validateRequest(TourDepartureRequest request) {
+        if (request.getDepartureDate() == null) {
             throw new RuntimeException("Departure date is required");
         }
 
-        if (r.getMaxPeople() == null || r.getMaxPeople() <= 0) {
+        if (request.getMaxPeople() == null || request.getMaxPeople() <= 0) {
             throw new RuntimeException("Max people must be > 0");
         }
 
-        if (r.getCurrentPeople() != null && r.getCurrentPeople() < 0) {
+        if (request.getCurrentPeople() != null && request.getCurrentPeople() < 0) {
             throw new RuntimeException("Current people cannot be negative");
+        }
+
+        if (request.getReservedPeople() != null && request.getReservedPeople() < 0) {
+            throw new RuntimeException("Reserved people cannot be negative");
+        }
+    }
+
+    private void validateNoDuplicateIdsOrDates(List<TourDepartureRequest> requests) {
+        Set<Long> seenIds = new HashSet<>();
+        Set<LocalDate> seenDates = new HashSet<>();
+
+        for (TourDepartureRequest request : requests) {
+            if (request.getId() != null && !seenIds.add(request.getId())) {
+                throw new RuntimeException("Duplicate departure ids are not allowed");
+            }
+
+            if (request.getDepartureDate() != null && !seenDates.add(request.getDepartureDate())) {
+                throw new RuntimeException("Duplicate departure dates are not allowed");
+            }
+        }
+    }
+
+    private void validateUniqueDateForUpdate(TourDeparture departure, LocalDate departureDate) {
+        if (!departure.getDepartureDate().equals(departureDate)
+                && departureRepository.existsByTourIdAndDepartureDateAndIdNot(
+                        departure.getTour().getId(),
+                        departureDate,
+                        departure.getId())) {
+            throw new RuntimeException("Departure date already exists");
         }
     }
 
@@ -196,7 +221,7 @@ public class TourDepartureServiceImpl implements TourDepartureService {
     }
 
     private boolean defaultFalse(Boolean value) {
-        return value == null ? false : value;
+        return value != null && value;
     }
 
     private DepartureStatus resolveStatus(
@@ -215,26 +240,25 @@ public class TourDepartureServiceImpl implements TourDepartureService {
         return DepartureStatus.OPEN;
     }
 
-    private TourDepartureDto map(TourDeparture d) {
-
+    private TourDepartureDto map(TourDeparture departure) {
         TourDepartureDto dto = new TourDepartureDto();
 
-        dto.setId(d.getId());
-        dto.setDepartureDate(d.getDepartureDate());
-        dto.setBookingDeadline(d.getBookingDeadline());
-        dto.setDepartureTime(d.getDepartureTime());
-        dto.setMaxPeople(d.getMaxPeople());
-        dto.setCurrentPeople(d.getCurrentPeople());
-        dto.setReservedPeople(d.getReservedPeople());
+        dto.setId(departure.getId());
+        dto.setDepartureDate(departure.getDepartureDate());
+        dto.setBookingDeadline(departure.getBookingDeadline());
+        dto.setDepartureTime(departure.getDepartureTime());
+        dto.setMaxPeople(departure.getMaxPeople());
+        dto.setCurrentPeople(departure.getCurrentPeople());
+        dto.setReservedPeople(departure.getReservedPeople());
         dto.setAvailableSeats(Math.max(
                 0,
-                defaultZero(d.getMaxPeople())
-                        - defaultZero(d.getCurrentPeople())
-                        - defaultZero(d.getReservedPeople())));
-        dto.setAdultPrice(d.getAdultPrice());
-        dto.setChildPrice(d.getChildPrice());
-        dto.setIsPrivateDeparture(d.getIsPrivateDeparture());
-        dto.setStatus(d.getStatus());
+                defaultZero(departure.getMaxPeople())
+                        - defaultZero(departure.getCurrentPeople())
+                        - defaultZero(departure.getReservedPeople())));
+        dto.setAdultPrice(departure.getAdultPrice());
+        dto.setChildPrice(departure.getChildPrice());
+        dto.setIsPrivateDeparture(departure.getIsPrivateDeparture());
+        dto.setStatus(departure.getStatus());
 
         return dto;
     }

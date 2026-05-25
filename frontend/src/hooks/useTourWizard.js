@@ -63,6 +63,7 @@ function buildDeparturesPayload(list) {
       const status = d.status || null;
 
       return {
+        id: d.id ?? null,
         departureDate,
         departureTime: d.departureTime || null,
         bookingDeadline: d.bookingDeadline || null,
@@ -77,13 +78,7 @@ function buildDeparturesPayload(list) {
     })
     .filter((p) => p.departureDate && p.maxPeople > 0);
 
-  const byDate = new Map();
-
-  for (const p of rows) {
-    byDate.set(p.departureDate, p);
-  }
-
-  return [...byDate.values()].sort((a, b) =>
+  return rows.sort((a, b) =>
     a.departureDate.localeCompare(b.departureDate),
   );
 }

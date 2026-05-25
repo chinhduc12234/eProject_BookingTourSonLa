@@ -15,5 +15,5 @@ public interface TourDepartureService {
 
     void delete(Long id);
 
-    void replaceAll(Long tourId, List<TourDepartureRequest> requests);
+    void syncAll(Long tourId, List<TourDepartureRequest> requests);
 }

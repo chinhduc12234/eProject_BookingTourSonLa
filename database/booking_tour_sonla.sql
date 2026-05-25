@@ -344,13 +344,17 @@ CREATE TABLE tour_departures (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     ON UPDATE CURRENT_TIMESTAMP,
 
+    deleted_at DATETIME NULL COMMENT 'Soft delete timestamp',
+
     CONSTRAINT fk_tour_departures_tour
     FOREIGN KEY (tour_id)
     REFERENCES tours(id)
     ON DELETE CASCADE,
 
     CONSTRAINT uq_tour_departure
-    UNIQUE (tour_id, departure_date)
+    UNIQUE (tour_id, departure_date),
+
+    INDEX idx_tour_departures_deleted_at (deleted_at)
 );
 
 -- =========================================================

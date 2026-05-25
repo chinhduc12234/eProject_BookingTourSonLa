@@ -6,4 +6,6 @@ export const getDeparturesByTour = (tourId) =>
   axiosClient.get(`${BASE}/${tourId}/departures`);
 
 export const replaceDepartures = (tourId, data) =>
-  axiosClient.put(`${BASE}/${tourId}/departures/replace`, data);
+  axiosClient.put(`${BASE}/${tourId}/departures/sync`, data);
+
+export const syncDepartures = replaceDepartures;

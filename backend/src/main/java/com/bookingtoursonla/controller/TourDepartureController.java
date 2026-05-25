@@ -53,6 +53,13 @@ public class TourDepartureController {
     public void replace(
             @PathVariable Long tourId,
             @RequestBody List<TourDepartureRequest> requests) {
-        service.replaceAll(tourId, requests);
+        service.syncAll(tourId, requests);
+    }
+
+    @PutMapping("/{tourId}/departures/sync")
+    public void sync(
+            @PathVariable Long tourId,
+            @RequestBody List<TourDepartureRequest> requests) {
+        service.syncAll(tourId, requests);
     }
 }

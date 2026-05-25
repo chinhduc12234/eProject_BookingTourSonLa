@@ -15,6 +15,8 @@ import lombok.Data;
 @Data
 public class TourDepartureRequest {
 
+    private Long id;
+
     @NotNull(message = "Departure date is required")
     private LocalDate departureDate;
 

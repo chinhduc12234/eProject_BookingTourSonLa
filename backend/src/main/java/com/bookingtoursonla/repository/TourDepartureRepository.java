@@ -6,7 +6,6 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -16,23 +15,37 @@ import jakarta.persistence.LockModeType;
 
 public interface TourDepartureRepository extends JpaRepository<TourDeparture, Long> {
 
-    List<TourDeparture> findByTourIdOrderByDepartureDateAsc(Long tourId);
+    @Query("SELECT d FROM TourDeparture d WHERE d.tour.id = :tourId AND d.deletedAt IS NULL ORDER BY d.departureDate ASC")
+    List<TourDeparture> findByTourIdOrderByDepartureDateAsc(@Param("tourId") Long tourId);
 
-    List<TourDeparture> findByTourIdInOrderByDepartureDateAsc(List<Long> tourIds);
+    @Query("SELECT d FROM TourDeparture d WHERE d.tour.id IN :tourIds AND d.deletedAt IS NULL ORDER BY d.departureDate ASC")
+    List<TourDeparture> findByTourIdInOrderByDepartureDateAsc(@Param("tourIds") List<Long> tourIds);
 
-    Optional<TourDeparture> findByTourIdAndDepartureDate(Long tourId, LocalDate departureDate);
+    @Query("SELECT d FROM TourDeparture d WHERE d.tour.id = :tourId AND d.departureDate = :departureDate AND d.deletedAt IS NULL")
+    Optional<TourDeparture> findByTourIdAndDepartureDate(
+            @Param("tourId") Long tourId,
+            @Param("departureDate") LocalDate departureDate);
 
-    boolean existsByTourIdAndDepartureDate(Long tourId, LocalDate departureDate);
+    @Query("SELECT d FROM TourDeparture d JOIN FETCH d.tour WHERE d.tour.id = :tourId AND d.departureDate = :departureDate")
+    Optional<TourDeparture> findAnyByTourIdAndDepartureDate(
+            @Param("tourId") Long tourId,
+            @Param("departureDate") LocalDate departureDate);
+
+    @Query("SELECT d FROM TourDeparture d JOIN FETCH d.tour WHERE d.tour.id = :tourId")
+    List<TourDeparture> findAllByTourIdIncludingDeleted(@Param("tourId") Long tourId);
+
+    @Query("SELECT COUNT(d) > 0 FROM TourDeparture d WHERE d.tour.id = :tourId AND d.departureDate = :departureDate AND d.deletedAt IS NULL")
+    boolean existsByTourIdAndDepartureDate(
+            @Param("tourId") Long tourId,
+            @Param("departureDate") LocalDate departureDate);
+
+    @Query("SELECT COUNT(d) > 0 FROM TourDeparture d WHERE d.tour.id = :tourId AND d.departureDate = :departureDate AND d.id <> :id")
+    boolean existsByTourIdAndDepartureDateAndIdNot(
+            @Param("tourId") Long tourId,
+            @Param("departureDate") LocalDate departureDate,
+            @Param("id") Long id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT d FROM TourDeparture d JOIN FETCH d.tour WHERE d.id = :id")
+    @Query("SELECT d FROM TourDeparture d JOIN FETCH d.tour WHERE d.id = :id AND d.deletedAt IS NULL")
     Optional<TourDeparture> findByIdForUpdate(@Param("id") Long id);
-
-    /**
-     * Xóa theo tour.id — dùng JPQL + flush để tránh INSERT chạy trước DELETE trong cùng transaction
-     * (lỗi duplicate key với UK tour_id + departure_date).
-     */
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("DELETE FROM TourDeparture d WHERE d.tour.id = :tourId")
-    int deleteAllByTour_Id(@Param("tourId") Long tourId);
 }
