@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, HelpCircle, Search, Sparkles } from "lucide-react";
 import PublicLayout from "./PublicLayout";
-import { faqItems } from "./publicContent";
+import { faqItems, scenicImages } from "./publicContent";
 
 export default function FaqPage() {
     const [query, setQuery] = useState("");
@@ -22,6 +22,13 @@ export default function FaqPage() {
         <PublicLayout>
             {/* HERO */}
             <section className="relative overflow-hidden bg-[#020617]">
+                <div
+                    className="absolute inset-0 bg-cover bg-center opacity-35"
+                    style={{
+                        backgroundImage: `url('${scenicImages.mocChauTeaClose}')`,
+                    }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#020617] via-[#020617]/88 to-[#020617]/50" />
                 <div className="absolute inset-0 bg-grid-fade opacity-40" />
                 <div className="absolute -top-20 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-[#7FB77E]/25 blur-[120px] animate-float-slow" />
                 <div className="absolute -bottom-20 right-10 h-72 w-72 rounded-full bg-[#A67C52]/20 blur-[120px] animate-float-slow" />

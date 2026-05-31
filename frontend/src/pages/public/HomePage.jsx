@@ -15,8 +15,10 @@ import TourCard from "../../components/TourCard";
 import PublicLayout from "./PublicLayout";
 import {
     destinationGroups,
+    heroBackdrops,
     heroStats,
     quickSearch,
+    scenicGallery,
     serviceHighlights,
     trustBadges,
     whyChooseUs,
@@ -30,12 +32,6 @@ const fadeUp = {
         transition: { duration: 0.55, ease: "easeOut", delay: i * 0.08 },
     }),
 };
-
-const heroBackdrops = [
-    "https://datviettour.com.vn/uploads/images/tin-tuc-SEO/mien-bac/danh-thang/du-lich-son-la-3.jpg",
-    "https://media-dwrm.mae.gov.vn/Image/6509b7f5-3d98-ec62-450e-890bfc931115/2025/7/11/muong-la-son-la_ab4356465f.jpg",
-    "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=80",
-];
 
 const marqueeWords = [
     "Mộc Châu",
@@ -90,7 +86,7 @@ export default function HomePage() {
                 {heroBackdrops.map((src, idx) => (
                     <motion.div
                         key={src}
-                        className="absolute inset-0 bg-cover bg-center"
+                        className="absolute inset-0 bg-cover bg-center will-change-transform"
                         style={{ backgroundImage: `url('${src}')` }}
                         initial={{ opacity: 0, scale: 1.12 }}
                         animate={{
@@ -278,6 +274,83 @@ export default function HomePage() {
                             <Compass size={22} className="text-[#7FB77E]/50" />
                         </span>
                     ))}
+                </div>
+            </section>
+
+            {/* IMMERSIVE GALLERY */}
+            <section className="relative overflow-hidden bg-[#020617] py-20">
+                <div className="absolute inset-0 bg-grid-fade opacity-35" />
+                <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="grid gap-8 lg:grid-cols-[0.75fr_1.25fr] lg:items-end">
+                        <motion.div
+                            initial={{ opacity: 0, y: 16 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, margin: "-80px" }}
+                            transition={{ duration: 0.55 }}
+                        >
+                            <span className="section-tag">
+                                <Sparkles size={12} /> Ảnh thật Sơn La
+                            </span>
+                            <h2 className="mt-4 text-4xl font-black leading-tight text-white sm:text-5xl">
+                                Cảm giác hành trình bắt đầu{" "}
+                                <span className="text-gradient-gold">từ khung hình</span>
+                            </h2>
+                            <p className="mt-4 text-sm leading-7 text-slate-300">
+                                Bộ ảnh được chọn theo đúng tinh thần website: cao nguyên chè,
+                                thác nước, núi rừng và nhịp sống địa phương.
+                            </p>
+                        </motion.div>
+
+                        <motion.div
+                            initial="hidden"
+                            whileInView="show"
+                            viewport={{ once: true, margin: "-80px" }}
+                            variants={{
+                                hidden: {},
+                                show: { transition: { staggerChildren: 0.09 } },
+                            }}
+                            className="grid auto-rows-[220px] gap-4 sm:grid-cols-2 lg:grid-cols-4"
+                        >
+                            {scenicGallery.map((item, idx) => (
+                                <motion.article
+                                    key={item.title}
+                                    variants={{
+                                        hidden: { opacity: 0, y: 24 },
+                                        show: {
+                                            opacity: 1,
+                                            y: 0,
+                                            transition: { duration: 0.5, ease: "easeOut" },
+                                        },
+                                    }}
+                                    whileHover={{ y: -6 }}
+                                    className={[
+                                        "group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] shadow-soft-dark",
+                                        idx === 0 ? "sm:col-span-2 lg:col-span-2 lg:row-span-2" : "",
+                                        idx === 2 ? "lg:col-span-2" : "",
+                                    ].join(" ")}
+                                >
+                                    <img
+                                        src={item.image}
+                                        alt={item.title}
+                                        loading={idx === 0 ? "eager" : "lazy"}
+                                        className="h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-110"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/85 via-[#020617]/15 to-transparent" />
+                                    <div className="absolute inset-x-0 bottom-0 p-5">
+                                        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#d4a878]">
+                                            {item.eyebrow}
+                                        </div>
+                                        <h3 className="mt-1 text-xl font-black text-white">
+                                            {item.title}
+                                        </h3>
+                                        <p className="mt-2 max-w-md text-sm leading-6 text-slate-200 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                                            {item.desc}
+                                        </p>
+                                    </div>
+                                </motion.article>
+                            ))}
+                        </motion.div>
+                    </div>
                 </div>
             </section>
 

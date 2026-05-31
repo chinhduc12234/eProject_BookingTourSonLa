@@ -6,7 +6,6 @@ import {
   CalendarDays,
   CheckCircle2,
   Clock3,
-  Image as ImageIcon,
   Loader2,
   LogIn,
   MapPin,
@@ -23,6 +22,7 @@ import { getPublicTourDetail } from "../../api/publicTourApi";
 import { resolveUploadedFileUrl } from "../../api/userApi";
 import DepartureSelector from "../../components/DepartureSelector";
 import PublicLayout from "./PublicLayout";
+import { scenicGallery, scenicImages } from "./publicContent";
 import { getRole, isLoggedIn } from "../../utils/auth";
 
 const formatCurrency = (value) =>
@@ -106,7 +106,21 @@ export default function TourDetailPublicPage() {
   }
 
   const { tour, images = [], days = [], departures = [] } = detail;
-  const coverImage = resolveUploadedFileUrl(tour.thumbnail || images[0]?.imageUrl);
+  const coverImage =
+    resolveUploadedFileUrl(tour.thumbnail || images[0]?.imageUrl) ||
+    scenicImages.mocChauTea;
+  const galleryImages =
+    images.length > 0
+      ? images.map((image) => ({
+          id: image.id,
+          imageUrl: resolveUploadedFileUrl(image.imageUrl),
+          title: tour.title,
+        }))
+      : scenicGallery.map((image, index) => ({
+          id: `fallback-${index}`,
+          imageUrl: image.image,
+          title: image.title,
+        }));
 
   return (
     <PublicLayout>
@@ -120,21 +134,15 @@ export default function TourDetailPublicPage() {
         </div>
 
         <div className="relative min-h-[560px] overflow-hidden">
-          {coverImage ? (
-            <motion.img
-              key={coverImage}
-              src={coverImage}
-              alt={tour.title}
-              initial={{ scale: 1.15, opacity: 0 }}
-              animate={{ scale: 1.05, opacity: 1 }}
-              transition={{ duration: 1.4, ease: "easeOut" }}
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-slate-900 text-slate-600">
-              <ImageIcon size={54} />
-            </div>
-          )}
+          <motion.img
+            key={coverImage}
+            src={coverImage}
+            alt={tour.title}
+            initial={{ scale: 1.15, opacity: 0 }}
+            animate={{ scale: 1.05, opacity: 1 }}
+            transition={{ duration: 1.4, ease: "easeOut" }}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
           <div className="absolute inset-0 bg-gradient-to-br from-[#020617]/90 via-[#020617]/60 to-[#020617]/30" />
           <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#020617] to-transparent" />
           <div className="absolute -top-10 right-1/3 h-72 w-72 rounded-full bg-[#7FB77E]/20 blur-[120px]" />
@@ -237,7 +245,7 @@ export default function TourDetailPublicPage() {
         <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[1fr_420px] lg:px-8">
           <div className="space-y-8">
             {/* GALLERY */}
-            {images.length > 0 && (
+            {galleryImages.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -249,15 +257,15 @@ export default function TourDetailPublicPage() {
                     Hình ảnh hành trình
                   </h2>
                   <span className="text-xs font-bold uppercase tracking-widest text-[#d4a878]">
-                    {images.length} ảnh
+                    {galleryImages.length} ảnh
                   </span>
                 </div>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                  {images.slice(0, 4).map((image, idx) => (
+                  {galleryImages.slice(0, 4).map((image, idx) => (
                     <motion.button
                       key={image.id}
                       type="button"
-                      onClick={() => setLightboxImage(resolveUploadedFileUrl(image.imageUrl))}
+                      onClick={() => setLightboxImage(image.imageUrl)}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className={[
@@ -266,8 +274,8 @@ export default function TourDetailPublicPage() {
                       ].join(" ")}
                     >
                       <img
-                        src={resolveUploadedFileUrl(image.imageUrl)}
-                        alt={tour.title}
+                        src={image.imageUrl}
+                        alt={image.title}
                         loading="lazy"
                         className="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover:scale-110"
                       />

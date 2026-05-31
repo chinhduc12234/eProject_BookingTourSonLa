@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, CalendarDays, Clock3, MapPin, Users } from "lucide-react";
+import { ArrowRight, CalendarDays, Clock3, Users } from "lucide-react";
 import { resolveUploadedFileUrl } from "../api/userApi";
+import { scenicImages } from "../pages/public/publicContent";
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return "Liên hệ";
@@ -20,6 +21,13 @@ export default function TourCard({ tour }) {
   const price = tour.lowestAdultPrice ?? tour.price;
   const hasDeparture = Number(tour.departureCount || 0) > 0;
   const statusLabel = tour.status === "OPEN" ? "Đang mở bán" : tour.status;
+  const fallbackImages = [
+    scenicImages.mocChauTea,
+    scenicImages.sonLaLandscape,
+    scenicImages.daiYemWaterfall,
+    scenicImages.mocChauTeaClose,
+  ];
+  const fallbackImage = fallbackImages[Number(tour.id || 0) % fallbackImages.length];
 
   return (
     <article className="group relative h-full overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] transition-all duration-500 hover:-translate-y-2 hover:border-[#7FB77E]/50 shadow-soft-dark hover:shadow-soft-green">
@@ -33,9 +41,12 @@ export default function TourCard({ tour }) {
               className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#0b1f17] to-[#04120d] text-slate-500">
-              <MapPin size={42} />
-            </div>
+            <img
+              src={fallbackImage}
+              alt={tour.title || "Sơn La"}
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110"
+            />
           )}
 
           {/* gradient overlay */}

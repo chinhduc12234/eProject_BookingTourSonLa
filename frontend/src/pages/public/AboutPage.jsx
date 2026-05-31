@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Award, HeartHandshake, Sparkles, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import PublicLayout from "./PublicLayout";
-import { companyStats, companyValues, teamGroups } from "./publicContent";
+import { companyStats, companyValues, scenicGallery, scenicImages, teamGroups } from "./publicContent";
 
 const fadeUp = {
     hidden: { opacity: 0, y: 20 },
@@ -24,8 +24,7 @@ export default function AboutPage() {
                     transition={{ duration: 2, ease: "easeOut" }}
                     className="absolute inset-0 bg-cover bg-center"
                     style={{
-                        backgroundImage:
-                            "url('https://media-dwrm.mae.gov.vn/Image/6509b7f5-3d98-ec62-450e-890bfc931115/2025/7/11/muong-la-son-la_ab4356465f.jpg')",
+                        backgroundImage: `url('${scenicImages.sonLaLandscape}')`,
                     }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-br from-[#020617] via-[#020617]/85 to-[#020617]/40" />
@@ -121,6 +120,42 @@ export default function AboutPage() {
                                     {item.label}
                                 </p>
                             </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* IMAGE STORY */}
+            <section className="relative overflow-hidden bg-[#020617] py-16">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="grid gap-4 md:grid-cols-4">
+                        {scenicGallery.map((item, idx) => (
+                            <motion.figure
+                                key={item.title}
+                                initial={{ opacity: 0, y: 18 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.5, delay: idx * 0.07 }}
+                                className={[
+                                    "group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]",
+                                    idx === 0 ? "md:col-span-2" : "",
+                                ].join(" ")}
+                            >
+                                <img
+                                    src={item.image}
+                                    alt={item.title}
+                                    loading="lazy"
+                                    className="h-72 w-full object-cover transition-transform duration-[1300ms] group-hover:scale-110"
+                                />
+                                <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#020617]/90 to-transparent p-5">
+                                    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#d4a878]">
+                                        {item.eyebrow}
+                                    </div>
+                                    <div className="mt-1 text-lg font-black text-white">
+                                        {item.title}
+                                    </div>
+                                </figcaption>
+                            </motion.figure>
                         ))}
                     </div>
                 </div>

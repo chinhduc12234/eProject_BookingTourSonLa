@@ -33,6 +33,58 @@ export const navLinks = [
     { label: "Liên hệ", to: "/lien-he" },
 ];
 
+export const scenicImages = {
+    mocChauTea:
+        "https://cdn.pixabay.com/photo/2017/02/24/13/17/tea-plantation-2094890_1280.jpg",
+    mocChauTeaClose:
+        "https://c.pxhere.com/photos/b2/ea/moc_chau_son_la_vietnam_plantation_tea_field_agriculture-569124.jpg!d",
+    daiYemWaterfall:
+        "https://upload.wikimedia.org/wikipedia/commons/e/e9/Thacdaiyem.jpg",
+    sonLaLandscape:
+        "https://upload.wikimedia.org/wikipedia/commons/d/d2/S%C6%A1n_La_Province.JPG",
+};
+
+export const heroBackdrops = [
+    scenicImages.mocChauTea,
+    scenicImages.sonLaLandscape,
+    scenicImages.daiYemWaterfall,
+    scenicImages.mocChauTeaClose,
+];
+
+export const scenicGallery = [
+    {
+        title: "Đồi chè Mộc Châu",
+        eyebrow: "Cao nguyên",
+        desc: "Những triền chè uốn lượn trong sương sớm, hợp với lịch trình nghỉ dưỡng và check-in nhẹ.",
+        image: scenicImages.mocChauTea,
+    },
+    {
+        title: "Thác Dải Yếm",
+        eyebrow: "Mường Sang",
+        desc: "Điểm dừng thiên nhiên mát lành cho các tuyến Mộc Châu cuối tuần.",
+        image: scenicImages.daiYemWaterfall,
+    },
+    {
+        title: "Cảnh quan Mường La",
+        eyebrow: "Sơn La",
+        desc: "Không gian núi và thung lũng mở rộng cho các hành trình khám phá dài ngày.",
+        image: scenicImages.sonLaLandscape,
+    },
+    {
+        title: "Nếp sống cao nguyên",
+        eyebrow: "Bản địa",
+        desc: "Nhịp sống xanh giữa vườn chè, bản làng và những cung đường chậm.",
+        image: scenicImages.mocChauTeaClose,
+    },
+];
+
+export const photoCredits = [
+    { label: "Pixabay", url: "https://pixabay.com/photos/tea-plantation-moc-chau-son-la-2094890/" },
+    { label: "PxHere", url: "https://pxhere.com/en/photo/569124" },
+    { label: "Wikimedia Commons", url: "https://commons.wikimedia.org/wiki/File:Thacdaiyem.jpg" },
+    { label: "Wikimedia Commons", url: "https://commons.wikimedia.org/wiki/File:S%C6%A1n_La_Province.JPG" },
+];
+
 export const heroStats = [
     { value: "120+", label: "lịch trình Tây Bắc" },
     { value: "18k+", label: "lượt khách phục vụ" },
@@ -69,7 +121,7 @@ export const featuredTours = [
         place: "Sơn La",
         duration: "3 ngày 2 đêm",
         price: "2.490.000đ",
-        image: "https://datviettour.com.vn/uploads/images/tin-tuc-SEO/mien-bac/danh-thang/du-lich-son-la-3.jpg",
+        image: scenicImages.mocChauTea,
         tags: ["Cao nguyên", "Hoa mùa", "Check-in"],
     },
     {
@@ -77,7 +129,7 @@ export const featuredTours = [
         place: "Bắc Yên",
         duration: "2 ngày 1 đêm",
         price: "1.890.000đ",
-        image: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80",
+        image: scenicImages.sonLaLandscape,
         tags: ["Săn mây", "Trekking", "Bình minh"],
     },
     {
@@ -85,7 +137,7 @@ export const featuredTours = [
         place: "Sơn La",
         duration: "4 ngày 3 đêm",
         price: "3.690.000đ",
-        image: "https://media-dwrm.mae.gov.vn/Image/6509b7f5-3d98-ec62-450e-890bfc931115/2025/7/11/muong-la-son-la_ab4356465f.jpg",
+        image: scenicImages.daiYemWaterfall,
         tags: ["Suối khoáng", "Bản làng", "Cảnh quan"],
     },
 ];

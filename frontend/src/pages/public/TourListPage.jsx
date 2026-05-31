@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import { getPublicTours } from "../../api/publicTourApi";
 import TourCard from "../../components/TourCard";
 import PublicLayout from "./PublicLayout";
+import { scenicImages } from "./publicContent";
 
 export default function TourListPage() {
   const [tours, setTours] = useState([]);
@@ -73,8 +74,7 @@ export default function TourListPage() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage:
-              "url('https://media-dwrm.mae.gov.vn/Image/6509b7f5-3d98-ec62-450e-890bfc931115/2025/7/11/muong-la-son-la_ab4356465f.jpg')",
+            backgroundImage: `url('${scenicImages.mocChauTea}')`,
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-br from-[#020617] via-[#020617]/85 to-[#020617]/40" />

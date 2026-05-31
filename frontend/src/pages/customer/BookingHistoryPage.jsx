@@ -20,6 +20,12 @@ import {
   StatusPill,
 } from "./accountShared";
 
+const bookingTypeText = {
+  INDIVIDUAL: "Cá nhân",
+  GROUP: "Theo đoàn",
+  PRIVATE: "Tour riêng",
+};
+
 export default function BookingHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState([]);
@@ -106,7 +112,8 @@ export default function BookingHistoryPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="text-xs font-bold text-[#d4a878]">
-                        {booking.bookingCode}
+                        {booking.bookingCode} ·{" "}
+                        {bookingTypeText[booking.bookingType] || "Cá nhân"}
                       </div>
                       <h3 className="mt-1 line-clamp-2 font-black text-white">
                         {booking.tourName}

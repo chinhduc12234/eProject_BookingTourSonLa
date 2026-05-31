@@ -5,6 +5,7 @@ import {
   CalendarDays,
   CheckCircle2,
   ChevronLeft,
+  ClipboardList,
   Clock3,
   CreditCard,
   Loader2,
@@ -30,6 +31,18 @@ import {
   paymentStatusMeta,
   StatusPill,
 } from "./accountShared";
+
+const bookingTypeText = {
+  INDIVIDUAL: "Cá nhân",
+  GROUP: "Theo đoàn",
+  PRIVATE: "Tour riêng",
+};
+
+const customerTypeText = {
+  ADULT: "Người lớn",
+  CHILD: "Trẻ em",
+  INFANT: "Em bé",
+};
 
 export default function BookingDetailPage() {
   const { bookingId } = useParams();
@@ -167,6 +180,11 @@ export default function BookingDetailPage() {
                   }`,
                 },
                 {
+                  Icon: ShieldCheck,
+                  label: "Loại booking",
+                  value: bookingTypeText[booking.bookingType] || "Cá nhân",
+                },
+                {
                   Icon: Users,
                   label: "Số khách",
                   value: `${booking.totalPeople || 0} khách`,
@@ -219,6 +237,74 @@ export default function BookingDetailPage() {
                 </div>
               </div>
             )}
+
+            {booking.scheduleDays?.length > 0 && (
+              <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5 sm:p-6">
+                <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
+                    <ClipboardList size={20} />
+                  </span>
+                  <div>
+                    <h2 className="text-xl font-black text-white">
+                      Lịch trình đã chốt
+                    </h2>
+                    <p className="text-sm text-slate-400">
+                      Lịch trình được lưu riêng cho booking này.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5 space-y-4">
+                  {booking.scheduleDays.map((day) => (
+                    <div
+                      key={day.id}
+                      className="rounded-xl border border-white/10 bg-[#020617]/35 p-4"
+                    >
+                      <div className="text-xs font-black uppercase tracking-widest text-[#d4a878]">
+                        Ngày {day.dayNumber}
+                      </div>
+                      <h3 className="mt-1 font-black text-white">{day.title}</h3>
+                      {day.description && (
+                        <p className="mt-2 text-sm leading-6 text-slate-300">
+                          {day.description}
+                        </p>
+                      )}
+
+                      {day.activities?.length > 0 && (
+                        <div className="mt-4 space-y-3">
+                          {day.activities.map((activity) => (
+                            <div
+                              key={activity.id}
+                              className="rounded-lg border border-white/10 bg-white/[0.03] p-3"
+                            >
+                              <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-400">
+                                <Clock3 size={14} className="text-[#9de09c]" />
+                                <span>
+                                  {activity.startTime
+                                    ? activity.startTime.slice(0, 5)
+                                    : "Chưa rõ giờ"}
+                                  {activity.endTime
+                                    ? ` - ${activity.endTime.slice(0, 5)}`
+                                    : ""}
+                                </span>
+                              </div>
+                              <div className="mt-2 font-black text-white">
+                                {activity.title}
+                              </div>
+                              {activity.description && (
+                                <p className="mt-1 text-sm leading-6 text-slate-400">
+                                  {activity.description}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </section>
 
           <aside className="space-y-5">
@@ -242,6 +328,18 @@ export default function BookingDetailPage() {
                   <UserRound size={16} className="mt-0.5 shrink-0 text-[#9de09c]" />
                   <span>{booking.customerName}</span>
                 </div>
+                {booking.organizationName && (
+                  <div className="flex gap-3">
+                    <ShieldCheck
+                      size={16}
+                      className="mt-0.5 shrink-0 text-[#d4a878]"
+                    />
+                    <span>
+                      {booking.organizationName}
+                      {booking.contactPerson ? ` · ${booking.contactPerson}` : ""}
+                    </span>
+                  </div>
+                )}
                 <div className="flex gap-3">
                   <Mail size={16} className="mt-0.5 shrink-0 text-[#d4a878]" />
                   <span className="break-all">{booking.email}</span>
@@ -271,7 +369,8 @@ export default function BookingDetailPage() {
                         <span className="rounded-full bg-[#7FB77E]/15 px-3 py-1 text-xs font-bold text-[#9de09c]">
                           {customer.groupLeader
                             ? "Trưởng đoàn"
-                            : customer.customerType}
+                            : customerTypeText[customer.customerType] ||
+                              customer.customerType}
                         </span>
                       </div>
                       <div className="mt-2 grid gap-1 text-sm text-slate-400 sm:grid-cols-2">

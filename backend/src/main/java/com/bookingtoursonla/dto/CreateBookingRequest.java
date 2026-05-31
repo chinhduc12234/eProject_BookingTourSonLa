@@ -33,8 +33,8 @@ public class CreateBookingRequest {
 
     private String pickupAddress;
 
-    @Min(value = 0, message = "Số người lớn không hợp lệ")
-    private Integer adultCount = 0;
+    @Min(value = 1, message = "Số người lớn phải ít nhất là 1")
+    private Integer adultCount = 1;
 
     @Min(value = 0, message = "Số trẻ em không hợp lệ")
     private Integer childCount = 0;

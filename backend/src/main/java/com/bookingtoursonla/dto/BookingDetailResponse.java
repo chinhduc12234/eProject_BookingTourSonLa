@@ -35,6 +35,10 @@ public class BookingDetailResponse {
 
     private String pickupAddress;
 
+    private String organizationName;
+
+    private String contactPerson;
+
     private String tourName;
 
     private String tourThumbnail;
@@ -61,5 +65,11 @@ public class BookingDetailResponse {
 
     private LocalDateTime bookedAt;
 
+    private LocalDateTime confirmedAt;
+
+    private LocalDateTime cancelledAt;
+
     private List<BookingCustomerResponse> customers;
+
+    private List<BookingScheduleDayResponse> scheduleDays;
 }

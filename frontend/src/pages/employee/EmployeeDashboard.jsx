@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { 
-  FiGrid, 
-  FiCalendar, 
-  FiLogOut, 
-  FiSearch, 
-  FiCheckCircle, 
-  FiXCircle, 
-  FiClock,
-  FiTrendingUp,
-  FiMapPin
-} from "react-icons/fi";
+import { useState, useEffect } from "react";
+import {
+  Calendar,
+  CheckCircle,
+  Clock,
+  Grid3X3,
+  LogOut,
+  MapPin,
+  Search,
+  TrendingUp,
+  XCircle,
+} from "lucide-react";
 import { employeeApi } from "../../api/bookingApi";
 import "./EmployeeDashboard.css";
 
@@ -28,6 +28,7 @@ export default function EmployeeDashboard() {
 
   const loadDashboardData = async () => {
     try {
+      await Promise.resolve();
       setLoading(true);
 
       
@@ -60,7 +61,11 @@ export default function EmployeeDashboard() {
   };
 
   useEffect(() => {
-    loadDashboardData();
+    const timeoutId = window.setTimeout(() => {
+      loadDashboardData();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
     const handleStatusChange = async (id, newStatus) => {
@@ -124,13 +129,13 @@ export default function EmployeeDashboard() {
               onClick={() => setActiveTab("overview")}
               className={activeTab === "overview" ? "active-nav-btn" : ""}
             >
-              <FiGrid /> <span>Tổng quan công việc</span>
+              <Grid3X3 /> <span>Tổng quan công việc</span>
             </button>
             <button 
               onClick={() => setActiveTab("bookings")}
               className={activeTab === "bookings" ? "active-nav-btn" : ""}
             >
-              <FiCalendar /> <span>Quản lý Đặt chỗ</span>
+              <Calendar /> <span>Quản lý Đặt chỗ</span>
             </button>
           </nav>
         </div>
@@ -144,7 +149,7 @@ export default function EmployeeDashboard() {
             </div>
           </div>
           <button onClick={handleLogout} className="logout-btn">
-            <FiLogOut /> <span>Đăng xuất</span>
+            <LogOut /> <span>Đăng xuất</span>
           </button>
         </div>
       </aside>
@@ -172,7 +177,7 @@ export default function EmployeeDashboard() {
                 <span className="stat-label">Tổng Đơn Hệ Thống</span>
                 <span className="stat-value text-white">{stats.totalBookings}</span>
               </div>
-              <div className="stat-icon icon-blue"><FiCalendar /></div>
+              <div className="stat-icon icon-blue"><Calendar /></div>
             </div>
 
             <div className="stat-card">
@@ -180,7 +185,7 @@ export default function EmployeeDashboard() {
                 <span className="stat-label">Chờ Kiểm Duyệt</span>
                 <span className="stat-value text-amber">{stats.pendingBookings}</span>
               </div>
-              <div className="stat-icon icon-amber pulse"><FiClock /></div>
+              <div className="stat-icon icon-amber pulse"><Clock /></div>
             </div>
 
             <div className="stat-card">
@@ -190,7 +195,7 @@ export default function EmployeeDashboard() {
                   {bookings.filter(b => b.status === "CONFIRMED").length}
                 </span>
               </div>
-              <div className="stat-icon icon-green"><FiCheckCircle /></div>
+              <div className="stat-icon icon-green"><CheckCircle /></div>
             </div>
 
             <div className="stat-card">
@@ -198,7 +203,7 @@ export default function EmployeeDashboard() {
                 <span className="stat-label">Doanh Thu Thực Tế</span>
                 <span className="stat-value text-amber font-medium-size">{formatVND(stats.totalRevenue)}</span>
               </div>
-              <div className="stat-icon icon-amber"><FiTrendingUp /></div>
+              <div className="stat-icon icon-amber"><TrendingUp /></div>
             </div>
           </div>
 
@@ -207,7 +212,7 @@ export default function EmployeeDashboard() {
             <div className="data-table-container">
               <div className="table-filter-bar">
                 <div className="search-box-wrapper">
-                  <FiSearch className="search-icon-inside" />
+                  <Search className="search-icon-inside" />
                   <input 
                     type="text" 
                     placeholder="Tìm mã đơn, khách hàng, tên tour..." 
@@ -270,10 +275,10 @@ export default function EmployeeDashboard() {
                               {booking.status === "PENDING" ? (
                                 <>
                                   <button onClick={() => handleStatusChange(booking.id, "CONFIRMED")} className="action-btn btn-success" title="Duyệt đơn">
-                                    <FiCheckCircle />
+                                    <CheckCircle />
                                   </button>
                                   <button onClick={() => handleStatusChange(booking.id, "CANCELLED")} className="action-btn btn-danger" title="Hủy đơn">
-                                    <FiXCircle />
+                                    <XCircle />
                                   </button>
                                 </>
                               ) : (
@@ -300,7 +305,7 @@ export default function EmployeeDashboard() {
           {activeTab === "overview" && (
             <div className="overview-info-card">
               <h3 className="overview-card-title">
-                <FiMapPin /> Chào mừng bạn làm việc tại văn phòng điều hành Sơn La Travel!
+                <MapPin /> Chào mừng bạn làm việc tại văn phòng điều hành Sơn La Travel!
               </h3>
               <p className="overview-card-desc">
                 Đây là khu vực dành riêng cho nhân viên điều phối của hệ thống Tây Bắc Travel. Hệ thống tự động đồng bộ hóa toàn bộ dữ liệu đặt chỗ từ phía khách hàng về Database theo thời gian thực. Hãy kiểm tra các đơn đăng ký liên tục để vận hành tour diễn ra tốt đẹp.

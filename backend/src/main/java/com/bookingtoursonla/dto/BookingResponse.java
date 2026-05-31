@@ -17,6 +17,8 @@ public class BookingResponse {
 
     private String paymentStatus;
 
+    private String bookingType;
+
     private BigDecimal totalPrice;
 
     private String customerName;
@@ -24,6 +26,10 @@ public class BookingResponse {
     private String email;
 
     private String phone;
+
+    private String organizationName;
+
+    private String contactPerson;
 
     private Long tourId;
 

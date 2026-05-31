@@ -19,7 +19,7 @@ import {
 import { getCurrentUserProfile, resolveUploadedFileUrl } from "../../api/userApi";
 import { getAuthName, getRole, isLoggedIn, logout } from "../../utils/auth";
 import { applyTheme, getInitialTheme } from "../../utils/theme";
-import { brand, navLinks } from "./publicContent";
+import { brand, navLinks, photoCredits } from "./publicContent";
 
 const navClass = ({ isActive }) =>
     ["nav-link", isActive ? "is-active" : ""].join(" ").trim();
@@ -377,12 +377,20 @@ export default function PublicLayout({ children }) {
 
                     <div className="flex flex-col items-center justify-between gap-3 border-t border-white/10 py-6 text-xs text-slate-400 md:flex-row">
                         <p>© {new Date().getFullYear()} {brand.displayName}. Tất cả các quyền được bảo lưu.</p>
-                        <p className="flex items-center gap-2">
-                            Thiết kế cho hành trình
-                            <span className="text-[#9de09c]">Tây Bắc</span>
-                            <span>·</span>
-                            <span className="text-[#d4a878]">Sơn La · Mộc Châu · Tà Xùa</span>
-                        </p>
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                            <span className="text-[#d4a878]">Ảnh:</span>
+                            {photoCredits.map((item, index) => (
+                                <a
+                                    key={`${item.label}-${index}`}
+                                    href={item.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="transition hover:text-[#9de09c]"
+                                >
+                                    {item.label}
+                                </a>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </footer>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2, MessageSquare, Send, Sparkles } from "lucide-react";
 import PublicLayout from "./PublicLayout";
-import { contactCards, supportTopics } from "./publicContent";
+import { contactCards, scenicImages, supportTopics } from "./publicContent";
 
 const fadeUp = {
     hidden: { opacity: 0, y: 20 },
@@ -25,6 +25,13 @@ export default function ContactPage() {
         <PublicLayout>
             {/* HERO */}
             <section className="relative overflow-hidden bg-[#020617]">
+                <div
+                    className="absolute inset-0 bg-cover bg-center opacity-45"
+                    style={{
+                        backgroundImage: `url('${scenicImages.daiYemWaterfall}')`,
+                    }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#020617] via-[#020617]/85 to-[#020617]/45" />
                 <div className="absolute inset-0 bg-grid-fade opacity-40" />
                 <div className="absolute -top-20 right-1/4 h-72 w-72 rounded-full bg-[#7FB77E]/20 blur-[120px] animate-float-slow" />
                 <div className="absolute bottom-0 left-10 h-72 w-72 rounded-full bg-[#A67C52]/20 blur-[120px] animate-float-slow" />
@@ -219,8 +226,7 @@ export default function ContactPage() {
                             <div
                                 className="relative h-72 bg-cover bg-center transition-transform duration-1000 group-hover:scale-105"
                                 style={{
-                                    backgroundImage:
-                                        "url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80')",
+                                    backgroundImage: `url('${scenicImages.sonLaLandscape}')`,
                                 }}
                             >
                                 <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent" />

@@ -25,6 +25,12 @@ public class AdminSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
 
+        for (RoleName roleName : RoleName.values()) {
+            roleRepository
+                    .findByName(roleName)
+                    .orElseGet(() -> roleRepository.save(new Role(roleName)));
+        }
+
         if (userRepository.existsByEmail("admin@gmail.com")) {
             return;
         }

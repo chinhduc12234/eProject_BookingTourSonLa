@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,11 +19,17 @@ import com.bookingtoursonla.dto.BookingCustomerRequest;
 import com.bookingtoursonla.dto.BookingCustomerResponse;
 import com.bookingtoursonla.dto.BookingDetailResponse;
 import com.bookingtoursonla.dto.BookingResponse;
+import com.bookingtoursonla.dto.BookingScheduleActivityResponse;
+import com.bookingtoursonla.dto.BookingScheduleDayResponse;
 import com.bookingtoursonla.dto.CreateBookingRequest;
 import com.bookingtoursonla.dto.UpdateBookingAdminRequest;
 import com.bookingtoursonla.entity.Booking;
 import com.bookingtoursonla.entity.BookingCustomer;
+import com.bookingtoursonla.entity.BookingScheduleActivity;
+import com.bookingtoursonla.entity.BookingScheduleDay;
 import com.bookingtoursonla.entity.Tour;
+import com.bookingtoursonla.entity.TourActivity;
+import com.bookingtoursonla.entity.TourDay;
 import com.bookingtoursonla.entity.TourDeparture;
 import com.bookingtoursonla.entity.User;
 import com.bookingtoursonla.entity.enums.BookingCustomerType;
@@ -34,6 +42,10 @@ import com.bookingtoursonla.entity.enums.RoleName;
 import com.bookingtoursonla.entity.enums.TourStatus;
 import com.bookingtoursonla.repository.BookingCustomerRepository;
 import com.bookingtoursonla.repository.BookingRepository;
+import com.bookingtoursonla.repository.BookingScheduleActivityRepository;
+import com.bookingtoursonla.repository.BookingScheduleDayRepository;
+import com.bookingtoursonla.repository.TourActivityRepository;
+import com.bookingtoursonla.repository.TourDayRepository;
 import com.bookingtoursonla.repository.TourDepartureRepository;
 import com.bookingtoursonla.repository.UserRepository;
 
@@ -47,19 +59,35 @@ public class BookingServiceImpl implements BookingService {
 
     private final BookingCustomerRepository bookingCustomerRepository;
 
+    private final BookingScheduleDayRepository bookingScheduleDayRepository;
+
+    private final BookingScheduleActivityRepository bookingScheduleActivityRepository;
+
     private final TourDepartureRepository tourDepartureRepository;
+
+    private final TourDayRepository tourDayRepository;
+
+    private final TourActivityRepository tourActivityRepository;
 
     private final UserRepository userRepository;
 
     public BookingServiceImpl(
             BookingRepository bookingRepository,
             BookingCustomerRepository bookingCustomerRepository,
+            BookingScheduleDayRepository bookingScheduleDayRepository,
+            BookingScheduleActivityRepository bookingScheduleActivityRepository,
             TourDepartureRepository tourDepartureRepository,
+            TourDayRepository tourDayRepository,
+            TourActivityRepository tourActivityRepository,
             UserRepository userRepository) {
 
         this.bookingRepository = bookingRepository;
         this.bookingCustomerRepository = bookingCustomerRepository;
+        this.bookingScheduleDayRepository = bookingScheduleDayRepository;
+        this.bookingScheduleActivityRepository = bookingScheduleActivityRepository;
         this.tourDepartureRepository = tourDepartureRepository;
+        this.tourDayRepository = tourDayRepository;
+        this.tourActivityRepository = tourActivityRepository;
         this.userRepository = userRepository;
     }
 
@@ -76,9 +104,15 @@ public class BookingServiceImpl implements BookingService {
         int childCount = valueOrZero(request.getChildCount());
         int totalPeople = adultCount + childCount;
 
-        if (totalPeople <= 0) {
-            throw new RuntimeException("Số người lớn và trẻ em phải lớn hơn 0");
+        if (adultCount <= 0) {
+            throw new RuntimeException("Booking phải có ít nhất 1 người lớn làm trưởng đoàn");
         }
+
+        if (childCount < 0) {
+            throw new RuntimeException("Số trẻ em không hợp lệ");
+        }
+
+        validateCustomerManifest(request, adultCount, childCount);
 
         TourDeparture departure = tourDepartureRepository
                 .findByIdForUpdate(request.getDepartureId())
@@ -100,12 +134,15 @@ public class BookingServiceImpl implements BookingService {
                 .multiply(BigDecimal.valueOf(adultCount))
                 .add(childPrice.multiply(BigDecimal.valueOf(childCount)));
 
+        BookingType bookingType = parseBookingType(request.getBookingType());
+        validateBookingTypeInfo(bookingType, request);
+
         Booking booking = new Booking();
 
         booking.setBookingCode(generateBookingCode());
         booking.setUser(user);
         booking.setTourDeparture(departure);
-        booking.setBookingType(parseBookingType(request.getBookingType()));
+        booking.setBookingType(bookingType);
         booking.setOrganizationName(trimToNull(request.getOrganizationName()));
         booking.setContactPerson(trimToNull(request.getContactPerson()));
         booking.setFullName(request.getFullName().trim());
@@ -129,6 +166,7 @@ public class BookingServiceImpl implements BookingService {
         Booking saved = bookingRepository.save(booking);
 
         saveBookingCustomers(saved, request);
+        snapshotBookingSchedule(saved, tour);
 
         return mapToResponse(saved);
     }
@@ -243,6 +281,60 @@ public class BookingServiceImpl implements BookingService {
         return mapToDetailResponse(saved, customers);
     }
 
+    private void validateCustomerManifest(
+            CreateBookingRequest request,
+            int adultCount,
+            int childCount) {
+
+        List<BookingCustomerRequest> customers = request.getCustomers() == null
+                ? List.of()
+                : request.getCustomers()
+                        .stream()
+                        .filter(customer -> !isBlank(customer.getFullName()))
+                        .toList();
+
+        int expectedAdultCompanions = Math.max(0, adultCount - 1);
+        int expectedChildren = childCount;
+        int expectedCompanions = expectedAdultCompanions + expectedChildren;
+
+        if (customers.size() != expectedCompanions) {
+            throw new RuntimeException(
+                    "Danh sách khách đi cùng phải khớp số người đã chọn: "
+                            + expectedAdultCompanions
+                            + " người lớn đi cùng và "
+                            + expectedChildren
+                            + " trẻ em/em bé");
+        }
+
+        long adultCompanions = customers
+                .stream()
+                .map(customer -> parseCustomerType(customer.getCustomerType()))
+                .filter(type -> type == BookingCustomerType.ADULT)
+                .count();
+
+        long childCompanions = customers
+                .stream()
+                .map(customer -> parseCustomerType(customer.getCustomerType()))
+                .filter(this::isChildSeatType)
+                .count();
+
+        if (adultCompanions != expectedAdultCompanions
+                || childCompanions != expectedChildren) {
+            throw new RuntimeException(
+                    "Loại khách đi cùng không khớp số người lớn/trẻ em đã chọn");
+        }
+    }
+
+    private void validateBookingTypeInfo(
+            BookingType bookingType,
+            CreateBookingRequest request) {
+
+        if ((bookingType == BookingType.GROUP || bookingType == BookingType.PRIVATE)
+                && isBlank(request.getOrganizationName())) {
+            throw new RuntimeException("Vui lòng nhập tên đoàn/tổ chức cho booking nhóm hoặc riêng");
+        }
+    }
+
     private void validateBookableDeparture(
             Tour tour,
             TourDeparture departure,
@@ -324,6 +416,63 @@ public class BookingServiceImpl implements BookingService {
         return customer;
     }
 
+    private void snapshotBookingSchedule(
+            Booking booking,
+            Tour tour) {
+
+        List<TourDay> tourDays = tourDayRepository
+                .findByTourIdOrderByDayNumberAsc(tour.getId());
+
+        if (tourDays.isEmpty()) {
+            return;
+        }
+
+        List<Long> dayIds = tourDays
+                .stream()
+                .map(TourDay::getId)
+                .toList();
+
+        Map<Long, List<TourActivity>> activitiesByDayId = tourActivityRepository
+                .findByTourDayIdInOrderBySortOrderAsc(dayIds)
+                .stream()
+                .collect(Collectors.groupingBy(activity -> activity.getTourDay().getId()));
+
+        for (TourDay tourDay : tourDays) {
+            BookingScheduleDay scheduleDay = new BookingScheduleDay();
+
+            scheduleDay.setBooking(booking);
+            scheduleDay.setDayNumber(tourDay.getDayNumber());
+            scheduleDay.setTitle(tourDay.getTitle());
+            scheduleDay.setDescription(tourDay.getDescription());
+
+            BookingScheduleDay savedDay = bookingScheduleDayRepository.save(scheduleDay);
+
+            List<BookingScheduleActivity> scheduleActivities = activitiesByDayId
+                    .getOrDefault(tourDay.getId(), List.of())
+                    .stream()
+                    .map(activity -> mapScheduleActivity(savedDay, activity))
+                    .toList();
+
+            bookingScheduleActivityRepository.saveAll(scheduleActivities);
+        }
+    }
+
+    private BookingScheduleActivity mapScheduleActivity(
+            BookingScheduleDay scheduleDay,
+            TourActivity activity) {
+
+        BookingScheduleActivity scheduleActivity = new BookingScheduleActivity();
+
+        scheduleActivity.setBookingScheduleDay(scheduleDay);
+        scheduleActivity.setOriginalActivity(activity);
+        scheduleActivity.setStartTime(activity.getStartTime());
+        scheduleActivity.setEndTime(activity.getEndTime());
+        scheduleActivity.setTitle(activity.getTitle());
+        scheduleActivity.setDescription(activity.getDescription());
+
+        return scheduleActivity;
+    }
+
     private void applyBookingStatusTransition(
             Booking booking,
             BookingStatus nextStatus,
@@ -348,11 +497,15 @@ public class BookingServiceImpl implements BookingService {
         if (nextStatus == BookingStatus.PENDING) {
             ensureCapacity(departure, totalPeople);
             departure.setReservedPeople(valueOrZero(departure.getReservedPeople()) + totalPeople);
+            booking.setConfirmedAt(null);
+            booking.setConfirmedBy(null);
+            booking.setCancelledAt(null);
         } else if (nextStatus == BookingStatus.CONFIRMED
                 || nextStatus == BookingStatus.IN_PROGRESS
                 || nextStatus == BookingStatus.COMPLETED) {
             ensureCapacity(departure, totalPeople);
             departure.setCurrentPeople(valueOrZero(departure.getCurrentPeople()) + totalPeople);
+            booking.setCancelledAt(null);
 
             if (booking.getConfirmedAt() == null) {
                 booking.setConfirmedAt(LocalDateTime.now());
@@ -393,10 +546,13 @@ public class BookingServiceImpl implements BookingService {
         response.setBookingCode(booking.getBookingCode());
         response.setStatus(booking.getStatus().name());
         response.setPaymentStatus(booking.getPaymentStatus().name());
+        response.setBookingType(booking.getBookingType().name());
         response.setTotalPrice(booking.getTotalPrice());
         response.setCustomerName(booking.getFullName());
         response.setEmail(booking.getEmail());
         response.setPhone(booking.getPhone());
+        response.setOrganizationName(booking.getOrganizationName());
+        response.setContactPerson(booking.getContactPerson());
         response.setTourId(tour.getId());
         response.setDepartureId(departure.getId());
         response.setTourName(tour.getTitle());
@@ -430,6 +586,8 @@ public class BookingServiceImpl implements BookingService {
         response.setEmail(booking.getEmail());
         response.setPhone(booking.getPhone());
         response.setPickupAddress(booking.getPickupAddress());
+        response.setOrganizationName(booking.getOrganizationName());
+        response.setContactPerson(booking.getContactPerson());
         response.setTourName(tour.getTitle());
         response.setTourThumbnail(tour.getThumbnail());
         response.setDepartureDate(departure.getDepartureDate());
@@ -443,7 +601,10 @@ public class BookingServiceImpl implements BookingService {
         response.setNote(booking.getNote());
         response.setSpecialRequest(booking.getSpecialRequest());
         response.setBookedAt(booking.getBookedAt());
+        response.setConfirmedAt(booking.getConfirmedAt());
+        response.setCancelledAt(booking.getCancelledAt());
         response.setCustomers(customers.stream().map(this::mapCustomerResponse).toList());
+        response.setScheduleDays(loadBookingSchedule(booking.getId()));
 
         return response;
     }
@@ -464,6 +625,69 @@ public class BookingServiceImpl implements BookingService {
         response.setEmergencyContact(customer.getEmergencyContact());
         response.setGroupLeader(customer.getGroupLeader());
         response.setHealthNote(customer.getHealthNote());
+
+        return response;
+    }
+
+    private List<BookingScheduleDayResponse> loadBookingSchedule(Long bookingId) {
+
+        List<BookingScheduleDay> days = bookingScheduleDayRepository
+                .findByBookingIdOrderByDayNumberAsc(bookingId);
+
+        if (days.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> dayIds = days
+                .stream()
+                .map(BookingScheduleDay::getId)
+                .toList();
+
+        Map<Long, List<BookingScheduleActivity>> activitiesByDayId =
+                bookingScheduleActivityRepository
+                        .findByScheduleDayIds(dayIds)
+                        .stream()
+                        .collect(Collectors.groupingBy(
+                                activity -> activity.getBookingScheduleDay().getId()));
+
+        return days
+                .stream()
+                .map(day -> mapScheduleDayResponse(
+                        day,
+                        activitiesByDayId.getOrDefault(day.getId(), List.of())))
+                .toList();
+    }
+
+    private BookingScheduleDayResponse mapScheduleDayResponse(
+            BookingScheduleDay day,
+            List<BookingScheduleActivity> activities) {
+
+        BookingScheduleDayResponse response = new BookingScheduleDayResponse();
+
+        response.setId(day.getId());
+        response.setDayNumber(day.getDayNumber());
+        response.setTitle(day.getTitle());
+        response.setDescription(day.getDescription());
+        response.setActivities(activities.stream().map(this::mapScheduleActivityResponse).toList());
+
+        return response;
+    }
+
+    private BookingScheduleActivityResponse mapScheduleActivityResponse(
+            BookingScheduleActivity activity) {
+
+        BookingScheduleActivityResponse response = new BookingScheduleActivityResponse();
+
+        response.setId(activity.getId());
+        response.setOriginalActivityId(
+                activity.getOriginalActivity() != null
+                        ? activity.getOriginalActivity().getId()
+                        : null);
+        response.setTitle(activity.getTitle());
+        response.setDescription(activity.getDescription());
+        response.setStartTime(activity.getStartTime());
+        response.setEndTime(activity.getEndTime());
+        response.setStatus(activity.getStatus().name());
 
         return response;
     }
@@ -554,6 +778,11 @@ public class BookingServiceImpl implements BookingService {
         } catch (IllegalArgumentException ex) {
             throw new RuntimeException("Loại khách đi cùng không hợp lệ");
         }
+    }
+
+    private boolean isChildSeatType(BookingCustomerType type) {
+
+        return type == BookingCustomerType.CHILD || type == BookingCustomerType.INFANT;
     }
 
     private Gender parseGender(String value) {
