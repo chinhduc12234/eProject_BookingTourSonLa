@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 import com.bookingtoursonla.entity.Booking;
 import com.bookingtoursonla.entity.enums.BookingStatus;
 import com.bookingtoursonla.entity.enums.PaymentStatus;
+import com.bookingtoursonla.dto.BookingDashboardDTO;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
@@ -45,4 +46,33 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     long countByBookedAtBetween(LocalDateTime start, LocalDateTime end);
 
     boolean existsByBookingCode(String bookingCode);
+
+    // =========================================================================
+    // PHẦN THÊM MỚI: PHỤC VỤ CHO TRANG DASHBOARD NHÂN VIÊN (EMPLOYEE)
+    // =========================================================================
+
+    // 1. Lấy danh sách đơn đặt tour hiển thị lên bảng điều hành nhân viên dựa theo đúng cấu trúc b.fullName
+    @Query("""
+        SELECT new com.bookingtoursonla.dto.BookingDashboardDTO(
+            b.id, 
+            b.bookingCode, 
+            b.fullName, 
+            b.phone, 
+            t.title, 
+            b.bookedAt, 
+            b.totalPeople, 
+            b.totalPrice, 
+            b.status
+        )
+        FROM Booking b
+        JOIN b.tourDeparture d
+        JOIN d.tour t
+        WHERE b.deletedAt IS NULL
+        ORDER BY b.bookedAt DESC
+    """)
+    List<BookingDashboardDTO> findDashboardBookings();
+
+    // 2. Tính tổng doanh thu thời gian thực từ các đơn đặt tour đã xác nhận (CONFIRMED) thành công
+    @Query("SELECT SUM(b.totalPrice) FROM Booking b WHERE b.deletedAt IS NULL AND b.status = com.bookingtoursonla.entity.enums.BookingStatus.CONFIRMED")
+    java.math.BigDecimal calculateTotalConfirmedRevenue();
 }
