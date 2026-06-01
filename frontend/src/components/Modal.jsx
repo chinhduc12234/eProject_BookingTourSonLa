@@ -4,14 +4,15 @@ export default function Modal({ open, onClose, children, className = "" }) {
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-[6px] flex items-center justify-center p-4 md:p-6 overflow-y-auto"
+      className="admin-modal-overlay fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-[6px] flex items-center justify-center p-4 md:p-6 overflow-y-auto"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`
+        className={`admin-modal-panel
           relative 
           w-full 
           bg-white 
+          text-slate-900
           rounded-[32px] 
           border 
           border-slate-100 

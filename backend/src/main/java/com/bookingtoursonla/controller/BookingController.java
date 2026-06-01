@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.bookingtoursonla.dto.BookingDetailResponse;
 import com.bookingtoursonla.dto.BookingResponse;
+import com.bookingtoursonla.dto.CancelBookingRequest;
 import com.bookingtoursonla.dto.CreateBookingRequest;
+import com.bookingtoursonla.dto.PayBookingRequest;
 import com.bookingtoursonla.service.BookingService;
 
 import jakarta.validation.Valid;
@@ -51,6 +53,30 @@ public class BookingController {
 
         return bookingService.getBookingDetail(
                 id,
+                authentication != null ? authentication.getName() : null);
+    }
+
+    @PostMapping("/{id}/pay")
+    public BookingDetailResponse pay(
+            @PathVariable Long id,
+            @RequestBody(required = false) PayBookingRequest request,
+            Authentication authentication) {
+
+        return bookingService.payBooking(
+                id,
+                request,
+                authentication != null ? authentication.getName() : null);
+    }
+
+    @PostMapping("/{id}/cancel")
+    public BookingDetailResponse cancel(
+            @PathVariable Long id,
+            @RequestBody(required = false) CancelBookingRequest request,
+            Authentication authentication) {
+
+        return bookingService.cancelBooking(
+                id,
+                request,
                 authentication != null ? authentication.getName() : null);
     }
 }

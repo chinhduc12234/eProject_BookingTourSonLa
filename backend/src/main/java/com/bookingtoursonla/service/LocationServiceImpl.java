@@ -73,6 +73,14 @@ public class LocationServiceImpl
                             districtId,
                             pageable);
 
+        } else if (hasKeyword && hasProvince) {
+
+            locations = locationRepository
+                    .findByDeletedAtIsNullAndNameContainingIgnoreCaseAndDistrict_Province_Id(
+                            keyword.trim(),
+                            provinceId,
+                            pageable);
+
         } else if (hasDistrict) {
 
             locations = locationRepository
@@ -178,7 +186,9 @@ public class LocationServiceImpl
                 dto.getImage());
 
         existing.setActive(
-                dto.getActive());
+                dto.getActive() != null
+                        ? dto.getActive()
+                        : existing.getActive());
 
         existing.setDistrict(district);
 

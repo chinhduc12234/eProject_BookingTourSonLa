@@ -569,3 +569,54 @@ html[data-theme="light"] .admin-sidebar [class*="bg-white/["] {
 html[data-theme="light"] .admin-sidebar [class*="border-white/"] {
     border-color: rgba(255, 255, 255, 0.12) !important;
 }
+
+/* Scoped admin readability. Keep these rules under .admin-shell so public pages
+   can keep their theme overrides without washing out admin forms. */
+.admin-shell {
+    --admin-text: #0f172a;
+    --admin-text-soft: #334155;
+    --admin-text-muted: #64748b;
+    --admin-border: #cbd5e1;
+    --admin-field-bg: #f8fafc;
+    color: var(--admin-text);
+}
+
+.admin-shell :where(main, .admin-modal-panel) {
+    color: var(--admin-text);
+}
+
+.admin-shell :where(label) {
+    color: var(--admin-text-soft);
+}
+
+.admin-shell :where(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
+    color: var(--admin-text);
+    caret-color: var(--admin-text);
+}
+
+.admin-shell :where(input:not([type="checkbox"]):not([type="radio"]), textarea, select)::placeholder {
+    color: var(--admin-text-muted);
+    opacity: 1;
+}
+
+.admin-shell :where(input:not([type="checkbox"]):not([type="radio"]):disabled, textarea:disabled, select:disabled) {
+    color: var(--admin-text-muted);
+    -webkit-text-fill-color: var(--admin-text-muted);
+}
+
+.admin-shell :where(option) {
+    color: var(--admin-text);
+    background: #ffffff;
+}
+
+.admin-shell :where(button:not([class*="text-"])) {
+    color: var(--admin-text-soft);
+}
+
+.admin-shell :where(table) {
+    color: var(--admin-text);
+}
+
+.admin-shell :where(thead) {
+    color: var(--admin-text-muted);
+}

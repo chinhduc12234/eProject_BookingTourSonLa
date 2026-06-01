@@ -12,6 +12,10 @@ public interface ProvinceRepository extends JpaRepository<Province, Long> {
 
     Page<Province> findByDeletedFalse(Pageable pageable);
 
+    Page<Province> findByDeletedFalseAndNameContainingIgnoreCase(
+            String keyword,
+            Pageable pageable);
+
     Optional<Province> findByIdAndDeletedFalse(Long id);
 
     boolean existsByNameIgnoreCaseAndDeletedFalse(String name);

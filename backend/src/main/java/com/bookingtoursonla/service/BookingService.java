@@ -6,7 +6,9 @@ import org.springframework.data.domain.Page;
 
 import com.bookingtoursonla.dto.BookingDetailResponse;
 import com.bookingtoursonla.dto.BookingResponse;
+import com.bookingtoursonla.dto.CancelBookingRequest;
 import com.bookingtoursonla.dto.CreateBookingRequest;
+import com.bookingtoursonla.dto.PayBookingRequest;
 import com.bookingtoursonla.dto.UpdateBookingAdminRequest;
 
 public interface BookingService {
@@ -16,6 +18,16 @@ public interface BookingService {
     List<BookingResponse> getMyBookings(String authenticatedEmail);
 
     BookingDetailResponse getBookingDetail(Long id, String authenticatedEmail);
+
+    BookingDetailResponse payBooking(
+            Long id,
+            PayBookingRequest request,
+            String authenticatedEmail);
+
+    BookingDetailResponse cancelBooking(
+            Long id,
+            CancelBookingRequest request,
+            String authenticatedEmail);
 
     Page<BookingResponse> getAdminBookings(
             int page,

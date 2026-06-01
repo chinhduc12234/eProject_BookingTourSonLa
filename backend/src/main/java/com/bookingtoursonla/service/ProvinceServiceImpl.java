@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.bookingtoursonla.dto.ProvinceDto;
@@ -23,12 +24,30 @@ public class ProvinceServiceImpl implements ProvinceService {
     // ================= GET ALL =================
 
     @Override
-    public Page<ProvinceDto> getAll(int page, int size) {
+    public Page<ProvinceDto> getAll(
+            int page,
+            int size,
+            String keyword,
+            String direction) {
 
-        Pageable pageable = PageRequest.of(page, size);
+        Sort sort = direction.equalsIgnoreCase("desc")
+                ? Sort.by("name").descending()
+                : Sort.by("name").ascending();
 
-        return provinceRepository
-                .findByDeletedFalse(pageable)
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        boolean hasKeyword = keyword != null
+                && !keyword.trim().isEmpty();
+
+        Page<Province> provinces = hasKeyword
+                ? provinceRepository
+                        .findByDeletedFalseAndNameContainingIgnoreCase(
+                                keyword.trim(),
+                                pageable)
+                : provinceRepository
+                        .findByDeletedFalse(pageable);
+
+        return provinces
                 .map(this::mapToDto);
     }
 

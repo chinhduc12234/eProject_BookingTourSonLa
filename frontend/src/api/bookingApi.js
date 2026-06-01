@@ -11,6 +11,12 @@ export const getMyBookings = () =>
 export const getBookingDetail = (id) =>
   axiosClient.get(`${BASE}/${id}`);
 
+export const payBooking = (id, data = {}) =>
+  axiosClient.post(`${BASE}/${id}/pay`, data);
+
+export const cancelBooking = (id, data = {}) =>
+  axiosClient.post(`${BASE}/${id}/cancel`, data);
+
 export const getAdminBookings = (params) =>
   axiosClient.get("/admin/bookings", { params });
 

@@ -26,6 +26,7 @@ import TourPage from "./pages/admin/TourPage";
 import TourDetailPage from "./pages/admin/TourDetailPage";
 import StaffPage from "./pages/admin/StaffPage";
 import BookingPage from "./pages/admin/BookingPage";
+import AdminBookingDetailPage from "./pages/admin/AdminBookingDetailPage";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import AdminLayout from "./layouts/AdminLayout";
@@ -135,6 +136,7 @@ function AnimatedRoutes() {
           <Route path="tours" element={<TourPage />} />
           <Route path="tours/:id" element={<TourDetailPage />} />
           <Route path="bookings" element={<BookingPage />} />
+          <Route path="bookings/:bookingId" element={<AdminBookingDetailPage />} />
           <Route path="staff" element={<StaffPage />} />
         </Route>
       </Routes>

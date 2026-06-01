@@ -84,6 +84,14 @@ const paymentStatusMeta = {
     label: "Đã hoàn tiền",
     className: "border-slate-300/30 bg-slate-300/10 text-slate-100",
   },
+  PARTIALLY_REFUNDED: {
+    label: "Hoàn một phần",
+    className: "border-violet-300/30 bg-violet-300/10 text-violet-100",
+  },
+  FORFEITED: {
+    label: "Mất cọc",
+    className: "border-orange-300/30 bg-orange-300/10 text-orange-100",
+  },
   FAILED: {
     label: "Thanh toán lỗi",
     className: "border-rose-300/30 bg-rose-300/10 text-rose-100",
@@ -815,7 +823,7 @@ export default function AccountPage() {
                       <div className="flex items-start gap-3 rounded-xl border border-rose-300/30 bg-rose-300/10 p-4 text-rose-100">
                         <XCircle size={20} className="mt-0.5 shrink-0" />
                         <div>
-                          <div className="font-black">Booking đã hủy</div>
+                          <div className="font-black">Đặt lịch đã hủy</div>
                           <p className="mt-1 text-sm text-rose-100/80">
                             Liên hệ bộ phận hỗ trợ nếu bạn cần kiểm tra hoàn
                             tiền hoặc đặt lại lịch khác.
@@ -986,12 +994,14 @@ export default function AccountPage() {
                                   {customer.fullName}
                                 </div>
                                 <span className="rounded-full bg-[#7FB77E]/15 px-3 py-1 text-xs font-bold text-[#9de09c]">
-                                  {customer.groupLeader
+                                  {customer.groupLeader &&
+                                  Number(selectedBooking.totalPeople || 0) > 1
                                     ? "Trưởng đoàn"
-                                    : customer.customerType}
+                                    : "Hành khách"}
                                 </span>
                               </div>
                               <div className="mt-2 grid gap-1 text-sm text-slate-400 sm:grid-cols-2">
+                                <span>{customer.customerType}</span>
                                 <span>{customer.phone || "Chưa có SĐT"}</span>
                                 <span className="break-all">
                                   {customer.email || "Chưa có email"}

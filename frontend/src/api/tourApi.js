@@ -25,6 +25,8 @@ export const uploadTourThumbnail = (file) => {
   });
 };
 
+export const uploadTourImage = uploadTourThumbnail;
+
 export const updateTour = (id, data) =>
   axiosClient.put(`${BASE}/${id}`, data);
 

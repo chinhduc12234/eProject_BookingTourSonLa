@@ -72,7 +72,33 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     """)
     List<BookingDashboardDTO> findDashboardBookings();
 
+    @Query("""
+        SELECT new com.bookingtoursonla.dto.BookingDashboardDTO(
+            b.id,
+            b.bookingCode,
+            b.fullName,
+            b.phone,
+            t.title,
+            b.bookedAt,
+            b.totalPeople,
+            b.totalPrice,
+            b.status
+        )
+        FROM Booking b
+        JOIN b.tourDeparture d
+        JOIN d.tour t
+        WHERE b.deletedAt IS NULL
+          AND b.assignedStaff.id = :staffId
+        ORDER BY b.bookedAt DESC
+    """)
+    List<BookingDashboardDTO> findDashboardBookingsByAssignedStaffId(
+            @Param("staffId") Long staffId);
+
     // 2. Tính tổng doanh thu thời gian thực từ các đơn đặt tour đã xác nhận (CONFIRMED) thành công
     @Query("SELECT SUM(b.totalPrice) FROM Booking b WHERE b.deletedAt IS NULL AND b.status = com.bookingtoursonla.entity.enums.BookingStatus.CONFIRMED")
     java.math.BigDecimal calculateTotalConfirmedRevenue();
+
+    @Query("SELECT SUM(b.totalPrice) FROM Booking b WHERE b.deletedAt IS NULL AND b.assignedStaff.id = :staffId AND b.status = com.bookingtoursonla.entity.enums.BookingStatus.CONFIRMED")
+    java.math.BigDecimal calculateTotalConfirmedRevenueByAssignedStaffId(
+            @Param("staffId") Long staffId);
 }

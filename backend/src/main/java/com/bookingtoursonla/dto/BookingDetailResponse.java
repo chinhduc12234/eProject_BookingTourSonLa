@@ -43,6 +43,20 @@ public class BookingDetailResponse {
 
     private String tourThumbnail;
 
+    private String tourShortDescription;
+
+    private String tourDescription;
+
+    private String includedServices;
+
+    private String excludedServices;
+
+    private Integer durationDays;
+
+    private Integer durationNights;
+
+    private String departureLocation;
+
     private LocalDate departureDate;
 
     private LocalTime departureTime;
@@ -62,6 +76,48 @@ public class BookingDetailResponse {
     private String note;
 
     private String specialRequest;
+
+    private String internalNote;
+
+    private LocalDateTime paymentDeadline;
+
+    private LocalDateTime paidAt;
+
+    private BigDecimal paidAmount;
+
+    private BigDecimal depositAmount;
+
+    private BigDecimal remainingAmount;
+
+    private BigDecimal refundedAmount;
+
+    private LocalDateTime refundedAt;
+
+    private String paymentPlan;
+
+    private String paymentMethod;
+
+    private String remainingPaymentMethod;
+
+    private String paymentReference;
+
+    private Boolean refundableBeforeDeparture;
+
+    private BigDecimal forfeitedDepositAmount;
+
+    private String refundPolicyNote;
+
+    private Long assignedStaffId;
+
+    private String assignedStaffName;
+
+    private String assignedStaffEmail;
+
+    private String assignedStaffPhone;
+
+    private Long confirmedById;
+
+    private String confirmedByName;
 
     private LocalDateTime bookedAt;
 

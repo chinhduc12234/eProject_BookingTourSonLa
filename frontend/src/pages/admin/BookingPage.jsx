@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   CalendarDays,
-  CheckCircle2,
   CreditCard,
+  Eye,
   Loader2,
   RefreshCcw,
   Search,
@@ -11,55 +12,21 @@ import {
   Users,
 } from "lucide-react";
 
-import { getAdminBookings, updateAdminBooking } from "../../api/bookingApi";
-
-const bookingStatuses = [
-  { value: "", label: "Tất cả booking" },
-  { value: "PENDING", label: "Chờ xác nhận" },
-  { value: "CONFIRMED", label: "Đã xác nhận" },
-  { value: "IN_PROGRESS", label: "Đang đi tour" },
-  { value: "COMPLETED", label: "Hoàn thành" },
-  { value: "CANCELLED", label: "Đã hủy" },
-];
-
-const paymentStatuses = [
-  { value: "", label: "Tất cả thanh toán" },
-  { value: "UNPAID", label: "Chưa thanh toán" },
-  { value: "PARTIAL", label: "Đã cọc" },
-  { value: "PAID", label: "Đã thanh toán" },
-  { value: "REFUNDED", label: "Đã hoàn tiền" },
-  { value: "FAILED", label: "Thanh toán lỗi" },
-];
-
-const statusText = {
-  PENDING: "Chờ xác nhận",
-  CONFIRMED: "Đã xác nhận",
-  IN_PROGRESS: "Đang đi tour",
-  COMPLETED: "Hoàn thành",
-  CANCELLED: "Đã hủy",
-};
-
-const paymentText = {
-  UNPAID: "Chưa thanh toán",
-  PARTIAL: "Đã cọc",
-  PAID: "Đã thanh toán",
-  REFUNDED: "Đã hoàn tiền",
-  FAILED: "Thanh toán lỗi",
-};
-
-const formatCurrency = (value) =>
-  Number(value || 0).toLocaleString("vi-VN") + " đ";
-
-const formatDate = (value) => {
-  if (!value) return "Chưa cập nhật";
-  const [year, month, day] = value.split("-");
-  return `${day}/${month}/${year}`;
-};
+import { getAdminBookings } from "../../api/bookingApi";
+import {
+  Badge,
+  bookingStatuses,
+  formatCurrency,
+  formatDate,
+  getMeta,
+  paymentMeta,
+  paymentStatuses,
+  statusMeta,
+} from "./bookingShared";
 
 export default function BookingPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [savingId, setSavingId] = useState(null);
   const [keyword, setKeyword] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
@@ -127,43 +94,21 @@ export default function BookingPage() {
   const summary = useMemo(() => {
     const pending = bookings.filter((booking) => booking.status === "PENDING").length;
     const paid = bookings.filter((booking) => booking.paymentStatus === "PAID").length;
-    const people = bookings.reduce((sum, booking) => sum + Number(booking.totalPeople || 0), 0);
-    const revenue = bookings.reduce((sum, booking) => sum + Number(booking.totalPrice || 0), 0);
+    const pendingPayment = bookings.filter(
+      (booking) => booking.paymentStatus === "PENDING_REVIEW",
+    ).length;
+    const people = bookings.reduce(
+      (sum, booking) => sum + Number(booking.totalPeople || 0),
+      0,
+    );
 
-    return { pending, paid, people, revenue };
+    return { pending, paid, pendingPayment, people };
   }, [bookings]);
 
   const submitSearch = (event) => {
     event.preventDefault();
     setPage(0);
     setKeyword(search.trim());
-  };
-
-  const updateBooking = async (booking, patch) => {
-    try {
-      setSavingId(booking.id);
-      const response = await updateAdminBooking(booking.id, {
-        status: patch.status ?? booking.status,
-        paymentStatus: patch.paymentStatus ?? booking.paymentStatus,
-      });
-
-      setBookings((current) =>
-        current.map((item) =>
-          item.id === booking.id
-            ? {
-                ...item,
-                status: response.data.status,
-                paymentStatus: response.data.paymentStatus,
-              }
-            : item,
-        ),
-      );
-      toast.success("Đã cập nhật booking");
-    } catch (error) {
-      toast.error(error?.response?.data?.message || "Không thể cập nhật booking");
-    } finally {
-      setSavingId(null);
-    }
   };
 
   return (
@@ -175,9 +120,11 @@ export default function BookingPage() {
               <TicketCheck size={26} />
             </span>
             <div>
-              <h1 className="text-3xl font-black tracking-tight">Quản lý booking</h1>
-              <p className="mt-1 text-sm text-slate-500">
-                Xác nhận đặt chỗ, cập nhật thanh toán và theo dõi khách đi tour.
+              <h1 className="text-3xl font-black tracking-tight">
+                Quản lý booking
+              </h1>
+              <p className="mt-1 text-sm font-semibold text-slate-500">
+                Theo dõi booking, xét duyệt thanh toán, phân công nhân viên và xác nhận tour.
               </p>
             </div>
           </div>
@@ -197,7 +144,7 @@ export default function BookingPage() {
           {[
             { label: "Tổng booking", value: totalElements, Icon: TicketCheck },
             { label: "Chờ xác nhận", value: summary.pending, Icon: CalendarDays },
-            { label: "Đã thanh toán", value: summary.paid, Icon: CreditCard },
+            { label: "Xét duyệt thanh toán", value: summary.pendingPayment, Icon: CreditCard },
             { label: "Khách trong trang", value: summary.people, Icon: Users },
           ].map(({ label, value, Icon }) => (
             <div key={label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -216,7 +163,7 @@ export default function BookingPage() {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Tìm mã booking, tên khách, email, SĐT, tour..."
-                className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 outline-none transition focus:border-emerald-500 focus:bg-white"
+                className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 font-semibold outline-none transition focus:border-emerald-500 focus:bg-white"
               />
             </div>
 
@@ -226,7 +173,7 @@ export default function BookingPage() {
                 setPage(0);
                 setStatus(event.target.value);
               }}
-              className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-4 outline-none transition focus:border-emerald-500 focus:bg-white"
+              className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold outline-none transition focus:border-emerald-500 focus:bg-white"
             >
               {bookingStatuses.map((item) => (
                 <option key={item.value} value={item.value}>
@@ -241,7 +188,7 @@ export default function BookingPage() {
                 setPage(0);
                 setPaymentStatus(event.target.value);
               }}
-              className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-4 outline-none transition focus:border-emerald-500 focus:bg-white"
+              className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold outline-none transition focus:border-emerald-500 focus:bg-white"
             >
               {paymentStatuses.map((item) => (
                 <option key={item.value} value={item.value}>
@@ -266,10 +213,12 @@ export default function BookingPage() {
               <Loader2 className="h-10 w-10 animate-spin text-emerald-600" />
             </div>
           ) : bookings.length === 0 ? (
-            <div className="py-20 text-center text-slate-500">Chưa có booking phù hợp.</div>
+            <div className="py-20 text-center font-semibold text-slate-500">
+              Chưa có booking phù hợp.
+            </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1100px] text-left text-sm">
+              <table className="w-full min-w-[1180px] text-left text-sm">
                 <thead className="bg-slate-50 text-xs font-black uppercase tracking-wider text-slate-500">
                   <tr>
                     <th className="px-5 py-4">Booking</th>
@@ -280,6 +229,7 @@ export default function BookingPage() {
                     <th className="px-5 py-4">Tổng tiền</th>
                     <th className="px-5 py-4">Trạng thái</th>
                     <th className="px-5 py-4">Thanh toán</th>
+                    <th className="px-5 py-4">Chi tiết</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -287,7 +237,7 @@ export default function BookingPage() {
                     <tr key={booking.id} className="align-top transition hover:bg-slate-50">
                       <td className="px-5 py-4">
                         <div className="font-black text-slate-950">{booking.bookingCode}</div>
-                        <div className="mt-1 text-xs text-slate-500">
+                        <div className="mt-1 text-xs font-semibold text-slate-500">
                           #{booking.id}
                         </div>
                       </td>
@@ -297,7 +247,12 @@ export default function BookingPage() {
                         <div className="mt-1 text-xs text-slate-500">{booking.email}</div>
                       </td>
                       <td className="px-5 py-4">
-                        <div className="max-w-[260px] font-bold text-slate-900">{booking.tourName}</div>
+                        <div className="max-w-[240px] font-bold text-slate-900">{booking.tourName}</div>
+                        {booking.assignedStaffName && (
+                          <div className="mt-1 text-xs font-semibold text-emerald-700">
+                            NV: {booking.assignedStaffName}
+                          </div>
+                        )}
                       </td>
                       <td className="px-5 py-4 font-bold text-slate-700">
                         {formatDate(booking.departureDate)}
@@ -312,39 +267,19 @@ export default function BookingPage() {
                         {formatCurrency(booking.totalPrice)}
                       </td>
                       <td className="px-5 py-4">
-                        <select
-                          value={booking.status}
-                          disabled={savingId === booking.id}
-                          onChange={(event) => updateBooking(booking, { status: event.target.value })}
-                          className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold outline-none focus:border-emerald-500 disabled:opacity-60"
-                        >
-                          {bookingStatuses.slice(1).map((item) => (
-                            <option key={item.value} value={item.value}>
-                              {statusText[item.value]}
-                            </option>
-                          ))}
-                        </select>
+                        <Badge meta={getMeta(statusMeta, booking.status)} />
                       </td>
                       <td className="px-5 py-4">
-                        <div className="flex items-center gap-2">
-                          <select
-                            value={booking.paymentStatus}
-                            disabled={savingId === booking.id}
-                            onChange={(event) => updateBooking(booking, { paymentStatus: event.target.value })}
-                            className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold outline-none focus:border-emerald-500 disabled:opacity-60"
-                          >
-                            {paymentStatuses.slice(1).map((item) => (
-                              <option key={item.value} value={item.value}>
-                                {paymentText[item.value]}
-                              </option>
-                            ))}
-                          </select>
-                          {savingId === booking.id ? (
-                            <Loader2 size={18} className="animate-spin text-emerald-600" />
-                          ) : (
-                            <CheckCircle2 size={18} className="text-slate-300" />
-                          )}
-                        </div>
+                        <Badge meta={getMeta(paymentMeta, booking.paymentStatus)} />
+                      </td>
+                      <td className="px-5 py-4">
+                        <Link
+                          to={`/admin/bookings/${booking.id}`}
+                          className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700"
+                        >
+                          <Eye size={16} />
+                          Chi tiết
+                        </Link>
                       </td>
                     </tr>
                   ))}
@@ -356,7 +291,7 @@ export default function BookingPage() {
 
         <div className="mt-6 flex items-center justify-between gap-3">
           <div className="text-sm font-bold text-slate-500">
-            Doanh thu trang hiện tại: {formatCurrency(summary.revenue)}
+            Booking đã thanh toán trong trang: {summary.paid}
           </div>
           <div className="flex items-center gap-3">
             <button

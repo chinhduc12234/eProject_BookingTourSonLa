@@ -190,7 +190,29 @@ export default function useTourWizard(tourId) {
 
       const tourBody = buildTourUpdateBody(payload.tour);
 
-      const thumbFromGallery = (payload.images || []).find(
+      let imagesPayload = (payload.images || [])
+        .map((img) => ({
+          ...img,
+          imageUrl: (img.imageUrl || "").trim(),
+        }))
+        .filter((img) => img.imageUrl)
+        .map((img, index) => ({
+          imageUrl: img.imageUrl,
+          isThumbnail: Boolean(img.isThumbnail),
+          sortOrder: index,
+        }));
+
+      if (
+        imagesPayload.length > 0 &&
+        !imagesPayload.some((img) => img.isThumbnail)
+      ) {
+        imagesPayload = imagesPayload.map((img, index) => ({
+          ...img,
+          isThumbnail: index === 0,
+        }));
+      }
+
+      const thumbFromGallery = imagesPayload.find(
         (img) => img.isThumbnail && img.imageUrl,
       );
 
@@ -201,11 +223,7 @@ export default function useTourWizard(tourId) {
       await updateTour(tourId, tourBody);
 
       await replaceTourImages(tourId, {
-        images: (payload.images || []).map((img, index) => ({
-          imageUrl: img.imageUrl,
-          isThumbnail: img.isThumbnail,
-          sortOrder: index,
-        })),
+        images: imagesPayload,
       });
 
       const daysPayload = (payload.days || []).map((day, index) => ({

@@ -1,6 +1,7 @@
 package com.bookingtoursonla.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,7 +22,9 @@ import com.bookingtoursonla.dto.BookingDetailResponse;
 import com.bookingtoursonla.dto.BookingResponse;
 import com.bookingtoursonla.dto.BookingScheduleActivityResponse;
 import com.bookingtoursonla.dto.BookingScheduleDayResponse;
+import com.bookingtoursonla.dto.CancelBookingRequest;
 import com.bookingtoursonla.dto.CreateBookingRequest;
+import com.bookingtoursonla.dto.PayBookingRequest;
 import com.bookingtoursonla.dto.UpdateBookingAdminRequest;
 import com.bookingtoursonla.entity.Booking;
 import com.bookingtoursonla.entity.BookingCustomer;
@@ -54,6 +57,8 @@ public class BookingServiceImpl implements BookingService {
 
     private static final DateTimeFormatter BOOKING_DATE_FORMAT =
             DateTimeFormatter.ofPattern("yyyyMMdd");
+
+    private static final BigDecimal DEPOSIT_RATE = new BigDecimal("0.30");
 
     private final BookingRepository bookingRepository;
 
@@ -159,6 +164,11 @@ public class BookingServiceImpl implements BookingService {
         booking.setSpecialRequest(trimToNull(request.getSpecialRequest()));
         booking.setStatus(BookingStatus.PENDING);
         booking.setPaymentStatus(PaymentStatus.UNPAID);
+        booking.setPaymentDeadline(LocalDateTime.now().plusHours(24));
+        booking.setDepositAmount(calculateDepositAmount(totalPrice));
+        booking.setPaidAmount(BigDecimal.ZERO);
+        booking.setRemainingAmount(totalPrice);
+        booking.setRefundedAmount(BigDecimal.ZERO);
 
         departure.setReservedPeople(valueOrZero(departure.getReservedPeople()) + totalPeople);
         tourDepartureRepository.save(departure);
@@ -204,6 +214,86 @@ public class BookingServiceImpl implements BookingService {
                 .findByBookingIdOrderByIdAsc(booking.getId());
 
         return mapToDetailResponse(booking, customers);
+    }
+
+    @Override
+    @Transactional
+    public BookingDetailResponse payBooking(
+            Long id,
+            PayBookingRequest request,
+            String authenticatedEmail) {
+
+        Booking booking = bookingRepository
+                .findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
+
+        User user = requireAuthenticatedUser(authenticatedEmail);
+
+        if (booking.getUser() == null || !booking.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Bạn không có quyền thanh toán booking này");
+        }
+
+        if (booking.getStatus() == BookingStatus.CANCELLED) {
+            throw new RuntimeException("Đặt lịch đã hủy nên không thể thanh toán");
+        }
+
+        applyPayment(booking, request);
+
+        Booking saved = bookingRepository.save(booking);
+
+        List<BookingCustomer> customers = bookingCustomerRepository
+                .findByBookingIdOrderByIdAsc(saved.getId());
+
+        return mapToDetailResponse(saved, customers);
+    }
+
+    @Override
+    @Transactional
+    public BookingDetailResponse cancelBooking(
+            Long id,
+            CancelBookingRequest request,
+            String authenticatedEmail) {
+
+        Booking booking = bookingRepository
+                .findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
+
+        User user = requireAuthenticatedUser(authenticatedEmail);
+
+        if (booking.getUser() == null || !booking.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Bạn không có quyền hủy đặt lịch này");
+        }
+
+        if (booking.getStatus() == BookingStatus.CANCELLED) {
+            throw new RuntimeException("Booking đã được hủy trước đó");
+        }
+
+        if (booking.getStatus() == BookingStatus.COMPLETED) {
+            throw new RuntimeException("Booking đã hoàn thành nên không thể hủy");
+        }
+
+        if (booking.getPaymentStatus() == PaymentStatus.PENDING_REVIEW) {
+            throw new RuntimeException("Thanh toán đang chờ xét duyệt, vui lòng chờ admin xử lý trước khi hủy đặt lịch");
+        }
+
+        applyBookingStatusTransition(booking, BookingStatus.CANCELLED, null);
+        applyCancellationPaymentPolicy(booking);
+
+        String reason = request != null ? trimToNull(request.getReason()) : null;
+        if (reason != null) {
+            String currentNote = trimToNull(booking.getInternalNote());
+            booking.setInternalNote(
+                    currentNote == null
+                            ? "Khách hủy: " + reason
+                            : currentNote + "\nKhách hủy: " + reason);
+        }
+
+        Booking saved = bookingRepository.save(booking);
+
+        List<BookingCustomer> customers = bookingCustomerRepository
+                .findByBookingIdOrderByIdAsc(saved.getId());
+
+        return mapToDetailResponse(saved, customers);
     }
 
     @Override
@@ -254,23 +344,49 @@ public class BookingServiceImpl implements BookingService {
             UpdateBookingAdminRequest request,
             String adminEmail) {
 
+        if (request == null) {
+            request = new UpdateBookingAdminRequest();
+        }
+
         Booking booking = bookingRepository
                 .findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
 
-        BookingStatus nextStatus = parseNullableBookingStatus(request.getStatus());
-        PaymentStatus nextPaymentStatus = parseNullablePaymentStatus(request.getPaymentStatus());
-
-        if (nextStatus != null && nextStatus != booking.getStatus()) {
-            applyBookingStatusTransition(booking, nextStatus, adminEmail);
-        }
-
-        if (nextPaymentStatus != null) {
-            booking.setPaymentStatus(nextPaymentStatus);
+        if (request.getAssignedStaffId() != null) {
+            User assignedStaff = requireActiveStaff(request.getAssignedStaffId());
+            booking.setAssignedStaff(assignedStaff);
+            booking.setAssignedAt(LocalDateTime.now());
         }
 
         if (request.getInternalNote() != null) {
             booking.setInternalNote(trimToNull(request.getInternalNote()));
+        }
+
+        PaymentStatus nextPaymentStatus = parseNullablePaymentStatus(request.getPaymentStatus());
+        if (nextPaymentStatus != null) {
+            applyAdminPaymentStatus(booking, nextPaymentStatus);
+        }
+
+        if (Boolean.TRUE.equals(request.getConfirmPayment())) {
+            if (booking.getStatus() == BookingStatus.CANCELLED) {
+                throw new RuntimeException("Đặt lịch đã hủy nên không thể duyệt thanh toán");
+            }
+
+            approvePendingPayment(booking);
+        }
+
+        if (Boolean.TRUE.equals(request.getConfirm())) {
+            if (booking.getStatus() == BookingStatus.CANCELLED) {
+                throw new RuntimeException("Đặt lịch đã hủy nên không thể xác nhận");
+            }
+
+            if (booking.getAssignedStaff() == null) {
+                throw new RuntimeException("Vui lòng gán nhân viên phụ trách trước khi xác nhận tour");
+            }
+
+            if (booking.getStatus() != BookingStatus.CONFIRMED) {
+                applyBookingStatusTransition(booking, BookingStatus.CONFIRMED, adminEmail);
+            }
         }
 
         Booking saved = bookingRepository.save(booking);
@@ -279,6 +395,189 @@ public class BookingServiceImpl implements BookingService {
                 .findByBookingIdOrderByIdAsc(saved.getId());
 
         return mapToDetailResponse(saved, customers);
+    }
+
+    private void applyPayment(
+            Booking booking,
+            PayBookingRequest request) {
+
+        if (booking.getStatus() == BookingStatus.CANCELLED) {
+            throw new RuntimeException("Đặt lịch đã hủy nên không thể thanh toán");
+        }
+
+        ensurePaymentDefaults(booking);
+
+        String paymentType = normalizePaymentType(request);
+
+        if ("FULL".equals(paymentType)) {
+            ensureCanCreatePaymentRequest(booking);
+            booking.setPaymentPlan("FULL");
+            booking.setPaymentMethod("BANK_TRANSFER_QR");
+            booking.setRemainingPaymentMethod(null);
+            booking.setPaidAmount(booking.getTotalPrice());
+            booking.setRemainingAmount(BigDecimal.ZERO);
+            booking.setPaymentStatus(PaymentStatus.PENDING_REVIEW);
+            booking.setPaidAt(LocalDateTime.now());
+            booking.setPaymentReference(generatePaymentReference(booking, "FULL"));
+            return;
+        }
+
+        if ("DEPOSIT".equals(paymentType)) {
+            ensureCanCreatePaymentRequest(booking);
+            if (booking.getPaymentStatus() != PaymentStatus.UNPAID
+                    && booking.getPaymentStatus() != PaymentStatus.FAILED) {
+                throw new RuntimeException("Booking này đã có giao dịch thanh toán");
+            }
+
+            BigDecimal depositAmount = calculateDepositAmount(booking.getTotalPrice());
+
+            booking.setPaymentPlan("DEPOSIT");
+            booking.setPaymentMethod("BANK_TRANSFER_QR");
+            booking.setRemainingPaymentMethod(resolveRemainingPaymentMethod(request));
+            booking.setDepositAmount(depositAmount);
+            booking.setPaidAmount(depositAmount);
+            booking.setRemainingAmount(nonNegative(booking.getTotalPrice().subtract(depositAmount)));
+            booking.setPaymentStatus(PaymentStatus.PENDING_REVIEW);
+            booking.setPaidAt(LocalDateTime.now());
+            booking.setPaymentReference(generatePaymentReference(booking, "DEP"));
+            return;
+        }
+
+        if ("REMAINING".equals(paymentType)) {
+            if (booking.getPaymentStatus() != PaymentStatus.PARTIAL) {
+                throw new RuntimeException("Chỉ booking đã đặt cọc mới được thanh toán phần còn lại");
+            }
+
+            booking.setPaymentPlan("DEPOSIT");
+            booking.setRemainingPaymentMethod("BANK_TRANSFER_QR");
+            booking.setPaidAmount(booking.getTotalPrice());
+            booking.setRemainingAmount(BigDecimal.ZERO);
+            booking.setPaymentStatus(PaymentStatus.PENDING_REVIEW);
+            booking.setPaidAt(LocalDateTime.now());
+            booking.setPaymentReference(generatePaymentReference(booking, "REM"));
+            return;
+        }
+
+        throw new RuntimeException("Phương thức thanh toán không hợp lệ");
+    }
+
+    private void ensureCanCreatePaymentRequest(Booking booking) {
+
+        if (booking.getPaymentStatus() == PaymentStatus.PENDING_REVIEW) {
+            throw new RuntimeException("Booking này đang chờ admin xét duyệt thanh toán");
+        }
+
+        if (booking.getPaymentStatus() != PaymentStatus.UNPAID
+                && booking.getPaymentStatus() != PaymentStatus.FAILED) {
+            throw new RuntimeException("Booking này đã có giao dịch thanh toán");
+        }
+    }
+
+    private void applyAdminPaymentStatus(
+            Booking booking,
+            PaymentStatus nextPaymentStatus) {
+
+        if (nextPaymentStatus == PaymentStatus.FAILED
+                || nextPaymentStatus == PaymentStatus.UNPAID) {
+            resetPendingPayment(booking, nextPaymentStatus);
+            return;
+        }
+
+        if (nextPaymentStatus == PaymentStatus.PAID
+                || nextPaymentStatus == PaymentStatus.PARTIAL) {
+            throw new RuntimeException("Vui lòng dùng nút xác nhận thanh toán để chốt giao dịch");
+        }
+
+        throw new RuntimeException("Trạng thái thanh toán không thể cập nhật thủ công");
+    }
+
+    private void resetPendingPayment(
+            Booking booking,
+            PaymentStatus nextPaymentStatus) {
+
+        ensurePaymentDefaults(booking);
+
+        if (booking.getPaymentStatus() != PaymentStatus.PENDING_REVIEW
+                && booking.getPaymentStatus() != PaymentStatus.FAILED) {
+            throw new RuntimeException("Chỉ giao dịch đang xét duyệt mới có thể từ chối");
+        }
+
+        BigDecimal totalPrice = booking.getTotalPrice() != null
+                ? booking.getTotalPrice()
+                : BigDecimal.ZERO;
+
+        booking.setPaymentStatus(nextPaymentStatus);
+        booking.setPaymentPlan(null);
+        booking.setPaymentMethod(null);
+        booking.setRemainingPaymentMethod(null);
+        booking.setPaidAt(null);
+        booking.setPaidAmount(BigDecimal.ZERO);
+        booking.setRemainingAmount(totalPrice);
+        booking.setPaymentReference(null);
+    }
+
+    private void approvePendingPayment(Booking booking) {
+
+        ensurePaymentDefaults(booking);
+
+        if (booking.getPaymentStatus() != PaymentStatus.PENDING_REVIEW) {
+            throw new RuntimeException("Booking này không có giao dịch đang chờ xét duyệt");
+        }
+
+        BigDecimal paidAmount = nonNegative(booking.getPaidAmount());
+
+        if (paidAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Booking chưa có số tiền chờ duyệt để xác nhận");
+        }
+
+        BigDecimal totalPrice = booking.getTotalPrice() != null
+                ? booking.getTotalPrice()
+                : BigDecimal.ZERO;
+
+        if (paidAmount.compareTo(totalPrice) >= 0) {
+            booking.setPaidAmount(totalPrice);
+            booking.setRemainingAmount(BigDecimal.ZERO);
+            booking.setPaymentStatus(PaymentStatus.PAID);
+            return;
+        }
+
+        booking.setRemainingAmount(nonNegative(totalPrice.subtract(paidAmount)));
+        booking.setPaymentStatus(PaymentStatus.PARTIAL);
+    }
+
+    private void applyCancellationPaymentPolicy(Booking booking) {
+
+        ensurePaymentDefaults(booking);
+
+        BigDecimal paidAmount = booking.getPaidAmount();
+        BigDecimal depositAmount = booking.getDepositAmount();
+        boolean beforeDeparture = isBeforeDepartureDate(booking);
+
+        if (paidAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            booking.setPaymentStatus(PaymentStatus.UNPAID);
+            booking.setRefundedAmount(BigDecimal.ZERO);
+            booking.setRemainingAmount(BigDecimal.ZERO);
+            return;
+        }
+
+        if (beforeDeparture) {
+            booking.setRefundedAmount(paidAmount);
+            booking.setRefundedAt(LocalDateTime.now());
+            booking.setRemainingAmount(BigDecimal.ZERO);
+            booking.setPaymentStatus(PaymentStatus.REFUNDED);
+            return;
+        }
+
+        BigDecimal forfeitedDeposit = paidAmount.min(depositAmount);
+        BigDecimal refundAmount = nonNegative(paidAmount.subtract(forfeitedDeposit));
+
+        booking.setRefundedAmount(refundAmount);
+        booking.setRefundedAt(refundAmount.compareTo(BigDecimal.ZERO) > 0 ? LocalDateTime.now() : null);
+        booking.setRemainingAmount(BigDecimal.ZERO);
+        booking.setPaymentStatus(
+                refundAmount.compareTo(BigDecimal.ZERO) > 0
+                        ? PaymentStatus.PARTIALLY_REFUNDED
+                        : PaymentStatus.FORFEITED);
     }
 
     private void validateCustomerManifest(
@@ -377,7 +676,7 @@ public class BookingServiceImpl implements BookingService {
         leader.setEmail(booking.getEmail());
         leader.setPhone(booking.getPhone());
         leader.setAddress(booking.getPickupAddress());
-        leader.setGroupLeader(true);
+        leader.setGroupLeader(valueOrZero(booking.getTotalPeople()) > 1);
 
         bookingCustomerRepository.save(leader);
 
@@ -537,6 +836,8 @@ public class BookingServiceImpl implements BookingService {
 
     private BookingResponse mapToResponse(Booking booking) {
 
+        ensurePaymentDefaults(booking);
+
         TourDeparture departure = booking.getTourDeparture();
         Tour tour = departure.getTour();
 
@@ -547,6 +848,17 @@ public class BookingServiceImpl implements BookingService {
         response.setStatus(booking.getStatus().name());
         response.setPaymentStatus(booking.getPaymentStatus().name());
         response.setBookingType(booking.getBookingType().name());
+        response.setPaymentDeadline(booking.getPaymentDeadline());
+        response.setPaidAt(booking.getPaidAt());
+        response.setPaidAmount(booking.getPaidAmount());
+        response.setDepositAmount(booking.getDepositAmount());
+        response.setRemainingAmount(booking.getRemainingAmount());
+        response.setRefundedAmount(booking.getRefundedAmount());
+        response.setRefundedAt(booking.getRefundedAt());
+        response.setPaymentPlan(booking.getPaymentPlan());
+        response.setPaymentMethod(booking.getPaymentMethod());
+        response.setRemainingPaymentMethod(booking.getRemainingPaymentMethod());
+        response.setPaymentReference(booking.getPaymentReference());
         response.setTotalPrice(booking.getTotalPrice());
         response.setCustomerName(booking.getFullName());
         response.setEmail(booking.getEmail());
@@ -556,6 +868,14 @@ public class BookingServiceImpl implements BookingService {
         response.setTourId(tour.getId());
         response.setDepartureId(departure.getId());
         response.setTourName(tour.getTitle());
+        response.setAssignedStaffId(
+                booking.getAssignedStaff() != null ? booking.getAssignedStaff().getId() : null);
+        response.setAssignedStaffName(
+                booking.getAssignedStaff() != null ? booking.getAssignedStaff().getFullName() : null);
+        response.setAssignedStaffEmail(
+                booking.getAssignedStaff() != null ? booking.getAssignedStaff().getEmail() : null);
+        response.setAssignedStaffPhone(
+                booking.getAssignedStaff() != null ? booking.getAssignedStaff().getPhone() : null);
         response.setDepartureDate(departure.getDepartureDate());
         response.setAdultCount(booking.getAdultCount());
         response.setChildCount(booking.getChildCount());
@@ -568,6 +888,8 @@ public class BookingServiceImpl implements BookingService {
     private BookingDetailResponse mapToDetailResponse(
             Booking booking,
             List<BookingCustomer> customers) {
+
+        ensurePaymentDefaults(booking);
 
         TourDeparture departure = booking.getTourDeparture();
         Tour tour = departure.getTour();
@@ -590,6 +912,13 @@ public class BookingServiceImpl implements BookingService {
         response.setContactPerson(booking.getContactPerson());
         response.setTourName(tour.getTitle());
         response.setTourThumbnail(tour.getThumbnail());
+        response.setTourShortDescription(tour.getShortDescription());
+        response.setTourDescription(tour.getDescription());
+        response.setIncludedServices(tour.getIncludedServices());
+        response.setExcludedServices(tour.getExcludedServices());
+        response.setDurationDays(tour.getDurationDays());
+        response.setDurationNights(tour.getDurationNights());
+        response.setDepartureLocation(tour.getDepartureLocation());
         response.setDepartureDate(departure.getDepartureDate());
         response.setDepartureTime(departure.getDepartureTime());
         response.setAdultCount(booking.getAdultCount());
@@ -600,16 +929,48 @@ public class BookingServiceImpl implements BookingService {
         response.setTotalPrice(booking.getTotalPrice());
         response.setNote(booking.getNote());
         response.setSpecialRequest(booking.getSpecialRequest());
+        response.setInternalNote(booking.getInternalNote());
+        response.setPaymentDeadline(booking.getPaymentDeadline());
+        response.setPaidAt(booking.getPaidAt());
+        response.setPaidAmount(booking.getPaidAmount());
+        response.setDepositAmount(booking.getDepositAmount());
+        response.setRemainingAmount(booking.getRemainingAmount());
+        response.setRefundedAmount(booking.getRefundedAmount());
+        response.setRefundedAt(booking.getRefundedAt());
+        response.setPaymentPlan(booking.getPaymentPlan());
+        response.setPaymentMethod(booking.getPaymentMethod());
+        response.setRemainingPaymentMethod(booking.getRemainingPaymentMethod());
+        response.setPaymentReference(booking.getPaymentReference());
+        response.setRefundableBeforeDeparture(isBeforeDepartureDate(booking));
+        response.setForfeitedDepositAmount(calculateForfeitedDepositAmount(booking));
+        response.setRefundPolicyNote(buildRefundPolicyNote(booking));
+        response.setAssignedStaffId(
+                booking.getAssignedStaff() != null ? booking.getAssignedStaff().getId() : null);
+        response.setAssignedStaffName(
+                booking.getAssignedStaff() != null ? booking.getAssignedStaff().getFullName() : null);
+        response.setAssignedStaffEmail(
+                booking.getAssignedStaff() != null ? booking.getAssignedStaff().getEmail() : null);
+        response.setAssignedStaffPhone(
+                booking.getAssignedStaff() != null ? booking.getAssignedStaff().getPhone() : null);
+        response.setConfirmedById(
+                booking.getConfirmedBy() != null ? booking.getConfirmedBy().getId() : null);
+        response.setConfirmedByName(
+                booking.getConfirmedBy() != null ? booking.getConfirmedBy().getFullName() : null);
         response.setBookedAt(booking.getBookedAt());
         response.setConfirmedAt(booking.getConfirmedAt());
         response.setCancelledAt(booking.getCancelledAt());
-        response.setCustomers(customers.stream().map(this::mapCustomerResponse).toList());
+        boolean hasGroup = valueOrZero(booking.getTotalPeople()) > 1;
+        response.setCustomers(customers.stream()
+                .map(customer -> mapCustomerResponse(customer, hasGroup))
+                .toList());
         response.setScheduleDays(loadBookingSchedule(booking.getId()));
 
         return response;
     }
 
-    private BookingCustomerResponse mapCustomerResponse(BookingCustomer customer) {
+    private BookingCustomerResponse mapCustomerResponse(
+            BookingCustomer customer,
+            boolean hasGroup) {
 
         BookingCustomerResponse response = new BookingCustomerResponse();
 
@@ -623,7 +984,7 @@ public class BookingServiceImpl implements BookingService {
         response.setPhone(customer.getPhone());
         response.setAddress(customer.getAddress());
         response.setEmergencyContact(customer.getEmergencyContact());
-        response.setGroupLeader(customer.getGroupLeader());
+        response.setGroupLeader(hasGroup && Boolean.TRUE.equals(customer.getGroupLeader()));
         response.setHealthNote(customer.getHealthNote());
 
         return response;
@@ -710,6 +1071,141 @@ public class BookingServiceImpl implements BookingService {
         return code;
     }
 
+    private String generatePaymentReference(
+            Booking booking,
+            String prefix) {
+
+        return prefix + "-" + booking.getBookingCode() + "-" + System.currentTimeMillis();
+    }
+
+    private String normalizePaymentType(PayBookingRequest request) {
+
+        String type = request != null ? trimToNull(request.getPaymentType()) : null;
+
+        if (type == null) {
+            return "FULL";
+        }
+
+        return type.trim().toUpperCase();
+    }
+
+    private String resolveRemainingPaymentMethod(PayBookingRequest request) {
+
+        String value = request != null ? trimToNull(request.getRemainingPaymentMethod()) : null;
+
+        if (value == null) {
+            return "CASH_ON_DEPARTURE";
+        }
+
+        String normalized = value.toUpperCase();
+
+        if (!"CASH_ON_DEPARTURE".equals(normalized)
+                && !"BANK_TRANSFER_LATER".equals(normalized)) {
+            throw new RuntimeException("Cách thanh toán phần còn lại không hợp lệ");
+        }
+
+        return normalized;
+    }
+
+    private void ensurePaymentDefaults(Booking booking) {
+
+        if (booking.getPaymentStatus() == null) {
+            booking.setPaymentStatus(PaymentStatus.UNPAID);
+        }
+
+        BigDecimal totalPrice = booking.getTotalPrice() != null
+                ? booking.getTotalPrice()
+                : BigDecimal.ZERO;
+
+        BigDecimal depositAmount = booking.getDepositAmount() != null
+                ? booking.getDepositAmount()
+                : calculateDepositAmount(totalPrice);
+
+        BigDecimal paidAmount = booking.getPaidAmount();
+
+        if (paidAmount == null) {
+            if (booking.getPaymentStatus() == PaymentStatus.PAID) {
+                paidAmount = totalPrice;
+            } else if (booking.getPaymentStatus() == PaymentStatus.PARTIAL) {
+                paidAmount = depositAmount;
+            } else if (booking.getPaymentStatus() == PaymentStatus.PENDING_REVIEW) {
+                boolean awaitingFinalConfirmation =
+                        "FULL".equalsIgnoreCase(booking.getPaymentPlan())
+                                || (booking.getRemainingAmount() != null
+                                        && booking.getRemainingAmount().compareTo(BigDecimal.ZERO) == 0);
+
+                paidAmount = awaitingFinalConfirmation
+                        ? totalPrice
+                        : depositAmount;
+            } else {
+                paidAmount = BigDecimal.ZERO;
+            }
+        }
+
+        booking.setDepositAmount(depositAmount);
+        booking.setPaidAmount(paidAmount);
+
+        if (booking.getRefundedAmount() == null) {
+            booking.setRefundedAmount(BigDecimal.ZERO);
+        }
+
+        if (booking.getRemainingAmount() == null) {
+            booking.setRemainingAmount(nonNegative(totalPrice.subtract(paidAmount)));
+        }
+    }
+
+    private BigDecimal calculateDepositAmount(BigDecimal totalPrice) {
+
+        if (totalPrice == null) {
+            return BigDecimal.ZERO;
+        }
+
+        return totalPrice
+                .multiply(DEPOSIT_RATE)
+                .setScale(0, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal nonNegative(BigDecimal value) {
+
+        if (value == null || value.compareTo(BigDecimal.ZERO) < 0) {
+            return BigDecimal.ZERO;
+        }
+
+        return value;
+    }
+
+    private boolean isBeforeDepartureDate(Booking booking) {
+
+        TourDeparture departure = booking.getTourDeparture();
+
+        return departure.getDepartureDate() == null
+                || LocalDate.now().isBefore(departure.getDepartureDate());
+    }
+
+    private BigDecimal calculateForfeitedDepositAmount(Booking booking) {
+
+        ensurePaymentDefaults(booking);
+
+        if (booking.getStatus() != BookingStatus.CANCELLED || isBeforeDepartureDate(booking)) {
+            return BigDecimal.ZERO;
+        }
+
+        return booking.getPaidAmount().min(booking.getDepositAmount());
+    }
+
+    private String buildRefundPolicyNote(Booking booking) {
+
+        if (booking.getStatus() == BookingStatus.CANCELLED) {
+            if (isBeforeDepartureDate(booking)) {
+                return "Booking hủy trước ngày khởi hành nên được hoàn lại toàn bộ số tiền đã thanh toán.";
+            }
+
+            return "Booking hủy từ ngày khởi hành trở đi nên hệ thống giữ lại 30% tiền cọc, chỉ hoàn phần đã thanh toán vượt quá cọc.";
+        }
+
+        return "Hủy trước ngày khởi hành: hoàn lại toàn bộ số tiền đã thanh toán. Hủy từ ngày khởi hành trở đi: mất cọc 30%, chỉ hoàn phần đã thanh toán vượt quá cọc.";
+    }
+
     private User requireAuthenticatedUser(String authenticatedEmail) {
 
         if (isBlank(authenticatedEmail)) {
@@ -726,6 +1222,25 @@ public class BookingServiceImpl implements BookingService {
         if (user.getRole() == null || !RoleName.CUSTOMER.equals(user.getRole().getName())) {
             throw new RuntimeException("Chỉ tài khoản khách hàng mới được đặt tour");
         }
+    }
+
+    private User requireActiveStaff(Long staffId) {
+
+        User staff = userRepository
+                .findById(staffId)
+                .orElseThrow(() -> new RuntimeException("Nhân viên không tồn tại"));
+
+        if (staff.getDeletedAt() != null
+                || staff.getRole() == null
+                || !RoleName.EMPLOYEE.equals(staff.getRole().getName())) {
+            throw new RuntimeException("Tài khoản được chọn không phải nhân viên");
+        }
+
+        if (!Boolean.TRUE.equals(staff.getIsActive())) {
+            throw new RuntimeException("Nhân viên đã bị vô hiệu hóa");
+        }
+
+        return staff;
     }
 
     private BookingType parseBookingType(String value) {

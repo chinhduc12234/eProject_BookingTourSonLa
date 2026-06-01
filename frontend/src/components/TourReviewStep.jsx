@@ -4,6 +4,7 @@ import {
   ListTree,
   MapPin,
 } from "lucide-react";
+import { resolveUploadedFileUrl } from "../api/userApi";
 
 function toDateStr(v) {
   if (v == null || v === "") return "—";
@@ -285,7 +286,7 @@ export default function TourReviewStep({
               >
 
                 <img
-                  src={img.imageUrl}
+                  src={resolveUploadedFileUrl(img.imageUrl)}
                   alt=""
                   className="
                     w-full

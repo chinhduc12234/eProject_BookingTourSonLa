@@ -1,3 +1,5 @@
+import { resolveUploadedFileUrl } from "../api/userApi";
+
 function formatDateTime(value) {
   if (!value) return "—";
   try {
@@ -169,7 +171,7 @@ export default function TourInfoStep({
           <div className="overflow-hidden rounded-3xl border border-slate-100 group">
 
             <img
-              src={data.thumbnail}
+              src={resolveUploadedFileUrl(data.thumbnail)}
               alt="thumbnail"
               className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500"
             />

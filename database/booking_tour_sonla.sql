@@ -416,19 +416,46 @@ CREATE TABLE bookings (
 
     payment_status ENUM(
         'UNPAID',
+        'PENDING_REVIEW',
         'PARTIAL',
         'PAID',
         'REFUNDED',
+        'PARTIALLY_REFUNDED',
+        'FORFEITED',
         'FAILED'
     ) DEFAULT 'UNPAID',
 
     payment_deadline DATETIME NULL,
+
+    paid_at DATETIME NULL,
+
+    paid_amount DECIMAL(12,2) DEFAULT 0,
+
+    deposit_amount DECIMAL(12,2) DEFAULT 0,
+
+    remaining_amount DECIMAL(12,2) DEFAULT 0,
+
+    refunded_amount DECIMAL(12,2) DEFAULT 0,
+
+    refunded_at DATETIME NULL,
+
+    payment_plan VARCHAR(30),
+
+    payment_method VARCHAR(50),
+
+    remaining_payment_method VARCHAR(50),
+
+    payment_reference VARCHAR(100),
 
     booked_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     confirmed_at DATETIME NULL,
 
     confirmed_by BIGINT NULL,
+
+    assigned_staff_id BIGINT NULL,
+
+    assigned_at DATETIME NULL,
 
     cancelled_at DATETIME NULL,
 
@@ -444,6 +471,10 @@ CREATE TABLE bookings (
 
     CONSTRAINT fk_booking_confirmed_by
     FOREIGN KEY (confirmed_by)
+    REFERENCES users(id),
+
+    CONSTRAINT fk_booking_assigned_staff
+    FOREIGN KEY (assigned_staff_id)
     REFERENCES users(id),
 
     CONSTRAINT chk_booking_code

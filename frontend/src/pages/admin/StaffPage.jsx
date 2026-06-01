@@ -8,6 +8,7 @@ import {
 } from "../../api/staffApi";
 
 import Modal from "../../components/Modal";
+import { resolveUploadedFileUrl } from "../../api/userApi";
 
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
@@ -741,7 +742,7 @@ export default function StaffPage() {
                           {staff.avatar ? (
 
                             <img
-                              src={staff.avatar}
+                              src={resolveUploadedFileUrl(staff.avatar)}
                               alt={staff.fullName}
                               className="w-14 h-14 rounded-2xl object-cover border border-slate-100"
                             />
@@ -1089,7 +1090,7 @@ export default function StaffPage() {
                     <div className="mt-4 w-36 h-36 rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
 
                       <img
-                        src={avatar}
+                        src={resolveUploadedFileUrl(avatar)}
                         alt="preview"
                         className="w-full h-full object-cover"
                       />

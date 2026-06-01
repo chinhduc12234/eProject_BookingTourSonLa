@@ -8,7 +8,11 @@ import com.bookingtoursonla.dto.ProvinceDto;
 
 public interface ProvinceService {
 
-    Page<ProvinceDto> getAll(int page, int size);
+    Page<ProvinceDto> getAll(
+            int page,
+            int size,
+            String keyword,
+            String direction);
 
     List<ProvinceDto> getAllNoPaging();
 

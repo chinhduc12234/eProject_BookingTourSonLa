@@ -1,15 +1,27 @@
 import {
+  useState,
+} from "react";
+
+import toast from "react-hot-toast";
+
+import {
   ImagePlus,
   Trash2,
   Star,
   ArrowUp,
   ArrowDown,
+  Loader2,
+  Upload,
 } from "lucide-react";
+import { uploadTourImage } from "../api/tourApi";
+import { resolveUploadedFileUrl } from "../api/userApi";
 
 export default function TourImagesStep({
   data = [],
   onChange,
 }) {
+
+  const [uploadingIndex, setUploadingIndex] = useState(null);
 
   const images = Array.isArray(data)
     ? data
@@ -31,6 +43,7 @@ export default function TourImagesStep({
         imageUrl: "",
         isThumbnail: images.length === 0,
         sortOrder: images.length,
+        sourceMode: "url",
       },
     ]);
   };
@@ -51,6 +64,80 @@ export default function TourImagesStep({
     };
 
     setImages(updated);
+  };
+
+  // ================= UPLOAD =================
+
+  const handleImageUpload = async (
+    index,
+    event
+  ) => {
+
+    const file = event.target.files?.[0];
+
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type?.startsWith("image/")) {
+      toast.error("Vui lòng chọn đúng tệp ảnh");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Ảnh không được vượt quá 10MB");
+      return;
+    }
+
+    try {
+
+      setUploadingIndex(index);
+
+      const response = await uploadTourImage(file);
+      const uploadedUrl =
+        response?.data?.url ||
+        response?.data?.data?.url ||
+        response?.data;
+
+      if (
+        typeof uploadedUrl !== "string" ||
+        !uploadedUrl.trim()
+      ) {
+        throw new Error("Upload không trả về đường dẫn ảnh");
+      }
+
+      const updated = [...images];
+
+      if (!updated[index]) {
+        return;
+      }
+
+      updated[index] = {
+        ...updated[index],
+        imageUrl: uploadedUrl.trim(),
+        sourceMode: "upload",
+      };
+
+      setImages(updated);
+
+      toast.success("Đã tải ảnh lên");
+
+    } catch (err) {
+
+      console.error("TOUR IMAGE UPLOAD ERROR:", err);
+
+      toast.error(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Không tải được ảnh lên",
+      );
+
+    } finally {
+
+      setUploadingIndex(null);
+    }
   };
 
   // ================= REMOVE =================
@@ -247,7 +334,7 @@ export default function TourImagesStep({
                     {img.imageUrl ? (
 
                       <img
-                        src={img.imageUrl}
+                        src={resolveUploadedFileUrl(img.imageUrl)}
                         alt=""
                         className="
                           w-full
@@ -316,7 +403,7 @@ export default function TourImagesStep({
                   <div>
 
                     <label className="font-semibold text-sm block mb-2 text-slate-700">
-                      URL hình ảnh
+                      Link hình ảnh
                     </label>
 
                     <input
@@ -344,6 +431,67 @@ export default function TourImagesStep({
                         bg-white
                       "
                     />
+
+                    <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className="text-sm font-bold text-slate-800">
+                            Hoặc tải tệp ảnh
+                          </p>
+                          <p className="mt-1 text-xs font-semibold text-slate-500">
+                            PNG, JPG, WEBP - tối đa 10MB
+                          </p>
+                        </div>
+
+                        <label
+                          aria-disabled={uploadingIndex === index}
+                          className={`
+                            inline-flex
+                            h-11
+                            cursor-pointer
+                            items-center
+                            justify-center
+                            gap-2
+                            rounded-2xl
+                            px-5
+                            text-sm
+                            font-bold
+                            text-white
+                            transition-all
+                            duration-300
+                            active:scale-95
+                            ${uploadingIndex === index
+                              ? "bg-slate-400"
+                              : "bg-slate-900 hover:bg-slate-800"
+                            }
+                          `}
+                        >
+                          {uploadingIndex === index ? (
+                            <Loader2 size={17} className="animate-spin" />
+                          ) : (
+                            <Upload size={17} />
+                          )}
+
+                          {uploadingIndex === index ? "Đang tải" : "Chọn tệp"}
+
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            disabled={uploadingIndex === index}
+                            onChange={(event) =>
+                              handleImageUpload(index, event)
+                            }
+                            className="sr-only"
+                          />
+                        </label>
+                      </div>
+
+                      {img.imageUrl && (
+                        <p className="mt-3 truncate text-xs font-semibold text-slate-500">
+                          Đường dẫn hiện tại: {img.imageUrl}
+                        </p>
+                      )}
+                    </div>
 
                   </div>
 

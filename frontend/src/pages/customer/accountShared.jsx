@@ -36,6 +36,10 @@ export const paymentStatusMeta = {
     label: "Chưa thanh toán",
     className: "border-amber-300/30 bg-amber-300/10 text-amber-100",
   },
+  PENDING_REVIEW: {
+    label: "Xét duyệt",
+    className: "border-amber-200/40 bg-amber-200/15 text-amber-50",
+  },
   PARTIAL: {
     label: "Đã cọc",
     className: "border-sky-300/30 bg-sky-300/10 text-sky-100",
@@ -47,6 +51,14 @@ export const paymentStatusMeta = {
   REFUNDED: {
     label: "Đã hoàn tiền",
     className: "border-slate-300/30 bg-slate-300/10 text-slate-100",
+  },
+  PARTIALLY_REFUNDED: {
+    label: "Hoàn một phần",
+    className: "border-violet-300/30 bg-violet-300/10 text-violet-100",
+  },
+  FORFEITED: {
+    label: "Mất cọc",
+    className: "border-orange-300/30 bg-orange-300/10 text-orange-100",
   },
   FAILED: {
     label: "Thanh toán lỗi",

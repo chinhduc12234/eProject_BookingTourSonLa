@@ -9,6 +9,7 @@ import {
 
 import { getAllDistricts } from "../../api/districtApi";
 import { getAllProvinces } from "../../api/provinceApi";
+import { resolveUploadedFileUrl } from "../../api/userApi";
 
 import Modal from "../../components/Modal";
 
@@ -626,7 +627,7 @@ export default function LocationPage() {
                         {l.image ? (
 
                           <img
-                            src={l.image}
+                            src={resolveUploadedFileUrl(l.image)}
                             alt={l.name}
                             className="w-24 h-16 object-cover rounded-2xl border border-slate-100"
                           />
@@ -862,7 +863,7 @@ export default function LocationPage() {
                   />
                   {image && (
                     <div className="mt-4 rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 shadow-inner h-[140px]">
-                      <img src={image} alt="preview" className="w-full h-full object-cover" />
+                      <img src={resolveUploadedFileUrl(image)} alt="preview" className="w-full h-full object-cover" />
                     </div>
                   )}
                 </div>

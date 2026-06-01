@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   getProvinces,
   createProvince,
@@ -27,14 +27,21 @@ export default function ProvincePage() {
 
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
   const pageSize = 10;
 
   const loadData = async () => {
     try {
       setTableLoading(true);
-      const res = await getProvinces(page, pageSize);
-      setData(res.data.content);
-      setTotalPages(res.data.totalPages);
+      const res = await getProvinces({
+        page,
+        size: pageSize,
+        keyword: search,
+        direction: sortOrder,
+      });
+      setData(res.data.content || []);
+      setTotalPages(res.data.totalPages || 0);
+      setTotalElements(res.data.totalElements || 0);
     } catch (err) {
       toast.error("Không thể tải danh sách tỉnh thành", {
         style: { borderRadius: '12px', background: '#333', color: '#fff' }
@@ -46,7 +53,11 @@ export default function ProvincePage() {
 
   useEffect(() => {
     loadData();
-  }, [page]);
+  }, [page, search, sortOrder]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [search, sortOrder]);
 
   useEffect(() => {
     let temp = [...data];
@@ -66,6 +77,7 @@ export default function ProvincePage() {
   const handleResetFilter = () => {
     setSearch("");
     setSortOrder("asc");
+    setPage(0);
   };
 
   const handleSave = async () => {
@@ -160,7 +172,7 @@ export default function ProvincePage() {
             </div>
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tổng số</p>
-              <h3 className="text-2xl font-black text-slate-800">{filteredData.length}</h3>
+              <h3 className="text-2xl font-black text-slate-800">{totalElements}</h3>
             </div>
           </div>
 

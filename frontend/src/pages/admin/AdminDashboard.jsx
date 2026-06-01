@@ -40,12 +40,6 @@ const statConfig = [
     tone: "bg-emerald-50 text-emerald-700",
   },
   {
-    title: "Quản lý booking",
-    desc: "Xác nhận đặt chỗ, cập nhật thanh toán và theo dõi số khách đã giữ chỗ.",
-    to: "/admin/bookings",
-    Icon: TicketCheck,
-  },
-  {
     key: "staff",
     label: "Nhân viên",
     desc: "Tài khoản vận hành",
@@ -80,6 +74,12 @@ const statConfig = [
 ];
 
 const quickActions = [
+  {
+    title: "Quản lý booking",
+    desc: "Xác nhận đặt chỗ, cập nhật thanh toán và theo dõi số khách đã giữ chỗ.",
+    to: "/admin/bookings",
+    Icon: TicketCheck,
+  },
   {
     title: "Quản lý tour",
     desc: "Tạo tour, sửa ảnh đại diện, giá, trạng thái và đi vào chi tiết lịch trình.",

@@ -35,9 +35,11 @@ public class ProvinceController {
     @GetMapping
     public Page<ProvinceDto> getAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size) {
+            @RequestParam(defaultValue = "6") int size,
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "asc") String direction) {
 
-        return provinceService.getAll(page, size);
+        return provinceService.getAll(page, size, keyword, direction);
     }
 
     // ================= GET ALL NO PAGINATION =================

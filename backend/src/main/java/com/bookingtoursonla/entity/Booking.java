@@ -109,6 +109,36 @@ public class Booking {
     @Column(name = "payment_deadline")
     private LocalDateTime paymentDeadline;
 
+    @Column(name = "paid_at")
+    private LocalDateTime paidAt;
+
+    @Column(name = "paid_amount", precision = 12, scale = 2)
+    private BigDecimal paidAmount;
+
+    @Column(name = "deposit_amount", precision = 12, scale = 2)
+    private BigDecimal depositAmount;
+
+    @Column(name = "remaining_amount", precision = 12, scale = 2)
+    private BigDecimal remainingAmount;
+
+    @Column(name = "refunded_amount", precision = 12, scale = 2)
+    private BigDecimal refundedAmount;
+
+    @Column(name = "refunded_at")
+    private LocalDateTime refundedAt;
+
+    @Column(name = "payment_plan", length = 30)
+    private String paymentPlan;
+
+    @Column(name = "payment_method", length = 50)
+    private String paymentMethod;
+
+    @Column(name = "remaining_payment_method", length = 50)
+    private String remainingPaymentMethod;
+
+    @Column(name = "payment_reference", length = 100)
+    private String paymentReference;
+
     @Column(name = "booked_at", updatable = false)
     private LocalDateTime bookedAt;
 
@@ -118,6 +148,13 @@ public class Booking {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "confirmed_by")
     private User confirmedBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_staff_id")
+    private User assignedStaff;
+
+    @Column(name = "assigned_at")
+    private LocalDateTime assignedAt;
 
     @Column(name = "cancelled_at")
     private LocalDateTime cancelledAt;

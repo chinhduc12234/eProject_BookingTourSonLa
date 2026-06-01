@@ -515,7 +515,7 @@ export default function BookingForm({
 
           {companionCount === 0 ? (
             <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm text-slate-400">
-              Trưởng đoàn đã được tính là người lớn đầu tiên trong booking.
+              Bạn đang đặt 1 vé, khách sẽ được ghi nhận là hành khách.
             </div>
           ) : (
             <div className="mt-4 grid gap-4">

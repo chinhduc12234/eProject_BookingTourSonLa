@@ -29,5 +29,10 @@ public interface LocationRepository
             Long districtId,
             Pageable pageable);
 
+    Page<Location> findByDeletedAtIsNullAndNameContainingIgnoreCaseAndDistrict_Province_Id(
+            String keyword,
+            Long provinceId,
+            Pageable pageable);
+
     java.util.Optional<Location> findByIdAndDeletedAtIsNull(Long id);
 }

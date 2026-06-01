@@ -266,29 +266,63 @@ export default function TourPage() {
 
         const newErrors = {};
         const normalizedThumbnail = thumbnail.trim();
+        const normalizedTitle = title.trim();
+        const normalizedSlug = slug.trim();
+        const normalizedDurationDays = Number(durationDays);
+        const normalizedDurationNights =
+            durationNights === "" ? 0 : Number(durationNights);
+        const normalizedMaxPeople = Number(maxPeople);
+        const normalizedPrice = Number(price);
 
-        if (!title.trim()) {
+        if (!normalizedTitle) {
 
             newErrors.title =
                 "Tên tour không được để trống";
         }
 
-        if (!durationDays) {
+        if (!normalizedSlug) {
+
+            newErrors.slug =
+                "Slug không được để trống";
+        }
+
+        if (
+            durationDays === "" ||
+            Number.isNaN(normalizedDurationDays) ||
+            normalizedDurationDays < 1
+        ) {
 
             newErrors.durationDays =
-                "Nhập số ngày";
+                "Số ngày phải lớn hơn hoặc bằng 1";
         }
 
-        if (!maxPeople) {
+        if (
+            Number.isNaN(normalizedDurationNights) ||
+            normalizedDurationNights < 0
+        ) {
+
+            newErrors.durationNights =
+                "Số đêm không được âm";
+        }
+
+        if (
+            maxPeople === "" ||
+            Number.isNaN(normalizedMaxPeople) ||
+            normalizedMaxPeople < 1
+        ) {
 
             newErrors.maxPeople =
-                "Nhập số lượng người";
+                "Số lượng người phải lớn hơn hoặc bằng 1";
         }
 
-        if (!price) {
+        if (
+            price === "" ||
+            Number.isNaN(normalizedPrice) ||
+            normalizedPrice <= 0
+        ) {
 
             newErrors.price =
-                "Nhập giá tour";
+                "Giá tour phải lớn hơn 0";
         }
 
         if (normalizedThumbnail.startsWith("data:")) {
@@ -319,19 +353,20 @@ export default function TourPage() {
             setLoading(true);
 
             const payload = {
-                title,
-                slug,
+                title: normalizedTitle,
+                slug: normalizedSlug,
                 thumbnail:
                     normalizedThumbnail || null,
-                shortDescription,
+                shortDescription: shortDescription.trim(),
                 durationDays:
-                    Number(durationDays),
+                    normalizedDurationDays,
                 durationNights:
-                    Number(durationNights),
-                departureLocation,
+                    normalizedDurationNights,
+                departureLocation:
+                    departureLocation.trim(),
                 maxPeople:
-                    Number(maxPeople),
-                price: Number(price),
+                    normalizedMaxPeople,
+                price: normalizedPrice,
                 status,
             };
 
@@ -441,8 +476,15 @@ export default function TourPage() {
         }
     };
 
+    const ErrorMessage = ({ children }) =>
+        children ? (
+            <p className="mt-2 text-xs font-bold text-rose-600">
+                {children}
+            </p>
+        ) : null;
+
     return (
-        <div className="min-h-screen bg-[#f8fafc] p-4 md:p-8">
+        <div className="min-h-screen bg-[#f8fafc] p-4 text-slate-900 md:p-8">
 
             <div className="max-w-7xl mx-auto">
 
@@ -761,9 +803,10 @@ export default function TourPage() {
 
                 <Modal
                     open={open}
-                    onClose={() =>
-                        setOpen(false)
-                    }
+                    onClose={() => {
+                        setOpen(false);
+                        resetForm();
+                    }}
                     className="
             max-w-5xl
             max-h-[92vh]
@@ -818,6 +861,7 @@ export default function TourPage() {
                                         }
                                         className="w-full h-14 px-5 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
                                     />
+                                    <ErrorMessage>{errors.title}</ErrorMessage>
                                 </div>
 
                                 <div>
@@ -834,6 +878,7 @@ export default function TourPage() {
                                         }
                                         className="w-full h-14 px-5 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
                                     />
+                                    <ErrorMessage>{errors.slug}</ErrorMessage>
                                 </div>
 
                                 {/* IMAGE */}
@@ -947,6 +992,8 @@ export default function TourPage() {
                                         </label>
                                     )}
 
+                                    <ErrorMessage>{errors.thumbnail}</ErrorMessage>
+
                                     {/* PREVIEW */}
 
                                     {thumbnail && (
@@ -982,6 +1029,7 @@ export default function TourPage() {
                                         }
                                         className="w-full h-14 px-5 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
                                     />
+                                    <ErrorMessage>{errors.durationDays}</ErrorMessage>
                                 </div>
 
                                 <div>
@@ -999,6 +1047,7 @@ export default function TourPage() {
                                         }
                                         className="w-full h-14 px-5 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
                                     />
+                                    <ErrorMessage>{errors.durationNights}</ErrorMessage>
                                 </div>
 
                                 <div>
@@ -1032,6 +1081,7 @@ export default function TourPage() {
                                         }
                                         className="w-full h-14 px-5 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
                                     />
+                                    <ErrorMessage>{errors.maxPeople}</ErrorMessage>
                                 </div>
 
                                 <div>
@@ -1049,6 +1099,7 @@ export default function TourPage() {
                                         }
                                         className="w-full h-14 px-5 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
                                     />
+                                    <ErrorMessage>{errors.price}</ErrorMessage>
                                 </div>
 
                                 <div>
@@ -1116,9 +1167,10 @@ export default function TourPage() {
             ">
 
                             <button
-                                onClick={() =>
-                                    setOpen(false)
-                                }
+                                onClick={() => {
+                                    setOpen(false);
+                                    resetForm();
+                                }}
                                 className="h-14 px-8 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold"
                             >
 
