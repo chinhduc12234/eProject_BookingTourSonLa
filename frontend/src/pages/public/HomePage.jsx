@@ -99,10 +99,8 @@ export default function HomePage() {
                 <div className="hero-theme-overlay absolute inset-0" />
                 <div className="hero-theme-bottom absolute inset-0" />
                 <div className="absolute inset-0 bg-grid-fade opacity-60" />
-                <div className="absolute -top-20 left-1/4 h-72 w-72 rounded-full bg-[#7FB77E]/25 blur-[120px] animate-float-slow" />
-                <div className="absolute bottom-10 right-1/4 h-72 w-72 rounded-full bg-[#A67C52]/25 blur-[120px] animate-float-slow" />
 
-                <div className="relative mx-auto grid min-h-[calc(100vh-80px)] max-w-7xl items-center gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
+                <div className="relative mx-auto grid min-h-[calc(100svh-80px)] max-w-7xl items-center gap-10 px-4 pb-16 pt-28 sm:px-6 sm:pb-20 sm:pt-32 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:pt-24">
                     <motion.div initial="hidden" animate="show" variants={fadeUp}>
                         <motion.span
                             className="section-tag"
@@ -119,7 +117,7 @@ export default function HomePage() {
                             initial="hidden"
                             animate="show"
                             variants={fadeUp}
-                            className="mt-6 max-w-3xl text-5xl font-black leading-[1.05] text-white sm:text-6xl lg:text-7xl"
+                            className="mt-6 max-w-3xl text-4xl font-black leading-[1.08] text-white sm:text-5xl lg:text-6xl"
                         >
                             Lên lịch cho hành trình{" "}
                             <span className="text-gradient-mountain animate-gradient-pan">
@@ -161,7 +159,7 @@ export default function HomePage() {
                             initial="hidden"
                             animate="show"
                             variants={fadeUp}
-                            className="mt-12 grid max-w-2xl grid-cols-3 gap-3"
+                            className="mt-8 grid max-w-2xl grid-cols-3 gap-3"
                         >
                             {heroStats.map((item, idx) => (
                                 <motion.div
@@ -185,7 +183,7 @@ export default function HomePage() {
                         </motion.div>
 
                         {/* hero indicators */}
-                        <div className="mt-10 flex items-center gap-2">
+                        <div className="mt-8 flex items-center gap-2">
                             {heroBackdrops.map((_, idx) => (
                                 <button
                                     key={idx}
@@ -266,12 +264,12 @@ export default function HomePage() {
             </section>
 
             {/* DESTINATION MARQUEE */}
-            <section className="relative overflow-hidden border-y border-white/5 bg-[#04120d] py-6">
-                <div className="marquee-track gap-12 text-2xl font-black uppercase tracking-widest text-white/[0.08]">
+            <section className="home-marquee-section relative overflow-hidden border-y border-white/5 bg-[#04120d] py-6">
+                <div className="home-marquee-track marquee-track gap-12 text-2xl font-black uppercase tracking-widest">
                     {[...marqueeWords, ...marqueeWords].map((word, idx) => (
                         <span key={idx} className="flex items-center gap-12 whitespace-nowrap">
-                            {word}
-                            <Compass size={22} className="text-[#7FB77E]/50" />
+                            <span className="home-marquee-word">{word}</span>
+                            <Compass size={22} className="home-marquee-icon" />
                         </span>
                     ))}
                 </div>
@@ -324,7 +322,7 @@ export default function HomePage() {
                                     }}
                                     whileHover={{ y: -6 }}
                                     className={[
-                                        "group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] shadow-soft-dark",
+                                        "on-photo group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] shadow-soft-dark",
                                         idx === 0 ? "sm:col-span-2 lg:col-span-2 lg:row-span-2" : "",
                                         idx === 2 ? "lg:col-span-2" : "",
                                     ].join(" ")}
@@ -335,9 +333,9 @@ export default function HomePage() {
                                         loading={idx === 0 ? "eager" : "lazy"}
                                         className="h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-110"
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/85 via-[#020617]/15 to-transparent" />
+                                    <div className="photo-caption-scrim absolute inset-0" />
                                     <div className="absolute inset-x-0 bottom-0 p-5">
-                                        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#d4a878]">
+                                        <div className="photo-eyebrow text-[10px] font-black uppercase tracking-[0.2em]">
                                             {item.eyebrow}
                                         </div>
                                         <h3 className="mt-1 text-xl font-black text-white">

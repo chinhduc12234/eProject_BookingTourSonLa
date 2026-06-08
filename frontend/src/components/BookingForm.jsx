@@ -51,6 +51,8 @@ const customerTypeLabel = {
   INFANT: "Em bé",
 };
 
+const requiresIdentityDocument = (customerType) => customerType === "ADULT";
+
 const cleanText = (value) => {
   const text = String(value || "").trim();
   return text || null;
@@ -150,6 +152,9 @@ export default function BookingForm({
       [slotKey]: {
         ...current[slotKey],
         [field]: value,
+        ...(field === "customerType" && value !== "ADULT"
+          ? { identityNumber: "" }
+          : {}),
       },
     }));
   };
@@ -236,7 +241,9 @@ export default function BookingForm({
           dateOfBirth: customer.dateOfBirth || null,
           phone: cleanText(customer.phone),
           email: cleanText(customer.email),
-          identityNumber: cleanText(customer.identityNumber),
+          identityNumber: requiresIdentityDocument(customer.customerType)
+            ? cleanText(customer.identityNumber)
+            : null,
           address: cleanText(customer.address),
           emergencyContact: cleanText(customer.emergencyContact),
           healthNote: cleanText(customer.healthNote),
@@ -245,7 +252,7 @@ export default function BookingForm({
 
       const response = await createBooking(payload);
 
-      toast.success("Đặt tour thành công");
+      toast.success("Đã tạo booking, chuyển sang bước thanh toán");
 
       if (onSuccess) {
         onSuccess(response.data);
@@ -608,18 +615,24 @@ export default function BookingForm({
                         className="h-11 rounded-xl border border-white/10 bg-white/[0.06] px-3 text-white outline-none transition focus:border-[#7FB77E]"
                       />
 
-                      <input
-                        value={customer.identityNumber}
-                        onChange={(event) =>
-                          updateCustomer(
-                            customer.slotKey,
-                            "identityNumber",
-                            event.target.value,
-                          )
-                        }
-                        placeholder="CCCD/Hộ chiếu"
-                        className="h-11 rounded-xl border border-white/10 bg-white/[0.06] px-3 text-white outline-none transition focus:border-[#7FB77E]"
-                      />
+                      {requiresIdentityDocument(customer.customerType) ? (
+                        <input
+                          value={customer.identityNumber}
+                          onChange={(event) =>
+                            updateCustomer(
+                              customer.slotKey,
+                              "identityNumber",
+                              event.target.value,
+                            )
+                          }
+                          placeholder="CCCD/Hộ chiếu"
+                          className="h-11 rounded-xl border border-white/10 bg-white/[0.06] px-3 text-white outline-none transition focus:border-[#7FB77E]"
+                        />
+                      ) : (
+                        <div className="flex h-11 items-center rounded-xl border border-dashed border-white/10 bg-white/[0.03] px-3 text-sm font-semibold text-slate-400">
+                          Trẻ em và em bé không cần CCCD/hộ chiếu
+                        </div>
+                      )}
 
                       <input
                         value={customer.phone}

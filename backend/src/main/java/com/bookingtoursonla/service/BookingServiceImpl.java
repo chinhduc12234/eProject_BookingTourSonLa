@@ -25,6 +25,7 @@ import com.bookingtoursonla.dto.BookingScheduleDayResponse;
 import com.bookingtoursonla.dto.CancelBookingRequest;
 import com.bookingtoursonla.dto.CreateBookingRequest;
 import com.bookingtoursonla.dto.PayBookingRequest;
+import com.bookingtoursonla.dto.TourImageDto;
 import com.bookingtoursonla.dto.UpdateBookingAdminRequest;
 import com.bookingtoursonla.entity.Booking;
 import com.bookingtoursonla.entity.BookingCustomer;
@@ -34,6 +35,7 @@ import com.bookingtoursonla.entity.Tour;
 import com.bookingtoursonla.entity.TourActivity;
 import com.bookingtoursonla.entity.TourDay;
 import com.bookingtoursonla.entity.TourDeparture;
+import com.bookingtoursonla.entity.TourImage;
 import com.bookingtoursonla.entity.User;
 import com.bookingtoursonla.entity.enums.BookingCustomerType;
 import com.bookingtoursonla.entity.enums.BookingStatus;
@@ -50,6 +52,7 @@ import com.bookingtoursonla.repository.BookingScheduleDayRepository;
 import com.bookingtoursonla.repository.TourActivityRepository;
 import com.bookingtoursonla.repository.TourDayRepository;
 import com.bookingtoursonla.repository.TourDepartureRepository;
+import com.bookingtoursonla.repository.TourImageRepository;
 import com.bookingtoursonla.repository.UserRepository;
 
 @Service
@@ -74,6 +77,8 @@ public class BookingServiceImpl implements BookingService {
 
     private final TourActivityRepository tourActivityRepository;
 
+    private final TourImageRepository tourImageRepository;
+
     private final UserRepository userRepository;
 
     public BookingServiceImpl(
@@ -84,6 +89,7 @@ public class BookingServiceImpl implements BookingService {
             TourDepartureRepository tourDepartureRepository,
             TourDayRepository tourDayRepository,
             TourActivityRepository tourActivityRepository,
+            TourImageRepository tourImageRepository,
             UserRepository userRepository) {
 
         this.bookingRepository = bookingRepository;
@@ -93,6 +99,7 @@ public class BookingServiceImpl implements BookingService {
         this.tourDepartureRepository = tourDepartureRepository;
         this.tourDayRepository = tourDayRepository;
         this.tourActivityRepository = tourActivityRepository;
+        this.tourImageRepository = tourImageRepository;
         this.userRepository = userRepository;
     }
 
@@ -698,13 +705,17 @@ public class BookingServiceImpl implements BookingService {
             BookingCustomerRequest request) {
 
         BookingCustomer customer = new BookingCustomer();
+        BookingCustomerType customerType = parseCustomerType(request.getCustomerType());
 
         customer.setBooking(booking);
-        customer.setCustomerType(parseCustomerType(request.getCustomerType()));
+        customer.setCustomerType(customerType);
         customer.setFullName(request.getFullName().trim());
         customer.setGender(parseGender(request.getGender()));
         customer.setDateOfBirth(request.getDateOfBirth());
-        customer.setIdentityNumber(trimToNull(request.getIdentityNumber()));
+        customer.setIdentityNumber(
+                customerType == BookingCustomerType.ADULT
+                        ? trimToNull(request.getIdentityNumber())
+                        : null);
         customer.setEmail(trimToNull(request.getEmail()));
         customer.setPhone(trimToNull(request.getPhone()));
         customer.setAddress(trimToNull(request.getAddress()));
@@ -916,6 +927,7 @@ public class BookingServiceImpl implements BookingService {
         response.setTourDescription(tour.getDescription());
         response.setIncludedServices(tour.getIncludedServices());
         response.setExcludedServices(tour.getExcludedServices());
+        response.setTourImages(loadTourImages(tour));
         response.setDurationDays(tour.getDurationDays());
         response.setDurationNights(tour.getDurationNights());
         response.setDepartureLocation(tour.getDepartureLocation());
@@ -966,6 +978,37 @@ public class BookingServiceImpl implements BookingService {
         response.setScheduleDays(loadBookingSchedule(booking.getId()));
 
         return response;
+    }
+
+    private List<TourImageDto> loadTourImages(Tour tour) {
+
+        List<TourImage> images = tourImageRepository.findByTourIdOrderBySortOrderAsc(tour.getId());
+
+        if (!images.isEmpty()) {
+            return images.stream().map(this::mapTourImage).toList();
+        }
+
+        if (isBlank(tour.getThumbnail())) {
+            return List.of();
+        }
+
+        TourImageDto fallback = new TourImageDto();
+        fallback.setImageUrl(tour.getThumbnail());
+        fallback.setIsThumbnail(true);
+        fallback.setSortOrder(0);
+
+        return List.of(fallback);
+    }
+
+    private TourImageDto mapTourImage(TourImage image) {
+
+        TourImageDto dto = new TourImageDto();
+        dto.setId(image.getId());
+        dto.setImageUrl(image.getImageUrl());
+        dto.setIsThumbnail(image.getIsThumbnail());
+        dto.setSortOrder(image.getSortOrder());
+
+        return dto;
     }
 
     private BookingCustomerResponse mapCustomerResponse(

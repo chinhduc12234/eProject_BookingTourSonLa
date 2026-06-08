@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
   CalendarDays,
-  CheckCircle2,
   Loader2,
   MapPin,
   ShieldCheck,
@@ -34,13 +33,13 @@ const isBookableDeparture = (departure) =>
 
 export default function TourBookingPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const requestedDepartureId = searchParams.get("departureId");
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [selectedDepartureId, setSelectedDepartureId] = useState("");
-  const [bookingSuccess, setBookingSuccess] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -117,10 +116,6 @@ export default function TourBookingPage() {
 
   const { tour, images = [], departures = [] } = detail;
   const coverImage = resolveUploadedFileUrl(tour.thumbnail || images[0]?.imageUrl);
-  const bookingDetailPath = bookingSuccess?.id
-    ? `/tai-khoan/booking/${bookingSuccess.id}`
-    : "/tai-khoan/booking";
-
   return (
     <PublicLayout>
       <section className="bg-[#020617] py-10 sm:py-14">
@@ -171,48 +166,8 @@ export default function TourBookingPage() {
             </div>
           </div>
 
-          {bookingSuccess ? (
-            <div className="mx-auto mt-8 max-w-3xl rounded-xl border border-[#7FB77E]/40 bg-[#7FB77E]/15 p-6 text-center shadow-soft-green">
-              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-[#7FB77E] text-[#020617]">
-                <CheckCircle2 size={28} />
-              </span>
-              <h2 className="mt-4 text-2xl font-black text-white">
-                Đặt tour thành công
-              </h2>
-              <p className="mt-2 text-sm text-slate-300">
-                Mã booking của bạn là{" "}
-                <span className="font-black text-[#9de09c]">
-                  {bookingSuccess.bookingCode}
-                </span>
-                . Vui lòng theo dõi trạng thái trong tài khoản.
-              </p>
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                  <div className="text-xs font-bold text-slate-400">Trạng thái</div>
-                  <div className="mt-1 font-black text-white">
-                    {bookingSuccess.status}
-                  </div>
-                </div>
-                <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                  <div className="text-xs font-bold text-slate-400">Thanh toán</div>
-                  <div className="mt-1 font-black text-white">
-                    {bookingSuccess.paymentStatus}
-                  </div>
-                </div>
-                <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                  <div className="text-xs font-bold text-slate-400">Tổng tiền</div>
-                  <div className="mt-1 font-black text-[#f4c27a]">
-                    {formatCurrency(bookingSuccess.totalPrice)}
-                  </div>
-                </div>
-              </div>
-              <Link to={bookingDetailPath} className="btn-primary mt-6 text-sm">
-                Xem chi tiết trạng thái
-              </Link>
-            </div>
-          ) : (
-            <div className="mt-8 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-              <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
+          <div className="mt-8 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+            <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
                 <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-5">
                   <div className="flex items-center gap-3 border-b border-white/10 pb-4">
                     <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
@@ -249,17 +204,18 @@ export default function TourBookingPage() {
                     khởi hành bạn chọn.
                   </p>
                 </div>
-              </aside>
+            </aside>
 
-              <BookingForm
-                tour={tour}
-                selectedDeparture={selectedDeparture}
-                selectedDepartureId={selectedDepartureId}
-                userProfile={userProfile}
-                onSuccess={setBookingSuccess}
-              />
-            </div>
-          )}
+            <BookingForm
+              tour={tour}
+              selectedDeparture={selectedDeparture}
+              selectedDepartureId={selectedDepartureId}
+              userProfile={userProfile}
+              onSuccess={(booking) => {
+                navigate(`/tai-khoan/booking/${booking.id}?stage=payment`);
+              }}
+            />
+          </div>
         </div>
       </section>
     </PublicLayout>

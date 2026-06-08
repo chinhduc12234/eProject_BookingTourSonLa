@@ -36,6 +36,41 @@ const formatDate = (value) => {
   return `${day}/${month}/${year}`;
 };
 
+const normalizeServiceItems = (value) => {
+  const text = String(value || "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/li>\s*<li[^>]*>/gi, "\n")
+    .replace(/<\/?(ul|ol|li)[^>]*>/gi, "")
+    .replace(/&nbsp;/gi, " ")
+    .trim();
+
+  if (!text) return [];
+
+  return text
+    .split(/\r?\n+/)
+    .map((item) => item.replace(/^[\s\-•*]+/, "").trim())
+    .filter(Boolean);
+};
+
+function ServiceContent({ value, emptyText }) {
+  const items = normalizeServiceItems(value);
+
+  if (items.length === 0) {
+    return <div className="mt-4 text-sm leading-7 text-slate-300">{emptyText}</div>;
+  }
+
+  return (
+    <ul className="mt-4 space-y-2 text-sm leading-7 text-slate-300">
+      {items.map((item) => (
+        <li key={item} className="flex gap-2">
+          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-80" />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function TourDetailPublicPage() {
   const { id } = useParams();
   const [detail, setDetail] = useState(null);
@@ -315,7 +350,10 @@ export default function TourDetailPublicPage() {
                     </span>
                   </div>
                   <div className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-300">
-                    {tour.includedServices || "Đang cập nhật."}
+                    <ServiceContent
+                      value={tour.includedServices}
+                      emptyText="Chưa có thông tin dịch vụ bao gồm."
+                    />
                   </div>
                 </div>
 
@@ -329,7 +367,10 @@ export default function TourDetailPublicPage() {
                     </span>
                   </div>
                   <div className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-300">
-                    {tour.excludedServices || "Đang cập nhật."}
+                    <ServiceContent
+                      value={tour.excludedServices}
+                      emptyText="Chưa có thông tin dịch vụ không bao gồm."
+                    />
                   </div>
                 </div>
               </div>

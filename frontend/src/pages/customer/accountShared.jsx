@@ -11,58 +11,58 @@ export const emptyProfileForm = {
 export const bookingStatusMeta = {
   PENDING: {
     label: "Chờ xác nhận",
-    className: "border-amber-300/30 bg-amber-300/10 text-amber-100",
+    className: "border-amber-200 bg-amber-50 text-amber-900",
   },
   CONFIRMED: {
     label: "Đã xác nhận",
-    className: "border-emerald-300/30 bg-emerald-300/10 text-emerald-100",
+    className: "border-emerald-200 bg-emerald-50 text-emerald-900",
   },
   IN_PROGRESS: {
     label: "Đang diễn ra",
-    className: "border-sky-300/30 bg-sky-300/10 text-sky-100",
+    className: "border-sky-200 bg-sky-50 text-sky-900",
   },
   COMPLETED: {
     label: "Hoàn thành",
-    className: "border-[#7FB77E]/40 bg-[#7FB77E]/15 text-[#d9f5d8]",
+    className: "border-emerald-200 bg-emerald-100 text-emerald-900",
   },
   CANCELLED: {
     label: "Đã hủy",
-    className: "border-rose-300/30 bg-rose-300/10 text-rose-100",
+    className: "border-rose-200 bg-rose-50 text-rose-900",
   },
 };
 
 export const paymentStatusMeta = {
   UNPAID: {
     label: "Chưa thanh toán",
-    className: "border-amber-300/30 bg-amber-300/10 text-amber-100",
+    className: "border-amber-200 bg-amber-50 text-amber-900",
   },
   PENDING_REVIEW: {
-    label: "Xét duyệt",
-    className: "border-amber-200/40 bg-amber-200/15 text-amber-50",
+    label: "Chờ duyệt thanh toán",
+    className: "border-amber-200 bg-amber-50 text-amber-900",
   },
   PARTIAL: {
-    label: "Đã cọc",
-    className: "border-sky-300/30 bg-sky-300/10 text-sky-100",
+    label: "Đã đặt cọc",
+    className: "border-sky-200 bg-sky-50 text-sky-900",
   },
   PAID: {
     label: "Đã thanh toán",
-    className: "border-emerald-300/30 bg-emerald-300/10 text-emerald-100",
+    className: "border-emerald-200 bg-emerald-50 text-emerald-900",
   },
   REFUNDED: {
     label: "Đã hoàn tiền",
-    className: "border-slate-300/30 bg-slate-300/10 text-slate-100",
+    className: "border-slate-200 bg-slate-100 text-slate-800",
   },
   PARTIALLY_REFUNDED: {
     label: "Hoàn một phần",
-    className: "border-violet-300/30 bg-violet-300/10 text-violet-100",
+    className: "border-violet-200 bg-violet-50 text-violet-900",
   },
   FORFEITED: {
     label: "Mất cọc",
-    className: "border-orange-300/30 bg-orange-300/10 text-orange-100",
+    className: "border-orange-200 bg-orange-50 text-orange-900",
   },
   FAILED: {
     label: "Thanh toán lỗi",
-    className: "border-rose-300/30 bg-rose-300/10 text-rose-100",
+    className: "border-rose-200 bg-rose-50 text-rose-900",
   },
 };
 
@@ -103,14 +103,14 @@ export const normalizeProfileForm = (profile) => ({
 export const getMeta = (map, key) =>
   map[key] || {
     label: key || "Chưa cập nhật",
-    className: "border-white/10 bg-white/[0.06] text-slate-200",
+    className: "border-slate-200 bg-slate-50 text-slate-800",
   };
 
 export function StatusPill({ meta }) {
   return (
     <span
       className={[
-        "inline-flex items-center justify-center rounded-full border px-3 py-1 text-xs font-bold",
+        "inline-flex items-center justify-center rounded-full border px-3 py-1 text-xs font-black shadow-sm",
         meta.className,
       ].join(" ")}
     >

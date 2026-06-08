@@ -51,6 +51,8 @@ public class BookingDetailResponse {
 
     private String excludedServices;
 
+    private List<TourImageDto> tourImages;
+
     private Integer durationDays;
 
     private Integer durationNights;

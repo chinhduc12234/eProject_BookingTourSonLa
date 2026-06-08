@@ -23,7 +23,7 @@ export default function AccountShell({
 }) {
   return (
     <PublicLayout>
-      <section className="min-h-[calc(100vh-80px)] bg-[#020617] py-10 sm:py-14">
+      <section className="account-shell min-h-[calc(100vh-80px)] bg-[#020617] py-10 sm:py-14">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.07] via-white/[0.03] to-[#7FB77E]/10">
             <div className="grid gap-5 p-5 sm:p-7 lg:grid-cols-[1fr_auto] lg:items-center">

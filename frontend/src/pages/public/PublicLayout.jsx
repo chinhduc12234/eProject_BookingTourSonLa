@@ -108,7 +108,7 @@ export default function PublicLayout({ children }) {
     );
 
     return (
-        <div className="min-h-screen bg-[#020617] text-slate-100">
+        <div className="public-shell min-h-screen bg-[#020617] text-slate-100">
             {/* HEADER */}
             <header
                 className={[
