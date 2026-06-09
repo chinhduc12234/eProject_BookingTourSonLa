@@ -329,7 +329,7 @@ export default function BookingDetailPage() {
 
       setBooking(response.data);
       navigate(`/tai-khoan/booking/${booking.id}?stage=success`, { replace: true });
-      toast.success("Đã gửi xác nhận thanh toán, vui lòng chờ admin duyệt");
+      toast.success("Đã gửi xác nhận thanh toán. Hệ thống đang kiểm tra giao dịch.");
     } catch (error) {
       toast.error(getPaymentErrorMessage(error));
     } finally {
@@ -409,12 +409,20 @@ export default function BookingDetailPage() {
 
   const successTitle =
     booking?.paymentPlan === "DEPOSIT"
-      ? "Gửi xác nhận đặt cọc thành công"
-      : "Gửi xác nhận thanh toán thành công";
+      ? isPaymentPendingReview
+        ? "Gửi xác nhận đặt cọc thành công"
+        : "Đặt cọc thành công"
+      : isPaymentPendingReview
+        ? "Gửi xác nhận thanh toán thành công"
+        : "Thanh toán thành công";
   const successDescription =
     booking?.paymentPlan === "DEPOSIT"
-      ? "Khoản cọc của bạn đã được ghi nhận. Hệ thống đang chờ admin kiểm tra giao dịch trước khi chốt giữ chỗ cho booking này."
-      : "Hệ thống đã ghi nhận yêu cầu thanh toán của bạn. Admin sẽ kiểm tra giao dịch trước khi cập nhật trạng thái cuối cùng.";
+      ? isPaymentPendingReview
+        ? "Khoản cọc của bạn đã được ghi nhận. Hệ thống đang kiểm tra giao dịch trước khi chốt giữ chỗ cho booking này."
+        : "Khoản cọc của bạn đã được ghi nhận. Booking đã được lưu và xuất hiện trong hệ thống admin để quản lý."
+      : isPaymentPendingReview
+        ? "Hệ thống đã ghi nhận yêu cầu thanh toán của bạn. Admin sẽ kiểm tra giao dịch trước khi cập nhật trạng thái cuối cùng."
+        : "Hệ thống đã ghi nhận thanh toán thành công. Booking đã được lưu và xuất hiện trong hệ thống admin để quản lý.";
 
   if (!loading && booking && stage === "success") {
     return (
@@ -473,9 +481,9 @@ export default function BookingDetailPage() {
                 {booking.paymentReference || "Đang cập nhật"}
               </div>
               <p className="mt-4 text-sm leading-7 text-slate-600">
-                Admin sẽ kiểm tra giao dịch và cập nhật booking của bạn. Bạn có
-                thể xem chi tiết trạng thái hoặc quay lại lịch sử booking bất cứ
-                lúc nào.
+                {isPaymentPendingReview
+                  ? "Admin sẽ kiểm tra giao dịch và cập nhật booking của bạn. Bạn có thể xem chi tiết trạng thái hoặc quay lại lịch sử booking bất cứ lúc nào."
+                  : "Bạn có thể xem chi tiết trạng thái hoặc quay lại lịch sử booking bất cứ lúc nào. Admin đã có thể thấy booking này trong khu vực quản lý."}
               </p>
             </div>
 
@@ -1088,7 +1096,7 @@ export default function BookingDetailPage() {
                         Icon: Banknote,
                         title: "Đặt cọc 30%",
                         amount: depositAmount,
-                        note: "Gửi xác nhận cọc 30%, admin duyệt trước khi chốt giữ chỗ.",
+                        note: "Gửi xác nhận cọc 30%, admin kiểm tra trước khi chốt giữ chỗ.",
                       },
                     ].map(({ key, Icon, title, amount, note }) => {
                       const active = paymentChoice === key;
@@ -1155,7 +1163,7 @@ export default function BookingDetailPage() {
                         : "QR thanh toán toàn bộ tour",
                     description:
                       paymentChoice === "DEPOSIT"
-                        ? "Sau khi gửi xác nhận cọc, booking sẽ chuyển sang trạng thái xét duyệt."
+                        ? "Sau khi gửi xác nhận cọc, booking sẽ chuyển sang trạng thái kiểm tra thanh toán."
                         : "Sau khi gửi xác nhận, admin sẽ kiểm tra trước khi chuyển sang Đã thanh toán.",
                   })}
 
@@ -1181,8 +1189,8 @@ export default function BookingDetailPage() {
                 <div className="mt-5 rounded-2xl border border-amber-300/30 bg-amber-300/10 p-4 text-sm leading-7 text-amber-50">
                   <div className="font-black text-white">
                     {remainingAmount > 0
-                      ? "Yêu cầu thanh toán đang chờ xét duyệt"
-                      : "Yêu cầu thanh toán đủ đang chờ xét duyệt"}
+                      ? "Yêu cầu thanh toán đang được kiểm tra"
+                      : "Yêu cầu thanh toán đủ đang được kiểm tra"}
                   </div>
                   <p className="mt-1">
                     Hệ thống đã ghi nhận xác nhận chuyển khoản{" "}

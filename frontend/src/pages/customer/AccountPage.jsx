@@ -5,7 +5,6 @@ import toast from "react-hot-toast";
 import {
   AlertTriangle,
   CalendarDays,
-  Camera,
   CheckCircle2,
   ChevronRight,
   Clock3,
@@ -18,7 +17,6 @@ import {
   Phone,
   Save,
   ShieldCheck,
-  Upload,
   UserRound,
   Users,
   XCircle,
@@ -27,8 +25,6 @@ import {
 import { getBookingDetail, getMyBookings } from "../../api/bookingApi";
 import {
   getCurrentUserProfile,
-  resolveUploadedFileUrl,
-  updateCurrentUserAvatar,
   updateCurrentUserProfile,
 } from "../../api/userApi";
 import PublicLayout from "../public/PublicLayout";
@@ -38,7 +34,6 @@ const emptyProfileForm = {
   fullName: "",
   email: "",
   phone: "",
-  avatar: "",
   gender: "OTHER",
   dateOfBirth: "",
   address: "",
@@ -46,8 +41,8 @@ const emptyProfileForm = {
 
 const bookingStatusMeta = {
   PENDING: {
-    label: "Chờ xác nhận",
-    className: "border-amber-300/30 bg-amber-300/10 text-amber-100",
+    label: "Đã xác nhận",
+    className: "border-emerald-300/30 bg-emerald-300/10 text-emerald-100",
   },
   CONFIRMED: {
     label: "Đã xác nhận",
@@ -99,7 +94,7 @@ const paymentStatusMeta = {
 };
 
 const bookingSteps = [
-  { key: "PENDING", label: "Gửi yêu cầu" },
+  { key: "PENDING", label: "Đã xác nhận" },
   { key: "CONFIRMED", label: "Xác nhận" },
   { key: "IN_PROGRESS", label: "Khởi hành" },
   { key: "COMPLETED", label: "Hoàn thành" },
@@ -126,7 +121,6 @@ const normalizeProfileForm = (profile) => ({
   fullName: profile?.fullName || "",
   email: profile?.email || "",
   phone: profile?.phone || "",
-  avatar: profile?.avatar || "",
   gender: profile?.gender || "OTHER",
   dateOfBirth: profile?.dateOfBirth || "",
   address: profile?.address || "",
@@ -151,26 +145,12 @@ function StatusPill({ meta }) {
   );
 }
 
-function getInitials(name) {
-  if (!name) return "U";
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(-2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
-}
-
 export default function AccountPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [profile, setProfile] = useState(null);
   const [profileForm, setProfileForm] = useState(emptyProfileForm);
-  const [avatarFile, setAvatarFile] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState("");
   const [bookings, setBookings] = useState([]);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -217,18 +197,11 @@ export default function AccountPage() {
     };
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (avatarPreview.startsWith("blob:")) {
-        URL.revokeObjectURL(avatarPreview);
-      }
-    };
-  }, [avatarPreview]);
-
   const summary = useMemo(() => {
     const totalBookings = bookings.length;
-    const pendingBookings = bookings.filter(
-      (booking) => booking.status === "PENDING",
+    const confirmedBookings = bookings.filter(
+      (booking) =>
+        booking.status === "PENDING" || booking.status === "CONFIRMED",
     ).length;
     const paidBookings = bookings.filter(
       (booking) => booking.paymentStatus === "PAID",
@@ -240,7 +213,7 @@ export default function AccountPage() {
 
     return {
       totalBookings,
-      pendingBookings,
+      confirmedBookings,
       paidBookings,
       totalSpent,
     };
@@ -253,55 +226,6 @@ export default function AccountPage() {
     }));
   };
 
-  const avatarDisplayUrl =
-    avatarPreview || resolveUploadedFileUrl(profile?.avatar || profileForm.avatar);
-
-  const handleAvatarSelect = (event) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast.error("Vui lòng chọn file ảnh");
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Ảnh avatar không được vượt quá 5MB");
-      return;
-    }
-
-    setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
-  };
-
-  const handleAvatarUpload = async () => {
-    if (!avatarFile) {
-      toast.error("Vui lòng chọn ảnh avatar");
-      return;
-    }
-
-    try {
-      setUploadingAvatar(true);
-
-      const response = await updateCurrentUserAvatar(avatarFile);
-      const nextProfile = response.data;
-
-      setProfile(nextProfile);
-      setProfileForm(normalizeProfileForm(nextProfile));
-      setAvatarFile(null);
-      setAvatarPreview("");
-      saveAuth(nextProfile);
-
-      toast.success("Đã cập nhật avatar");
-    } catch (error) {
-      toast.error(error?.response?.data?.message || "Không thể cập nhật avatar");
-    } finally {
-      setUploadingAvatar(false);
-    }
-  };
-
   const handleProfileSubmit = async (event) => {
     event.preventDefault();
 
@@ -312,7 +236,6 @@ export default function AccountPage() {
         fullName: profileForm.fullName.trim(),
         email: profileForm.email.trim(),
         phone: profileForm.phone.trim(),
-        avatar: profileForm.avatar.trim(),
         gender: profileForm.gender || "OTHER",
         dateOfBirth: profileForm.dateOfBirth || null,
         address: profileForm.address.trim(),
@@ -389,16 +312,8 @@ export default function AccountPage() {
           >
             <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[1fr_auto] lg:items-center">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-                <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#7FB77E]/30 bg-[#7FB77E]/15 text-2xl font-black text-[#d9f5d8]">
-                  {avatarDisplayUrl ? (
-                    <img
-                      src={avatarDisplayUrl}
-                      alt={profile.fullName}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    getInitials(profile?.fullName)
-                  )}
+                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl border border-[#7FB77E]/30 bg-[#7FB77E]/15 text-[#d9f5d8]">
+                  <UserRound size={30} />
                 </div>
 
                 <div>
@@ -439,8 +354,8 @@ export default function AccountPage() {
                   Icon: CalendarDays,
                 },
                 {
-                  label: "Chờ xác nhận",
-                  value: summary.pendingBookings,
+                  label: "Đã xác nhận",
+                  value: summary.confirmedBookings,
                   Icon: Clock3,
                 },
                 {
@@ -572,65 +487,6 @@ export default function AccountPage() {
                       }
                       className="field-input"
                     />
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                  <label className="mb-3 block text-xs font-bold text-[#d4a878]">
-                    Avatar
-                  </label>
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                    <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#7FB77E]/30 bg-[#7FB77E]/15 text-xl font-black text-[#d9f5d8]">
-                      {avatarDisplayUrl ? (
-                        <img
-                          src={avatarDisplayUrl}
-                          alt={profile?.fullName || "Avatar"}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <Camera size={26} />
-                      )}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold text-white">
-                        Tải ảnh đại diện từ máy
-                      </p>
-                      <p className="mt-1 text-xs leading-5 text-slate-400">
-                        Hỗ trợ JPG, PNG, WEBP hoặc GIF. Dung lượng tối đa 5MB.
-                      </p>
-                      {avatarFile && (
-                        <p className="mt-2 truncate text-xs font-bold text-[#9de09c]">
-                          Đã chọn: {avatarFile.name}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <label className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-4 text-sm font-black text-white transition hover:border-[#7FB77E]/60 hover:bg-[#7FB77E]/10">
-                      <Camera size={17} />
-                      Chọn ảnh
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp,image/gif"
-                        onChange={handleAvatarSelect}
-                        className="sr-only"
-                      />
-                    </label>
-                    <button
-                      type="button"
-                      onClick={handleAvatarUpload}
-                      disabled={!avatarFile || uploadingAvatar}
-                      className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#7FB77E] px-4 text-sm font-black text-[#020617] transition hover:bg-[#9de09c] disabled:cursor-not-allowed disabled:opacity-55"
-                    >
-                      {uploadingAvatar ? (
-                        <Loader2 size={17} className="animate-spin" />
-                      ) : (
-                        <Upload size={17} />
-                      )}
-                      {uploadingAvatar ? "Đang tải..." : "Cập nhật avatar"}
-                    </button>
                   </div>
                 </div>
 

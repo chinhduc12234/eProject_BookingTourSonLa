@@ -169,15 +169,11 @@ public class BookingServiceImpl implements BookingService {
         booking.setTotalPrice(totalPrice);
         booking.setNote(trimToNull(request.getNote()));
         booking.setSpecialRequest(trimToNull(request.getSpecialRequest()));
-        booking.setStatus(BookingStatus.PENDING);
-        booking.setPaymentStatus(PaymentStatus.UNPAID);
-        booking.setPaymentDeadline(LocalDateTime.now().plusHours(24));
-        booking.setDepositAmount(calculateDepositAmount(totalPrice));
-        booking.setPaidAmount(BigDecimal.ZERO);
-        booking.setRemainingAmount(totalPrice);
+        booking.setStatus(BookingStatus.CONFIRMED);
         booking.setRefundedAmount(BigDecimal.ZERO);
+        applySimulatedPayment(booking, request);
 
-        departure.setReservedPeople(valueOrZero(departure.getReservedPeople()) + totalPeople);
+        departure.setCurrentPeople(valueOrZero(departure.getCurrentPeople()) + totalPeople);
         tourDepartureRepository.save(departure);
 
         Booking saved = bookingRepository.save(booking);
@@ -280,7 +276,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         if (booking.getPaymentStatus() == PaymentStatus.PENDING_REVIEW) {
-            throw new RuntimeException("Thanh toán đang chờ xét duyệt, vui lòng chờ admin xử lý trước khi hủy đặt lịch");
+            throw new RuntimeException("Thanh toán đang được kiểm tra, vui lòng đợi admin xử lý trước khi hủy đặt lịch");
         }
 
         applyBookingStatusTransition(booking, BookingStatus.CANCELLED, null);
@@ -376,7 +372,7 @@ public class BookingServiceImpl implements BookingService {
 
         if (Boolean.TRUE.equals(request.getConfirmPayment())) {
             if (booking.getStatus() == BookingStatus.CANCELLED) {
-                throw new RuntimeException("Đặt lịch đã hủy nên không thể duyệt thanh toán");
+                throw new RuntimeException("Đặt lịch đã hủy nên không thể xác nhận thanh toán");
             }
 
             approvePendingPayment(booking);
@@ -402,6 +398,45 @@ public class BookingServiceImpl implements BookingService {
                 .findByBookingIdOrderByIdAsc(saved.getId());
 
         return mapToDetailResponse(saved, customers);
+    }
+
+    private void applySimulatedPayment(
+            Booking booking,
+            CreateBookingRequest request) {
+
+        String paymentType = normalizeCreatePaymentType(request);
+        String paymentMethod = normalizePaymentMethod(request.getPaymentMethod());
+        BigDecimal totalPrice = booking.getTotalPrice() != null
+                ? booking.getTotalPrice()
+                : BigDecimal.ZERO;
+        BigDecimal depositAmount = calculateDepositAmount(totalPrice);
+
+        booking.setPaymentDeadline(null);
+        booking.setDepositAmount(depositAmount);
+        booking.setPaymentMethod(paymentMethod);
+        booking.setPaidAt(LocalDateTime.now());
+
+        if ("FULL".equals(paymentType)) {
+            booking.setPaymentPlan("FULL");
+            booking.setRemainingPaymentMethod(null);
+            booking.setPaidAmount(totalPrice);
+            booking.setRemainingAmount(BigDecimal.ZERO);
+            booking.setPaymentStatus(PaymentStatus.PAID);
+            booking.setPaymentReference(generatePaymentReference(booking, "FULL"));
+            return;
+        }
+
+        if ("DEPOSIT".equals(paymentType)) {
+            booking.setPaymentPlan("DEPOSIT");
+            booking.setRemainingPaymentMethod(resolveRemainingPaymentMethod(request));
+            booking.setPaidAmount(depositAmount);
+            booking.setRemainingAmount(nonNegative(totalPrice.subtract(depositAmount)));
+            booking.setPaymentStatus(PaymentStatus.PARTIAL);
+            booking.setPaymentReference(generatePaymentReference(booking, "DEP"));
+            return;
+        }
+
+        throw new RuntimeException("Hình thức thanh toán không hợp lệ");
     }
 
     private void applyPayment(
@@ -471,7 +506,7 @@ public class BookingServiceImpl implements BookingService {
     private void ensureCanCreatePaymentRequest(Booking booking) {
 
         if (booking.getPaymentStatus() == PaymentStatus.PENDING_REVIEW) {
-            throw new RuntimeException("Booking này đang chờ admin xét duyệt thanh toán");
+            throw new RuntimeException("Booking này đang được admin kiểm tra thanh toán");
         }
 
         if (booking.getPaymentStatus() != PaymentStatus.UNPAID
@@ -506,7 +541,7 @@ public class BookingServiceImpl implements BookingService {
 
         if (booking.getPaymentStatus() != PaymentStatus.PENDING_REVIEW
                 && booking.getPaymentStatus() != PaymentStatus.FAILED) {
-            throw new RuntimeException("Chỉ giao dịch đang xét duyệt mới có thể từ chối");
+            throw new RuntimeException("Chỉ giao dịch đang được kiểm tra mới có thể từ chối");
         }
 
         BigDecimal totalPrice = booking.getTotalPrice() != null
@@ -528,13 +563,13 @@ public class BookingServiceImpl implements BookingService {
         ensurePaymentDefaults(booking);
 
         if (booking.getPaymentStatus() != PaymentStatus.PENDING_REVIEW) {
-            throw new RuntimeException("Booking này không có giao dịch đang chờ xét duyệt");
+            throw new RuntimeException("Booking này không có giao dịch cần kiểm tra");
         }
 
         BigDecimal paidAmount = nonNegative(booking.getPaidAmount());
 
         if (paidAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Booking chưa có số tiền chờ duyệt để xác nhận");
+            throw new RuntimeException("Booking chưa có số tiền cần xác nhận");
         }
 
         BigDecimal totalPrice = booking.getTotalPrice() != null
@@ -1132,9 +1167,51 @@ public class BookingServiceImpl implements BookingService {
         return type.trim().toUpperCase();
     }
 
+    private String normalizeCreatePaymentType(CreateBookingRequest request) {
+
+        String type = request != null ? trimToNull(request.getPaymentType()) : null;
+
+        if (type == null) {
+            throw new RuntimeException("Vui lòng chọn hình thức thanh toán");
+        }
+
+        String normalized = type.trim().toUpperCase();
+
+        if (!"FULL".equals(normalized) && !"DEPOSIT".equals(normalized)) {
+            throw new RuntimeException("Hình thức thanh toán không hợp lệ");
+        }
+
+        return normalized;
+    }
+
+    private String normalizePaymentMethod(String value) {
+
+        String normalized = isBlank(value)
+                ? "BANK_TRANSFER_QR"
+                : value.trim().toUpperCase();
+
+        if (!"BANK_TRANSFER_QR".equals(normalized)) {
+            throw new RuntimeException("Phương thức thanh toán không hợp lệ");
+        }
+
+        return normalized;
+    }
+
     private String resolveRemainingPaymentMethod(PayBookingRequest request) {
 
         String value = request != null ? trimToNull(request.getRemainingPaymentMethod()) : null;
+
+        return resolveRemainingPaymentMethod(value);
+    }
+
+    private String resolveRemainingPaymentMethod(CreateBookingRequest request) {
+
+        String value = request != null ? trimToNull(request.getRemainingPaymentMethod()) : null;
+
+        return resolveRemainingPaymentMethod(value);
+    }
+
+    private String resolveRemainingPaymentMethod(String value) {
 
         if (value == null) {
             return "CASH_ON_DEPARTURE";

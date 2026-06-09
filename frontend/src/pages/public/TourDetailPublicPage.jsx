@@ -3,12 +3,16 @@ import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
+  BadgeInfo,
   CalendarDays,
   CheckCircle2,
   Clock3,
+  CreditCard,
+  ListChecks,
   Loader2,
   LogIn,
   MapPin,
+  Route,
   ShieldCheck,
   Sparkles,
   Tag,
@@ -36,6 +40,26 @@ const formatDate = (value) => {
   return `${day}/${month}/${year}`;
 };
 
+const formatDateTime = (value) => {
+  if (!value) return "Không giới hạn";
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(value));
+};
+
+const formatTime = (value) => {
+  if (!value) return "Đang cập nhật";
+  return String(value).slice(0, 5);
+};
+
+const departureStatusText = {
+  OPEN: "Đang nhận khách",
+  FULL: "Hết chỗ",
+  CLOSED: "Đã đóng",
+};
+
 const normalizeServiceItems = (value) => {
   const text = String(value || "")
     .replace(/<br\s*\/?>/gi, "\n")
@@ -51,6 +75,23 @@ const normalizeServiceItems = (value) => {
     .map((item) => item.replace(/^[\s\-•*]+/, "").trim())
     .filter(Boolean);
 };
+
+function DetailInfoTile({ Icon, label, value, hint }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-[#020617]/35 p-4">
+      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
+        <Icon size={18} />
+      </span>
+      <div className="mt-3 text-[11px] font-black uppercase tracking-widest text-[#d4a878]">
+        {label}
+      </div>
+      <div className="mt-1 text-base font-black leading-6 text-white">
+        {value}
+      </div>
+      {hint && <div className="mt-2 text-xs leading-5 text-slate-400">{hint}</div>}
+    </div>
+  );
+}
 
 function ServiceContent({ value, emptyText }) {
   const items = normalizeServiceItems(value);
@@ -324,6 +365,152 @@ export default function TourDetailPublicPage() {
               </motion.div>
             )}
 
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.55 }}
+              className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-6"
+            >
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <span className="section-tag">
+                    <BadgeInfo size={12} /> Tổng quan chi tiết
+                  </span>
+                  <h2 className="mt-3 text-2xl font-black text-white">
+                    Thông tin cần biết trước khi đặt
+                  </h2>
+                </div>
+                {tour.tourCode && (
+                  <span className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-black text-[#f4c27a]">
+                    Mã tour: {tour.tourCode}
+                  </span>
+                )}
+              </div>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <DetailInfoTile
+                  Icon={Clock3}
+                  label="Thời lượng"
+                  value={`${tour.durationDays || 0} ngày ${tour.durationNights || 0} đêm`}
+                  hint="Lịch trình đã được chia theo từng ngày bên dưới."
+                />
+                <DetailInfoTile
+                  Icon={MapPin}
+                  label="Điểm xuất phát"
+                  value={tour.departureLocation || "Sơn La"}
+                  hint="Điểm đón cụ thể có thể nhập khi đặt tour."
+                />
+                <DetailInfoTile
+                  Icon={Users}
+                  label="Sức chứa tối đa"
+                  value={`${tour.maxPeople || 0} khách`}
+                  hint={`${departures.length} lịch khởi hành đang hiển thị.`}
+                />
+                <DetailInfoTile
+                  Icon={CreditCard}
+                  label="Giá tham khảo"
+                  value={formatCurrency(tour.price)}
+                  hint="Giá thực tế ưu tiên theo lịch khởi hành."
+                />
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.55 }}
+              className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-6"
+            >
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <span className="section-tag">
+                    <CalendarDays size={12} /> Bảng lịch khởi hành
+                  </span>
+                  <h2 className="mt-3 text-2xl font-black text-white">
+                    Ngày đi, giá và số chỗ còn lại
+                  </h2>
+                </div>
+                <span className="text-xs font-bold uppercase tracking-widest text-[#d4a878]">
+                  {departures.length} lịch
+                </span>
+              </div>
+
+              {departures.length === 0 ? (
+                <div className="mt-5 rounded-2xl border border-dashed border-white/10 bg-white/[0.03] p-5 text-sm leading-7 text-slate-400">
+                  Tour này chưa có lịch khởi hành khả dụng.
+                </div>
+              ) : (
+                <div className="mt-5 grid gap-3">
+                  {departures.map((departure) => {
+                    const isSelected =
+                      Number(departure.id) === Number(selectedDepartureId);
+                    const isOpen =
+                      departure.status === "OPEN" &&
+                      Number(departure.availableSeats || 0) > 0;
+
+                    return (
+                      <button
+                        key={departure.id}
+                        type="button"
+                        onClick={() => isOpen && setSelectedDepartureId(departure.id)}
+                        className={[
+                          "grid gap-4 rounded-2xl border p-4 text-left transition md:grid-cols-[1fr_1fr_1fr_auto] md:items-center",
+                          isSelected
+                            ? "border-[#7FB77E] bg-[#7FB77E]/14 shadow-soft-green"
+                            : "border-white/10 bg-[#020617]/35 hover:border-[#7FB77E]/40",
+                          !isOpen ? "cursor-not-allowed opacity-65" : "",
+                        ].join(" ")}
+                      >
+                        <div>
+                          <div className="text-xs font-black uppercase tracking-widest text-[#d4a878]">
+                            Ngày khởi hành
+                          </div>
+                          <div className="mt-1 text-base font-black text-white">
+                            {formatDate(departure.departureDate)} · {formatTime(departure.departureTime)}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs font-black uppercase tracking-widest text-slate-500">
+                            Giá người lớn / trẻ em
+                          </div>
+                          <div className="mt-1 text-sm font-black text-slate-200">
+                            {formatCurrency(departure.adultPrice || tour.price)}
+                            <span className="text-slate-500"> / </span>
+                            {formatCurrency(departure.childPrice || departure.adultPrice || tour.price)}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs font-black uppercase tracking-widest text-slate-500">
+                            Hạn đặt
+                          </div>
+                          <div className="mt-1 text-sm font-bold text-slate-200">
+                            {formatDateTime(departure.bookingDeadline)}
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 md:justify-end">
+                          <span
+                            className={[
+                              "rounded-full px-3 py-1 text-xs font-black",
+                              isOpen
+                                ? "bg-[#7FB77E]/15 text-[#9de09c]"
+                                : "bg-rose-300/10 text-rose-100",
+                            ].join(" ")}
+                          >
+                            {departureStatusText[departure.status] || departure.status}
+                          </span>
+                          <span className="rounded-full bg-white/[0.06] px-3 py-1 text-xs font-black text-white">
+                            {Number(departure.availableSeats || 0)} chỗ
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </motion.div>
+
             {/* INFO */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -372,6 +559,74 @@ export default function TourDetailPublicPage() {
                       emptyText="Chưa có thông tin dịch vụ không bao gồm."
                     />
                   </div>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.55 }}
+              className="grid gap-4 md:grid-cols-2"
+            >
+              <div className="rounded-2xl border border-[#7FB77E]/20 bg-[#7FB77E]/[0.06] p-5">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#7FB77E]/18 text-[#9de09c]">
+                    <ListChecks size={19} />
+                  </span>
+                  <div>
+                    <h2 className="text-xl font-black text-white">
+                      Quy trình đặt tour
+                    </h2>
+                    <p className="text-sm text-slate-400">
+                      Các bước được giữ rõ ràng trong suốt quá trình booking.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-5 grid gap-3 text-sm leading-7 text-slate-300">
+                  {[
+                    "Chọn lịch khởi hành còn chỗ và nhập thông tin liên hệ.",
+                    "Kiểm tra danh sách hành khách, điểm đón và yêu cầu đặc biệt.",
+                    "Chọn thanh toán cọc 30% hoặc thanh toán toàn bộ.",
+                    "Nhận mã booking và theo dõi trong lịch sử tài khoản.",
+                  ].map((item, index) => (
+                    <div key={item} className="flex gap-3 rounded-xl border border-white/10 bg-[#020617]/30 p-3">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#9de09c] text-xs font-black text-[#020617]">
+                        {index + 1}
+                      </span>
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-[#A67C52]/20 bg-[#A67C52]/[0.06] p-5">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#A67C52]/18 text-[#f3d7b0]">
+                    <Route size={19} />
+                  </span>
+                  <div>
+                    <h2 className="text-xl font-black text-white">
+                      Lưu ý vận hành
+                    </h2>
+                    <p className="text-sm text-slate-400">
+                      Thông tin áp dụng khi điều hành và xác nhận tour.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-5 grid gap-3 text-sm leading-7 text-slate-300">
+                  {[
+                    "Giá có thể khác theo từng lịch khởi hành và số lượng khách.",
+                    "Thông tin hành khách nên nhập đầy đủ để điều hành liên hệ khi cần.",
+                    "Nếu đi theo đoàn hoặc tour riêng, cần nhập tên đoàn/tổ chức.",
+                    "Các yêu cầu ăn uống, sức khỏe, phòng riêng nên ghi ở phần yêu cầu đặc biệt.",
+                  ].map((item) => (
+                    <div key={item} className="flex gap-3 rounded-xl border border-white/10 bg-[#020617]/30 p-3">
+                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#f3d7b0]" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </motion.div>

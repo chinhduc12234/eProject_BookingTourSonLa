@@ -62,8 +62,9 @@ export default function AccountHomePage() {
   }, []);
 
   const summary = useMemo(() => {
-    const pendingBookings = bookings.filter(
-      (booking) => booking.status === "PENDING",
+    const confirmedBookings = bookings.filter(
+      (booking) =>
+        booking.status === "PENDING" || booking.status === "CONFIRMED",
     ).length;
     const paidBookings = bookings.filter(
       (booking) => booking.paymentStatus === "PAID",
@@ -75,7 +76,7 @@ export default function AccountHomePage() {
 
     return {
       totalBookings: bookings.length,
-      pendingBookings,
+      confirmedBookings,
       paidBookings,
       totalSpent,
     };
@@ -101,7 +102,7 @@ export default function AccountHomePage() {
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { label: "Booking", value: summary.totalBookings, Icon: CalendarDays },
-          { label: "Chờ xác nhận", value: summary.pendingBookings, Icon: Clock3 },
+          { label: "Đã xác nhận", value: summary.confirmedBookings, Icon: Clock3 },
           { label: "Đã thanh toán", value: summary.paidBookings, Icon: CreditCard },
           {
             label: "Tổng giá trị",

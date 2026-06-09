@@ -1,6 +1,6 @@
 export const bookingStatuses = [
   { value: "", label: "Tất cả booking" },
-  { value: "PENDING", label: "Chờ xác nhận" },
+  { value: "PENDING", label: "Đã xác nhận" },
   { value: "CONFIRMED", label: "Đã xác nhận" },
   { value: "IN_PROGRESS", label: "Đang đi tour" },
   { value: "COMPLETED", label: "Hoàn thành" },
@@ -10,7 +10,7 @@ export const bookingStatuses = [
 export const paymentStatuses = [
   { value: "", label: "Tất cả thanh toán" },
   { value: "UNPAID", label: "Chưa thanh toán" },
-  { value: "PENDING_REVIEW", label: "Xét duyệt" },
+  { value: "PENDING_REVIEW", label: "Kiểm tra" },
   { value: "PARTIAL", label: "Đã cọc" },
   { value: "PAID", label: "Đã thanh toán" },
   { value: "REFUNDED", label: "Đã hoàn tiền" },
@@ -21,8 +21,8 @@ export const paymentStatuses = [
 
 export const statusMeta = {
   PENDING: {
-    label: "Chờ xác nhận",
-    className: "border-amber-200 bg-amber-50 text-amber-800",
+    label: "Đã xác nhận",
+    className: "border-emerald-200 bg-emerald-50 text-emerald-800",
   },
   CONFIRMED: {
     label: "Đã xác nhận",
@@ -48,7 +48,7 @@ export const paymentMeta = {
     className: "border-amber-200 bg-amber-50 text-amber-800",
   },
   PENDING_REVIEW: {
-    label: "Xét duyệt",
+    label: "Kiểm tra",
     className: "border-amber-200 bg-amber-50 text-amber-800",
   },
   PARTIAL: {

@@ -43,6 +43,12 @@ public class CreateBookingRequest {
 
     private String specialRequest;
 
+    private String paymentType;
+
+    private String paymentMethod;
+
+    private String remainingPaymentMethod;
+
     @Valid
     private List<BookingCustomerRequest> customers;
 }

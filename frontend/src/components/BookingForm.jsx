@@ -1,14 +1,17 @@
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import {
+  ArrowLeft,
+  ArrowRight,
   Building2,
+  CheckCircle2,
+  ClipboardList,
+  ContactRound,
   Loader2,
   Send,
   UserRound,
   UsersRound,
 } from "lucide-react";
-
-import { createBooking } from "../api/bookingApi";
 
 const formatCurrency = (value) =>
   Number(value || 0).toLocaleString("vi-VN") + " đ";
@@ -63,16 +66,24 @@ const toNumber = (value) => {
   return Number.isFinite(number) ? number : 0;
 };
 
+const formStepItems = [
+  { label: "Loại booking", description: "Cá nhân, nhóm hoặc tour riêng" },
+  { label: "Liên hệ", description: "Thông tin trưởng đoàn và điểm đón" },
+  { label: "Hành khách", description: "Số lượng và hồ sơ người đi cùng" },
+  { label: "Xác nhận", description: "Ghi chú, tổng tiền và chuyển thanh toán" },
+];
+
 export default function BookingForm({
   tour,
   selectedDeparture,
   selectedDepartureId,
   userProfile,
-  onSuccess,
+  onDraftReady,
 }) {
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [customerDrafts, setCustomerDrafts] = useState({});
+  const [currentFormStep, setCurrentFormStep] = useState(0);
   const [form, setForm] = useState({
     bookingType: "INDIVIDUAL",
     organizationName: "",
@@ -157,6 +168,15 @@ export default function BookingForm({
           : {}),
       },
     }));
+  };
+
+  const jumpToFormStep = (index) => {
+    setCurrentFormStep(index);
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById(`booking-form-step-${index}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   };
 
   const validate = () => {
@@ -250,17 +270,38 @@ export default function BookingForm({
         })),
       };
 
-      const response = await createBooking(payload);
+      const draft = {
+        payload,
+        tour: {
+          id: tour?.id,
+          title: tour?.title,
+          thumbnail: tour?.thumbnail,
+          departureLocation: tour?.departureLocation,
+          price: tour?.price,
+        },
+        departure: selectedDeparture
+          ? {
+              id: selectedDeparture.id,
+              departureDate: selectedDeparture.departureDate,
+              departureTime: selectedDeparture.departureTime,
+              availableSeats: selectedDeparture.availableSeats,
+              adultPrice: selectedDeparture.adultPrice,
+              childPrice: selectedDeparture.childPrice,
+            }
+          : null,
+        totals: priceInfo,
+        createdAt: new Date().toISOString(),
+      };
 
-      toast.success("Đã tạo booking, chuyển sang bước thanh toán");
+      toast.success("Thông tin đã sẵn sàng, chuyển sang thanh toán");
 
-      if (onSuccess) {
-        onSuccess(response.data);
+      if (onDraftReady) {
+        onDraftReady(draft);
       }
     } catch (error) {
       toast.error(
-        error?.response?.data?.message ||
-          "Không thể tạo booking, vui lòng kiểm tra lại thông tin",
+        error?.message ||
+          "Không thể chuyển sang thanh toán, vui lòng kiểm tra lại thông tin",
       );
     } finally {
       setSubmitting(false);
@@ -272,7 +313,7 @@ export default function BookingForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-5"
+      className="booking-dark-panel rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-5"
     >
       <div className="flex items-center gap-3 border-b border-white/10 pb-4">
         <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#9de09c] to-[#4f8f4d] text-[#020617] shadow-soft-green">
@@ -292,8 +333,66 @@ export default function BookingForm({
         </div>
       )}
 
+      <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        {formStepItems.map((step, index) => {
+          const active = currentFormStep === index;
+          const done = currentFormStep > index;
+          const StepIcon =
+            index === 0
+              ? ClipboardList
+              : index === 1
+                ? ContactRound
+                : index === 2
+                  ? UsersRound
+                  : CheckCircle2;
+
+          return (
+            <button
+              key={step.label}
+              type="button"
+              onClick={() => jumpToFormStep(index)}
+              className={[
+                "min-h-[5.25rem] rounded-xl border p-3 text-left transition",
+                active
+                  ? "border-[#7FB77E] bg-[#7FB77E]/16 shadow-soft-green"
+                  : done
+                    ? "border-[#7FB77E]/35 bg-[#7FB77E]/8"
+                    : "border-white/10 bg-white/[0.035] hover:border-[#7FB77E]/40",
+              ].join(" ")}
+            >
+              <span className="flex items-start gap-3">
+                <span
+                  className={[
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+                    active || done
+                      ? "bg-[#9de09c] text-[#020617]"
+                      : "bg-white/[0.06] text-slate-300",
+                  ].join(" ")}
+                >
+                  <StepIcon size={17} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[11px] font-black uppercase tracking-widest text-[#d4a878]">
+                    Bước {index + 1}
+                  </span>
+                  <span className="mt-0.5 block font-black leading-5 text-white">
+                    {step.label}
+                  </span>
+                  <span className="mt-1 block text-xs leading-5 text-slate-400">
+                    {step.description}
+                  </span>
+                </span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       <div className="mt-5 grid gap-4">
-        <div>
+        <div
+          id="booking-form-step-0"
+          className="scroll-mt-28 rounded-2xl border border-white/10 bg-white/[0.025] p-4"
+        >
           <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
             Loại booking
           </label>
@@ -368,7 +467,10 @@ export default function BookingForm({
           </div>
         )}
 
-        <div>
+        <div
+          id="booking-form-step-1"
+          className="scroll-mt-28 rounded-2xl border border-white/10 bg-white/[0.025] p-4"
+        >
           <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
             Họ tên trưởng đoàn
           </label>
@@ -381,9 +483,8 @@ export default function BookingForm({
           {errors.fullName && (
             <p className="mt-2 text-sm text-rose-200">{errors.fullName}</p>
           )}
-        </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
             <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
               Email
@@ -416,7 +517,7 @@ export default function BookingForm({
           </div>
         </div>
 
-        <div>
+          <div className="mt-4">
           <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
             Địa chỉ đón
           </label>
@@ -426,93 +527,48 @@ export default function BookingForm({
             className={inputClass}
             placeholder="Địa chỉ đón khách"
           />
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
-              Người lớn
-            </label>
-            <input
-              type="number"
-              min="1"
-              value={form.adultCount}
-              onChange={(event) => updateField("adultCount", event.target.value)}
-              className={inputClass}
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
-              Trẻ em / em bé
-            </label>
-            <input
-              type="number"
-              min="0"
-              value={form.childCount}
-              onChange={(event) => updateField("childCount", event.target.value)}
-              className={inputClass}
-            />
           </div>
         </div>
+
+        <div
+          id="booking-form-step-2"
+          className="scroll-mt-28 rounded-2xl border border-white/10 bg-white/[0.025] p-4"
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
+                Người lớn
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={form.adultCount}
+                onChange={(event) => updateField("adultCount", event.target.value)}
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
+                Trẻ em / em bé
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={form.childCount}
+                onChange={(event) => updateField("childCount", event.target.value)}
+                className={inputClass}
+              />
+            </div>
+          </div>
 
         {errors.people && (
-          <div className="rounded-xl border border-rose-300/30 bg-rose-300/10 p-3 text-sm font-bold text-rose-100">
+          <div className="mt-4 rounded-xl border border-rose-300/30 bg-rose-300/10 p-3 text-sm font-bold text-rose-100">
             {errors.people}
           </div>
         )}
 
-        <div className="relative overflow-hidden rounded-2xl border border-[#7FB77E]/30 bg-gradient-to-br from-[#7FB77E]/15 via-[#020617]/40 to-[#A67C52]/15 p-5">
-          <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#7FB77E]/20 blur-2xl" />
-          <div className="relative flex items-center justify-between text-sm text-slate-300">
-            <span>Người lớn × {adultCount}</span>
-            <span className="font-bold text-white">
-              {formatCurrency(priceInfo.adultPrice)}
-            </span>
-          </div>
-          <div className="relative mt-2 flex items-center justify-between text-sm text-slate-300">
-            <span>Trẻ em / em bé × {childCount}</span>
-            <span className="font-bold text-white">
-              {formatCurrency(priceInfo.childPrice)}
-            </span>
-          </div>
-          <div className="relative mt-4 flex items-center justify-between border-t border-white/15 pt-4">
-            <span className="font-black text-white">
-              {priceInfo.totalPeople} khách
-            </span>
-            <span className="text-2xl font-black text-gradient-gold">
-              {formatCurrency(priceInfo.totalPrice)}
-            </span>
-          </div>
-        </div>
-
-        <div>
-          <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
-            Ghi chú
-          </label>
-          <textarea
-            rows={3}
-            value={form.note}
-            onChange={(event) => updateField("note", event.target.value)}
-            className="w-full resize-none rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3 text-white outline-none transition focus:border-[#7FB77E] focus:bg-[#7FB77E]/10 focus:ring-4 focus:ring-[#7FB77E]/15"
-            placeholder="Ghi chú thêm cho điều hành tour..."
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
-            Yêu cầu đặc biệt
-          </label>
-          <textarea
-            rows={3}
-            value={form.specialRequest}
-            onChange={(event) => updateField("specialRequest", event.target.value)}
-            className="w-full resize-none rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3 text-white outline-none transition focus:border-[#7FB77E] focus:bg-[#7FB77E]/10 focus:ring-4 focus:ring-[#7FB77E]/15"
-            placeholder="Ăn chay, dị ứng, yêu cầu phòng..."
-          />
-        </div>
-
-        <div className="border-t border-white/10 pt-4">
+        <div className="mt-4 border-t border-white/10 pt-4">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-base font-black text-white">Khách đi cùng</h3>
             <span className="rounded-full bg-white/[0.06] px-3 py-1 text-xs font-bold text-slate-300">
@@ -712,6 +768,83 @@ export default function BookingForm({
             </div>
           )}
         </div>
+        </div>
+
+        <div
+          id="booking-form-step-3"
+          className="scroll-mt-28 rounded-2xl border border-white/10 bg-white/[0.025] p-4"
+        >
+          <div className="relative overflow-hidden rounded-2xl border border-[#7FB77E]/30 bg-gradient-to-br from-[#7FB77E]/15 via-[#020617]/40 to-[#A67C52]/15 p-5">
+            <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#7FB77E]/20 blur-2xl" />
+            <div className="relative flex items-center justify-between text-sm text-slate-300">
+              <span>Người lớn × {adultCount}</span>
+              <span className="font-bold text-white">
+                {formatCurrency(priceInfo.adultPrice)}
+              </span>
+            </div>
+            <div className="relative mt-2 flex items-center justify-between text-sm text-slate-300">
+              <span>Trẻ em / em bé × {childCount}</span>
+              <span className="font-bold text-white">
+                {formatCurrency(priceInfo.childPrice)}
+              </span>
+            </div>
+            <div className="relative mt-4 flex items-center justify-between border-t border-white/15 pt-4">
+              <span className="font-black text-white">
+                {priceInfo.totalPeople} khách
+              </span>
+              <span className="text-2xl font-black text-gradient-gold">
+                {formatCurrency(priceInfo.totalPrice)}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
+              Ghi chú
+            </label>
+            <textarea
+              rows={3}
+              value={form.note}
+              onChange={(event) => updateField("note", event.target.value)}
+              className="w-full resize-none rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3 text-white outline-none transition focus:border-[#7FB77E] focus:bg-[#7FB77E]/10 focus:ring-4 focus:ring-[#7FB77E]/15"
+              placeholder="Ghi chú thêm cho điều hành tour..."
+            />
+          </div>
+
+          <div className="mt-4">
+            <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
+              Yêu cầu đặc biệt
+            </label>
+            <textarea
+              rows={3}
+              value={form.specialRequest}
+              onChange={(event) => updateField("specialRequest", event.target.value)}
+              className="w-full resize-none rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3 text-white outline-none transition focus:border-[#7FB77E] focus:bg-[#7FB77E]/10 focus:ring-4 focus:ring-[#7FB77E]/15"
+              placeholder="Ăn chay, dị ứng, yêu cầu phòng..."
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => jumpToFormStep(Math.max(0, currentFormStep - 1))}
+            disabled={currentFormStep === 0}
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-5 text-sm font-black text-white transition hover:border-[#7FB77E]/40 hover:bg-[#7FB77E]/10 disabled:cursor-not-allowed disabled:opacity-45"
+          >
+            <ArrowLeft size={17} />
+            Quay lại bước trước
+          </button>
+          <button
+            type="button"
+            onClick={() => jumpToFormStep(Math.min(3, currentFormStep + 1))}
+            disabled={currentFormStep === 3}
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-[#7FB77E]/35 bg-[#7FB77E]/10 px-5 text-sm font-black text-white transition hover:border-[#7FB77E]/70 hover:bg-[#7FB77E]/18 disabled:cursor-not-allowed disabled:opacity-45"
+          >
+            Tiếp tục bước sau
+            <ArrowRight size={17} />
+          </button>
+        </div>
 
         <button
           type="submit"
@@ -723,7 +856,7 @@ export default function BookingForm({
           ) : (
             <Send size={18} />
           )}
-          {submitting ? "Đang xử lý..." : "Đặt tour ngay"}
+          {submitting ? "Đang xử lý..." : "Tiếp tục thanh toán"}
         </button>
       </div>
     </form>

@@ -54,9 +54,11 @@ public class EmployeeBookingController {
                 bookingRepository.findDashboardBookingsByAssignedStaffId(staffId);
 
         long totalBookings = allBookings.size();
-        long pendingBookings = allBookings
+        long confirmedBookings = allBookings
                 .stream()
-                .filter(booking -> booking.getStatus() == BookingStatus.PENDING)
+                .filter(booking ->
+                        booking.getStatus() == BookingStatus.PENDING
+                                || booking.getStatus() == BookingStatus.CONFIRMED)
                 .count();
 
         BigDecimal totalRevenue =
@@ -68,7 +70,8 @@ public class EmployeeBookingController {
 
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalBookings", totalBookings);
-        stats.put("pendingBookings", pendingBookings);
+        stats.put("pendingBookings", confirmedBookings);
+        stats.put("confirmedBookings", confirmedBookings);
         stats.put("totalRevenue", totalRevenue);
 
         return ResponseEntity.ok(stats);

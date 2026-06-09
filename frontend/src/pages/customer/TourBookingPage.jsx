@@ -13,7 +13,9 @@ import toast from "react-hot-toast";
 import { getPublicTourDetail } from "../../api/publicTourApi";
 import { getCurrentUserProfile, resolveUploadedFileUrl } from "../../api/userApi";
 import BookingForm from "../../components/BookingForm";
+import BookingStepBar from "../../components/BookingStepBar";
 import DepartureSelector from "../../components/DepartureSelector";
+import { getBookingDraft, saveBookingDraft } from "../../utils/bookingDraft";
 import PublicLayout from "../public/PublicLayout";
 
 const formatCurrency = (value) =>
@@ -116,16 +118,50 @@ export default function TourBookingPage() {
 
   const { tour, images = [], departures = [] } = detail;
   const coverImage = resolveUploadedFileUrl(tour.thumbnail || images[0]?.imageUrl);
+  const storedDraft = getBookingDraft();
+  const hasPaymentDraft = Number(storedDraft?.tour?.id) === Number(tour.id);
+  const bookingFlowSteps = [
+    {
+      key: "detail",
+      label: "Chi tiết tour",
+      description: "Xem thông tin, lịch trình và dịch vụ",
+      href: `/tours/${tour.id}`,
+    },
+    {
+      key: "booking",
+      label: "Thông tin booking",
+      description: "Chọn lịch, số khách và thông tin liên hệ",
+      href: `/booking/${tour.id}`,
+    },
+    {
+      key: "payment",
+      label: "Thanh toán",
+      description: "Chọn cọc hoặc thanh toán toàn bộ",
+      href: `/booking/${tour.id}/payment`,
+      disabled: !hasPaymentDraft,
+    },
+    {
+      key: "done",
+      label: "Hoàn tất",
+      description: "Nhận mã booking và theo dõi lịch sử",
+      disabled: true,
+    },
+  ];
+
   return (
     <PublicLayout>
-      <section className="bg-[#020617] py-10 sm:py-14">
+      <section className="booking-flow bg-[#020617] py-10 sm:py-14">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Link to={`/tours/${tour.id}`} className="btn-outline text-sm">
             <ArrowLeft size={17} />
             Quay lại chi tiết tour
           </Link>
 
-          <div className="mt-6 overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.07] via-white/[0.03] to-[#7FB77E]/10">
+          <div className="mt-5">
+            <BookingStepBar steps={bookingFlowSteps} current={1} />
+          </div>
+
+          <div className="booking-dark-panel mt-6 overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.07] via-white/[0.03] to-[#7FB77E]/10">
             <div className="grid gap-5 p-5 sm:p-7 lg:grid-cols-[1fr_360px] lg:items-center">
               <div>
                 <span className="section-tag">
@@ -168,7 +204,7 @@ export default function TourBookingPage() {
 
           <div className="mt-8 grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
             <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
-                <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-5">
+                <div className="booking-dark-panel rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-5">
                   <div className="flex items-center gap-3 border-b border-white/10 pb-4">
                     <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
                       <CalendarDays size={20} />
@@ -192,7 +228,7 @@ export default function TourBookingPage() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-[#A67C52]/20 bg-[#A67C52]/[0.06] p-5">
+                <div className="booking-dark-panel rounded-2xl border border-[#A67C52]/20 bg-[#A67C52]/[0.06] p-5">
                   <div className="text-xs font-black uppercase tracking-widest text-[#d4a878]">
                     Giá từ
                   </div>
@@ -211,8 +247,9 @@ export default function TourBookingPage() {
               selectedDeparture={selectedDeparture}
               selectedDepartureId={selectedDepartureId}
               userProfile={userProfile}
-              onSuccess={(booking) => {
-                navigate(`/tai-khoan/booking/${booking.id}?stage=payment`);
+              onDraftReady={(draft) => {
+                saveBookingDraft(draft);
+                navigate(`/booking/${tour.id}/payment`);
               }}
             />
           </div>

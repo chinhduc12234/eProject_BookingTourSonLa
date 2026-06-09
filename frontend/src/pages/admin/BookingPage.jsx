@@ -92,7 +92,10 @@ export default function BookingPage() {
   }, [page, keyword, status, paymentStatus]);
 
   const summary = useMemo(() => {
-    const pending = bookings.filter((booking) => booking.status === "PENDING").length;
+    const confirmed = bookings.filter(
+      (booking) =>
+        booking.status === "PENDING" || booking.status === "CONFIRMED",
+    ).length;
     const paid = bookings.filter((booking) => booking.paymentStatus === "PAID").length;
     const pendingPayment = bookings.filter(
       (booking) => booking.paymentStatus === "PENDING_REVIEW",
@@ -102,7 +105,7 @@ export default function BookingPage() {
       0,
     );
 
-    return { pending, paid, pendingPayment, people };
+    return { confirmed, paid, pendingPayment, people };
   }, [bookings]);
 
   const submitSearch = (event) => {
@@ -124,7 +127,7 @@ export default function BookingPage() {
                 Quản lý booking
               </h1>
               <p className="mt-1 text-sm font-semibold text-slate-500">
-                Theo dõi booking, xét duyệt thanh toán, phân công nhân viên và xác nhận tour.
+                Theo dõi booking, kiểm tra thanh toán, phân công nhân viên và xác nhận tour.
               </p>
             </div>
           </div>
@@ -143,8 +146,8 @@ export default function BookingPage() {
         <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {[
             { label: "Tổng booking", value: totalElements, Icon: TicketCheck },
-            { label: "Chờ xác nhận", value: summary.pending, Icon: CalendarDays },
-            { label: "Xét duyệt thanh toán", value: summary.pendingPayment, Icon: CreditCard },
+            { label: "Đã xác nhận", value: summary.confirmed, Icon: CalendarDays },
+            { label: "Kiểm tra thanh toán", value: summary.pendingPayment, Icon: CreditCard },
             { label: "Khách trong trang", value: summary.people, Icon: Users },
           ].map(({ label, value, Icon }) => (
             <div key={label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

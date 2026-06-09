@@ -838,3 +838,62 @@ html[data-theme="light"] .account-shell [class*="bg-amber-300/10"] {
 html[data-theme="light"] .account-shell [class*="bg-sky-300/10"] {
     background-color: rgba(240, 249, 255, 0.92) !important;
 }
+
+.booking-flow {
+    background:
+        radial-gradient(circle at 12% 0%, rgba(127, 183, 126, 0.14), transparent 34%),
+        linear-gradient(180deg, #020617 0%, #06130f 48%, #020617 100%);
+}
+
+html[data-theme="light"] .booking-flow {
+    background:
+        radial-gradient(circle at 16% 0%, rgba(127, 183, 126, 0.18), transparent 34%),
+        linear-gradient(180deg, #f8fafc 0%, #eef8ee 46%, #f8fafc 100%) !important;
+}
+
+.booking-flow-panel,
+.booking-dark-panel {
+    background:
+        linear-gradient(135deg, rgba(7, 18, 15, 0.96) 0%, rgba(2, 6, 23, 0.94) 100%) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="light"] .booking-flow-panel,
+html[data-theme="light"] .booking-dark-panel {
+    background:
+        linear-gradient(135deg, rgba(7, 18, 15, 0.96) 0%, rgba(2, 6, 23, 0.95) 100%) !important;
+    border-color: rgba(127, 183, 126, 0.22) !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="light"] .booking-flow-panel :where(.text-white, .text-slate-100, .text-slate-200, .text-slate-300),
+html[data-theme="light"] .booking-dark-panel :where(.text-white, .text-slate-100, .text-slate-200, .text-slate-300) {
+    color: #f8fafc !important;
+}
+
+html[data-theme="light"] .booking-flow-panel :where(.text-slate-400, .text-slate-500),
+html[data-theme="light"] .booking-dark-panel :where(.text-slate-400, .text-slate-500) {
+    color: #cbd5e1 !important;
+}
+
+html[data-theme="light"] .booking-flow-panel [class*="bg-white/["],
+html[data-theme="light"] .booking-dark-panel [class*="bg-white/["] {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html[data-theme="light"] .booking-flow-panel [class*="border-white/"],
+html[data-theme="light"] .booking-dark-panel [class*="border-white/"] {
+    border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+html[data-theme="light"] .booking-dark-panel :where(input, textarea, select) {
+    color: #0f172a !important;
+    background-color: rgba(255, 255, 255, 0.94) !important;
+    border-color: rgba(203, 213, 225, 0.9) !important;
+}
+
+html[data-theme="light"] .booking-dark-panel :where(option) {
+    color: #0f172a !important;
+    background-color: #ffffff !important;
+}

@@ -2,7 +2,6 @@ export const emptyProfileForm = {
   fullName: "",
   email: "",
   phone: "",
-  avatar: "",
   gender: "OTHER",
   dateOfBirth: "",
   address: "",
@@ -10,8 +9,8 @@ export const emptyProfileForm = {
 
 export const bookingStatusMeta = {
   PENDING: {
-    label: "Chờ xác nhận",
-    className: "border-amber-200 bg-amber-50 text-amber-900",
+    label: "Đã xác nhận",
+    className: "border-emerald-200 bg-emerald-50 text-emerald-900",
   },
   CONFIRMED: {
     label: "Đã xác nhận",
@@ -37,7 +36,7 @@ export const paymentStatusMeta = {
     className: "border-amber-200 bg-amber-50 text-amber-900",
   },
   PENDING_REVIEW: {
-    label: "Chờ duyệt thanh toán",
+    label: "Đang kiểm tra thanh toán",
     className: "border-amber-200 bg-amber-50 text-amber-900",
   },
   PARTIAL: {
@@ -67,7 +66,7 @@ export const paymentStatusMeta = {
 };
 
 export const bookingSteps = [
-  { key: "PENDING", label: "Gửi yêu cầu" },
+  { key: "PENDING", label: "Đã xác nhận" },
   { key: "CONFIRMED", label: "Xác nhận" },
   { key: "IN_PROGRESS", label: "Khởi hành" },
   { key: "COMPLETED", label: "Hoàn thành" },
@@ -94,7 +93,6 @@ export const normalizeProfileForm = (profile) => ({
   fullName: profile?.fullName || "",
   email: profile?.email || "",
   phone: profile?.phone || "",
-  avatar: profile?.avatar || "",
   gender: profile?.gender || "OTHER",
   dateOfBirth: profile?.dateOfBirth || "",
   address: profile?.address || "",
@@ -117,16 +115,4 @@ export function StatusPill({ meta }) {
       {meta.label}
     </span>
   );
-}
-
-export function getInitials(name) {
-  if (!name) return "U";
-
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(-2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
 }

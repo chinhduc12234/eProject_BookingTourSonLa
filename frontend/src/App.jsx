@@ -11,6 +11,7 @@ import CustomerHome from "./pages/customer/CustomerHome";
 import AccountHomePage from "./pages/customer/AccountHomePage";
 import BookingDetailPage from "./pages/customer/BookingDetailPage";
 import BookingHistoryPage from "./pages/customer/BookingHistoryPage";
+import BookingPaymentPage from "./pages/customer/BookingPaymentPage";
 import ProfilePage from "./pages/customer/ProfilePage";
 import TourBookingPage from "./pages/customer/TourBookingPage";
 import AboutPage from "./pages/public/AboutPage";
@@ -69,6 +70,14 @@ function AnimatedRoutes() {
           element={
             <ProtectedRoute allowRoles={["CUSTOMER"]}>
               <TourBookingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/booking/:id/payment"
+          element={
+            <ProtectedRoute allowRoles={["CUSTOMER"]}>
+              <BookingPaymentPage />
             </ProtectedRoute>
           }
         />

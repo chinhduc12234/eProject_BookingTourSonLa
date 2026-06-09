@@ -1,36 +1,27 @@
 import { useEffect, useState } from "react";
 import {
-  Camera,
   Loader2,
   LogOut,
   Save,
-  Upload,
   UserRound,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
 import {
   getCurrentUserProfile,
-  resolveUploadedFileUrl,
-  updateCurrentUserAvatar,
   updateCurrentUserProfile,
 } from "../../api/userApi";
 import { logout, saveAuth } from "../../utils/auth";
 import AccountShell from "./AccountShell";
 import {
   emptyProfileForm,
-  getInitials,
   normalizeProfileForm,
 } from "./accountShared";
 
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [profile, setProfile] = useState(null);
   const [profileForm, setProfileForm] = useState(emptyProfileForm);
-  const [avatarFile, setAvatarFile] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -42,7 +33,6 @@ export default function ProfilePage() {
 
         if (!mounted) return;
 
-        setProfile(response.data);
         setProfileForm(normalizeProfileForm(response.data));
       } catch (error) {
         toast.error(
@@ -60,68 +50,11 @@ export default function ProfilePage() {
     };
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (avatarPreview.startsWith("blob:")) {
-        URL.revokeObjectURL(avatarPreview);
-      }
-    };
-  }, [avatarPreview]);
-
   const updateProfileField = (field, value) => {
     setProfileForm((current) => ({
       ...current,
       [field]: value,
     }));
-  };
-
-  const avatarDisplayUrl =
-    avatarPreview || resolveUploadedFileUrl(profile?.avatar || profileForm.avatar);
-
-  const handleAvatarSelect = (event) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast.error("Vui lòng chọn file ảnh");
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Ảnh avatar không được vượt quá 5MB");
-      return;
-    }
-
-    setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
-  };
-
-  const handleAvatarUpload = async () => {
-    if (!avatarFile) {
-      toast.error("Vui lòng chọn ảnh avatar");
-      return;
-    }
-
-    try {
-      setUploadingAvatar(true);
-
-      const response = await updateCurrentUserAvatar(avatarFile);
-      const nextProfile = response.data;
-
-      setProfile(nextProfile);
-      setProfileForm(normalizeProfileForm(nextProfile));
-      setAvatarFile(null);
-      setAvatarPreview("");
-      saveAuth(nextProfile);
-
-      toast.success("Đã cập nhật avatar");
-    } catch (error) {
-      toast.error(error?.response?.data?.message || "Không thể cập nhật avatar");
-    } finally {
-      setUploadingAvatar(false);
-    }
   };
 
   const handleProfileSubmit = async (event) => {
@@ -134,7 +67,6 @@ export default function ProfilePage() {
         fullName: profileForm.fullName.trim(),
         email: profileForm.email.trim(),
         phone: profileForm.phone.trim(),
-        avatar: profileForm.avatar.trim(),
         gender: profileForm.gender || "OTHER",
         dateOfBirth: profileForm.dateOfBirth || null,
         address: profileForm.address.trim(),
@@ -143,7 +75,6 @@ export default function ProfilePage() {
       const response = await updateCurrentUserProfile(payload);
       const nextProfile = response.data;
 
-      setProfile(nextProfile);
       setProfileForm(normalizeProfileForm(nextProfile));
       saveAuth(nextProfile);
 
@@ -276,62 +207,6 @@ export default function ProfilePage() {
                 }
                 className="field-input"
               />
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-            <label className="mb-3 block text-xs font-bold text-[#d4a878]">
-              Avatar
-            </label>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#7FB77E]/30 bg-[#7FB77E]/15 text-xl font-black text-[#d9f5d8]">
-                {avatarDisplayUrl ? (
-                  <img
-                    src={avatarDisplayUrl}
-                    alt={profile?.fullName || "Avatar"}
-                    className="h-full w-full object-cover"
-                  />
-                ) : profile?.fullName ? (
-                  getInitials(profile.fullName)
-                ) : (
-                  <Camera size={26} />
-                )}
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <input
-                  id="customer-avatar-file"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarSelect}
-                  className="hidden"
-                />
-                <label
-                  htmlFor="customer-avatar-file"
-                  className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm font-black text-white transition hover:border-[#7FB77E]/40 hover:bg-[#7FB77E]/10"
-                >
-                  <Camera size={17} />
-                  Chọn ảnh
-                </label>
-                {avatarFile && (
-                  <button
-                    type="button"
-                    onClick={handleAvatarUpload}
-                    disabled={uploadingAvatar}
-                    className="ml-3 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#7FB77E] px-4 text-sm font-black text-[#020617] transition hover:bg-[#9de09c] disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {uploadingAvatar ? (
-                      <Loader2 size={17} className="animate-spin" />
-                    ) : (
-                      <Upload size={17} />
-                    )}
-                    {uploadingAvatar ? "Đang tải..." : "Cập nhật avatar"}
-                  </button>
-                )}
-                <p className="mt-2 text-xs text-slate-400">
-                  Hỗ trợ JPG, PNG, WEBP. Dung lượng tối đa 5MB.
-                </p>
-              </div>
             </div>
           </div>
 

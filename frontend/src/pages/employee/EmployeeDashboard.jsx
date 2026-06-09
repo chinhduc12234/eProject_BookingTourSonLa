@@ -182,8 +182,8 @@ export default function EmployeeDashboard() {
 
             <div className="stat-card">
               <div>
-                <span className="stat-label">Chờ Kiểm Duyệt</span>
-                <span className="stat-value text-amber">{stats.pendingBookings}</span>
+                <span className="stat-label">Đã Xác Nhận</span>
+                <span className="stat-value text-amber">{stats.confirmedBookings ?? stats.pendingBookings}</span>
               </div>
               <div className="stat-icon icon-amber pulse"><Clock /></div>
             </div>
@@ -261,10 +261,10 @@ export default function EmployeeDashboard() {
                           <td className="price-text-highlight">{formatVND(booking.totalPrice)}</td>
                           <td className="text-center">
                             {booking.status === "PENDING" && (
-                              <span className="status-badge badge-pending">Chờ duyệt</span>
+                              <span className="status-badge badge-pending">Đã xác nhận</span>
                             )}
                             {booking.status === "CONFIRMED" && (
-                              <span className="status-badge badge-confirmed">Đã duyệt</span>
+                              <span className="status-badge badge-confirmed">Đã xác nhận</span>
                             )}
                             {booking.status === "CANCELLED" && (
                               <span className="status-badge badge-cancelled">Đã hủy</span>
@@ -274,7 +274,7 @@ export default function EmployeeDashboard() {
                             <div className="actions-buttons-flex">
                               {booking.status === "PENDING" ? (
                                 <>
-                                  <button onClick={() => handleStatusChange(booking.id, "CONFIRMED")} className="action-btn btn-success" title="Duyệt đơn">
+                                  <button onClick={() => handleStatusChange(booking.id, "CONFIRMED")} className="action-btn btn-success" title="Xác nhận đơn">
                                     <CheckCircle />
                                   </button>
                                   <button onClick={() => handleStatusChange(booking.id, "CANCELLED")} className="action-btn btn-danger" title="Hủy đơn">

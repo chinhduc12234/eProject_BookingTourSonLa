@@ -16,7 +16,7 @@ import {
     UserRound,
     X,
 } from "lucide-react";
-import { getCurrentUserProfile, resolveUploadedFileUrl } from "../../api/userApi";
+import { getCurrentUserProfile } from "../../api/userApi";
 import { getAuthName, getRole, isLoggedIn, logout } from "../../utils/auth";
 import { applyTheme, getInitialTheme } from "../../utils/theme";
 import { brand, navLinks, photoCredits } from "./publicContent";
@@ -82,7 +82,6 @@ export default function PublicLayout({ children }) {
     }, []);
 
     const accountName = profile?.fullName || getAuthName() || "Tài khoản";
-    const accountAvatar = resolveUploadedFileUrl(profile?.avatar);
     const accountPath =
         getRole() === "ADMIN"
             ? "/admin"
@@ -145,15 +144,7 @@ export default function PublicLayout({ children }) {
                                     title="Trang cá nhân"
                                 >
                                     <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#7FB77E] text-[#020617]">
-                                        {accountAvatar ? (
-                                            <img
-                                                src={accountAvatar}
-                                                alt={accountName}
-                                                className="h-full w-full object-cover"
-                                            />
-                                        ) : (
-                                            <UserRound size={15} />
-                                        )}
+                                        <UserRound size={15} />
                                     </span>
                                     <span className="truncate">{accountName}</span>
                                 </Link>
@@ -217,15 +208,7 @@ export default function PublicLayout({ children }) {
                                         className="mt-3 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#7FB77E]/35 bg-[#7FB77E]/10 px-4 text-sm font-black text-white"
                                     >
                                         <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#7FB77E] text-[#020617]">
-                                            {accountAvatar ? (
-                                                <img
-                                                    src={accountAvatar}
-                                                    alt={accountName}
-                                                    className="h-full w-full object-cover"
-                                                />
-                                            ) : (
-                                                <UserRound size={17} />
-                                            )}
+                                            <UserRound size={17} />
                                         </span>
                                         {accountName}
                                     </Link>
