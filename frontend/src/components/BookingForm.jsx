@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   Building2,
@@ -7,8 +8,6 @@ import {
   UserRound,
   UsersRound,
 } from "lucide-react";
-
-import { createBooking } from "../api/bookingApi";
 
 const formatCurrency = (value) =>
   Number(value || 0).toLocaleString("vi-VN") + " đ";
@@ -65,11 +64,13 @@ const toNumber = (value) => {
 
 export default function BookingForm({
   tour,
+  tourId,
   selectedDeparture,
   selectedDepartureId,
   userProfile,
   onSuccess,
 }) {
+  const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [customerDrafts, setCustomerDrafts] = useState({});
@@ -86,6 +87,59 @@ export default function BookingForm({
     note: "",
     specialRequest: "",
   });
+
+  // Restore form data from localStorage on mount
+  useEffect(() => {
+    const savedForm = localStorage.getItem('booking_temp_form');
+    if (savedForm) {
+      try {
+        const tempForm = JSON.parse(savedForm);
+        setForm(prev => ({
+          ...prev,
+          bookingType: tempForm.bookingType || prev.bookingType,
+          organizationName: tempForm.organizationName || prev.organizationName,
+          contactPerson: tempForm.contactPerson || prev.contactPerson,
+          fullName: tempForm.fullName || prev.fullName,
+          email: tempForm.email || prev.email,
+          phone: tempForm.phone || prev.phone,
+          pickupAddress: tempForm.pickupAddress || prev.pickupAddress,
+          adultCount: tempForm.adultCount || prev.adultCount,
+          childCount: tempForm.childCount || prev.childCount,
+          note: tempForm.note || prev.note,
+          specialRequest: tempForm.specialRequest || prev.specialRequest,
+        }));
+        if (tempForm.customers && Array.isArray(tempForm.customers)) {
+          const drafts = {};
+          tempForm.customers.forEach((customer, index) => {
+            const slotKey = customer.slotKey || `customer-${index}`;
+            drafts[slotKey] = customer;
+          });
+          setCustomerDrafts(drafts);
+        }
+      } catch (error) {
+        console.error('Error restoring form data:', error);
+      }
+    }
+  }, [userProfile]);
+
+  // Auto-save form data to localStorage whenever it changes
+  useEffect(() => {
+    const tempForm = {
+      bookingType: form.bookingType,
+      organizationName: form.organizationName,
+      contactPerson: form.contactPerson,
+      fullName: form.fullName,
+      email: form.email,
+      phone: form.phone,
+      pickupAddress: form.pickupAddress,
+      adultCount: form.adultCount,
+      childCount: form.childCount,
+      note: form.note,
+      specialRequest: form.specialRequest,
+      customers: Object.values(customerDrafts),
+    };
+    localStorage.setItem('booking_temp_form', JSON.stringify(tempForm));
+  }, [form, customerDrafts]);
 
   const adultCount = toNumber(form.adultCount);
   const childCount = toNumber(form.childCount);
@@ -220,6 +274,7 @@ export default function BookingForm({
       setSubmitting(true);
 
       const payload = {
+        tourId: tourId ? Number(tourId) : null,
         departureId: Number(selectedDepartureId),
         bookingType: form.bookingType,
         organizationName: requiresOrganization
@@ -250,17 +305,18 @@ export default function BookingForm({
         })),
       };
 
-      const response = await createBooking(payload);
-
-      toast.success("Đã tạo booking, chuyển sang bước thanh toán");
-
-      if (onSuccess) {
-        onSuccess(response.data);
-      }
+      console.log("BookingForm - Saving to localStorage:", {
+        payload,
+        tempDeparture: JSON.parse(localStorage.getItem('booking_temp_departure') || '{}'),
+      });
+      localStorage.setItem('booking_temp_complete', JSON.stringify(payload));
+      setTimeout(() => {
+        navigate("/payment");
+      }, 100);
     } catch (error) {
       toast.error(
         error?.response?.data?.message ||
-          "Không thể tạo booking, vui lòng kiểm tra lại thông tin",
+          "Không thể lưu thông tin, vui lòng kiểm tra lại",
       );
     } finally {
       setSubmitting(false);
@@ -723,7 +779,7 @@ export default function BookingForm({
           ) : (
             <Send size={18} />
           )}
-          {submitting ? "Đang xử lý..." : "Đặt tour ngay"}
+          {submitting ? "Đang xử lý..." : "Tiếp tục"}
         </button>
       </div>
     </form>

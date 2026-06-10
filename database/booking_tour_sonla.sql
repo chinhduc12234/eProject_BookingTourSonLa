@@ -1,6 +1,5 @@
 -- =========================================================
 -- DATABASE: BOOKING TOUR SON LA
--- CHARACTER SET UTF8MB4 FOR VIETNAMESE
 -- =========================================================
 
 CREATE DATABASE IF NOT EXISTS booking_tour_sonla
@@ -8,10 +7,6 @@ CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 
 USE booking_tour_sonla;
-
--- =========================================================
--- DISABLE FOREIGN KEY CHECK
--- =========================================================
 
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -21,12 +16,15 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS reviews;
+DROP TABLE IF EXISTS payment_transactions;
 DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS activity_change_logs;
 DROP TABLE IF EXISTS booking_schedule_activities;
 DROP TABLE IF EXISTS booking_schedule_days;
 DROP TABLE IF EXISTS booking_employees;
 DROP TABLE IF EXISTS booking_customers;
+DROP TABLE IF EXISTS booking_organizations;
+DROP TABLE IF EXISTS booking_contacts;
 DROP TABLE IF EXISTS bookings;
 DROP TABLE IF EXISTS tour_departures;
 DROP TABLE IF EXISTS tour_activities;
@@ -327,9 +325,9 @@ CREATE TABLE tour_departures (
 
     reserved_people INT DEFAULT 0,
 
-    adult_price DECIMAL(12,2) NULL,
+    adult_price DECIMAL(12,2),
 
-    child_price DECIMAL(12,2) NULL,
+    child_price DECIMAL(12,2),
 
     is_private_departure BOOLEAN DEFAULT FALSE,
 
@@ -344,7 +342,7 @@ CREATE TABLE tour_departures (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     ON UPDATE CURRENT_TIMESTAMP,
 
-    deleted_at DATETIME NULL COMMENT 'Soft delete timestamp',
+    deleted_at DATETIME NULL,
 
     CONSTRAINT fk_tour_departures_tour
     FOREIGN KEY (tour_id)
@@ -352,9 +350,7 @@ CREATE TABLE tour_departures (
     ON DELETE CASCADE,
 
     CONSTRAINT uq_tour_departure
-    UNIQUE (tour_id, departure_date),
-
-    INDEX idx_tour_departures_deleted_at (deleted_at)
+    UNIQUE (tour_id, departure_date)
 );
 
 -- =========================================================
@@ -375,18 +371,6 @@ CREATE TABLE bookings (
         'GROUP',
         'PRIVATE'
     ) DEFAULT 'INDIVIDUAL',
-
-    organization_name VARCHAR(255),
-
-    contact_person VARCHAR(255),
-
-    full_name VARCHAR(255) NOT NULL,
-
-    email VARCHAR(255) NOT NULL,
-
-    phone VARCHAR(20) NOT NULL,
-
-    pickup_address TEXT,
 
     total_people INT NOT NULL,
 
@@ -416,46 +400,19 @@ CREATE TABLE bookings (
 
     payment_status ENUM(
         'UNPAID',
-        'PENDING_REVIEW',
         'PARTIAL',
         'PAID',
         'REFUNDED',
-        'PARTIALLY_REFUNDED',
-        'FORFEITED',
         'FAILED'
     ) DEFAULT 'UNPAID',
 
     payment_deadline DATETIME NULL,
-
-    paid_at DATETIME NULL,
-
-    paid_amount DECIMAL(12,2) DEFAULT 0,
-
-    deposit_amount DECIMAL(12,2) DEFAULT 0,
-
-    remaining_amount DECIMAL(12,2) DEFAULT 0,
-
-    refunded_amount DECIMAL(12,2) DEFAULT 0,
-
-    refunded_at DATETIME NULL,
-
-    payment_plan VARCHAR(30),
-
-    payment_method VARCHAR(50),
-
-    remaining_payment_method VARCHAR(50),
-
-    payment_reference VARCHAR(100),
 
     booked_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     confirmed_at DATETIME NULL,
 
     confirmed_by BIGINT NULL,
-
-    assigned_staff_id BIGINT NULL,
-
-    assigned_at DATETIME NULL,
 
     cancelled_at DATETIME NULL,
 
@@ -473,14 +430,62 @@ CREATE TABLE bookings (
     FOREIGN KEY (confirmed_by)
     REFERENCES users(id),
 
-    CONSTRAINT fk_booking_assigned_staff
-    FOREIGN KEY (assigned_staff_id)
-    REFERENCES users(id),
-
     CONSTRAINT chk_booking_code
     CHECK (
         booking_code REGEXP '^[A-Z0-9]+$'
     )
+);
+
+-- =========================================================
+-- BOOKING CONTACTS
+-- =========================================================
+
+CREATE TABLE booking_contacts (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
+    booking_id BIGINT NOT NULL UNIQUE,
+
+    full_name VARCHAR(255) NOT NULL,
+
+    email VARCHAR(255) NOT NULL,
+
+    phone VARCHAR(20) NOT NULL,
+
+    pickup_address TEXT,
+
+    note TEXT,
+
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_booking_contacts_booking
+    FOREIGN KEY (booking_id)
+    REFERENCES bookings(id)
+    ON DELETE CASCADE
+);
+
+-- =========================================================
+-- BOOKING ORGANIZATIONS
+-- =========================================================
+
+CREATE TABLE booking_organizations (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
+    booking_id BIGINT NOT NULL UNIQUE,
+
+    organization_name VARCHAR(255) NOT NULL,
+
+    contact_person VARCHAR(255),
+
+    tax_code VARCHAR(100),
+
+    company_address TEXT,
+
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_booking_organizations_booking
+    FOREIGN KEY (booking_id)
+    REFERENCES bookings(id)
+    ON DELETE CASCADE
 );
 
 -- =========================================================
@@ -506,25 +511,11 @@ CREATE TABLE booking_customers (
         'OTHER'
     ) DEFAULT 'OTHER',
 
-    date_of_birth DATE,
-
-    identity_number VARCHAR(50),
-
-    email VARCHAR(255),
-
-    phone VARCHAR(20),
-
-    address TEXT,
-
-    emergency_contact VARCHAR(255),
-
     is_group_leader BOOLEAN DEFAULT FALSE,
 
     checked_in BOOLEAN DEFAULT FALSE,
 
     checked_in_at DATETIME NULL,
-
-    health_note TEXT,
 
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
@@ -720,18 +711,14 @@ CREATE TABLE payments (
 
     amount DECIMAL(12,2) NOT NULL,
 
-    paid_by VARCHAR(255),
-
-    transaction_code VARCHAR(255),
-
-    note TEXT,
-
     payment_status ENUM(
         'PENDING',
         'PAID',
         'FAILED',
         'REFUNDED'
     ) DEFAULT 'PENDING',
+
+    note TEXT,
 
     paid_at DATETIME NULL,
 
@@ -740,6 +727,43 @@ CREATE TABLE payments (
     CONSTRAINT fk_payments_booking
     FOREIGN KEY (booking_id)
     REFERENCES bookings(id)
+    ON DELETE CASCADE
+);
+
+-- =========================================================
+-- PAYMENT TRANSACTIONS
+-- =========================================================
+
+CREATE TABLE payment_transactions (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+
+    payment_id BIGINT NOT NULL,
+
+    transaction_code VARCHAR(255) UNIQUE,
+
+    gateway_name VARCHAR(100),
+
+    gateway_order_id VARCHAR(255),
+
+    gateway_response_code VARCHAR(100),
+
+    gateway_message TEXT,
+
+    gateway_response JSON,
+
+    bank_code VARCHAR(50),
+
+    paid_amount DECIMAL(12,2),
+
+    transaction_time DATETIME,
+
+    is_success BOOLEAN DEFAULT FALSE,
+
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_payment_transactions_payment
+    FOREIGN KEY (payment_id)
+    REFERENCES payments(id)
     ON DELETE CASCADE
 );
 
@@ -873,6 +897,12 @@ ON payments(booking_id);
 
 CREATE INDEX idx_payment_status
 ON payments(payment_status);
+
+CREATE INDEX idx_payment_transaction_payment
+ON payment_transactions(payment_id);
+
+CREATE INDEX idx_payment_transaction_code
+ON payment_transactions(transaction_code);
 
 CREATE INDEX idx_notifications_is_read
 ON notifications(is_read);

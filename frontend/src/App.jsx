@@ -13,6 +13,8 @@ import BookingDetailPage from "./pages/customer/BookingDetailPage";
 import BookingHistoryPage from "./pages/customer/BookingHistoryPage";
 import ProfilePage from "./pages/customer/ProfilePage";
 import TourBookingPage from "./pages/customer/TourBookingPage";
+import PaymentPage from "./pages/customer/PaymentPage";
+import ThankYouPage from "./pages/customer/ThankYouPage";
 import AboutPage from "./pages/public/AboutPage";
 import ContactPage from "./pages/public/ContactPage";
 import FaqPage from "./pages/public/FaqPage";
@@ -101,6 +103,22 @@ function AnimatedRoutes() {
           element={
             <ProtectedRoute allowRoles={["CUSTOMER"]}>
               <BookingDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment"
+          element={
+            <ProtectedRoute allowRoles={["CUSTOMER"]}>
+              <PaymentPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/thank-you"
+          element={
+            <ProtectedRoute allowRoles={["CUSTOMER"]}>
+              <ThankYouPage />
             </ProtectedRoute>
           }
         />

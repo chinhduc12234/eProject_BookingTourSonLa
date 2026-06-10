@@ -63,7 +63,7 @@ const paymentPlanText = {
 };
 
 const remainingMethodText = {
-  CASH_ON_DEPARTURE: "Tiền mặt khi khởi hành",
+  CASH_ON_DEPARTURE: "Tiền mặt hoặc QR",
   BANK_TRANSFER_LATER: "Chuyển khoản phần còn lại",
   BANK_TRANSFER_QR: "Chuyển khoản QR",
 };
@@ -531,144 +531,65 @@ export default function BookingDetailPage() {
             )}
 
             <div className="overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.04] shadow-[0_30px_90px_-50px_rgba(15,23,42,0.8)]">
-              <div className="grid xl:grid-cols-[1.08fr_0.92fr]">
-                <div className="relative min-h-[340px] bg-[#020617]">
-                  {activeTourImage ? (
-                    <button
-                      type="button"
-                      onClick={() => setLightboxImage(activeTourImage.src)}
-                      className="group absolute inset-0"
-                    >
-                      <img
-                        src={activeTourImage.src}
-                        alt={booking.tourName}
-                        className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-br from-[#020617]/85 via-[#020617]/35 to-[#020617]/75" />
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(157,224,156,0.22),transparent_38%)]" />
-                      <div className="absolute inset-x-0 bottom-0 p-6 text-left">
-                        <div className="flex flex-wrap gap-2">
-                          <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-white backdrop-blur-md">
-                            {booking.bookingCode}
+              <div className="relative min-h-[360px] sm:min-h-[420px] bg-[#020617] overflow-hidden">
+                {activeTourImage ? (
+                  <button
+                    type="button"
+                    onClick={() => setLightboxImage(activeTourImage.src)}
+                    className="group absolute inset-0 block h-full w-full outline-none text-left"
+                  >
+                    <img
+                      src={activeTourImage.src}
+                      alt={booking.tourName}
+                      className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
+                    />
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/90 via-[#020617]/20 to-transparent transition duration-300 group-hover:from-[#020617]/95" />
+
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(157,224,156,0.15),transparent_40%)]" />
+
+                    <div className="absolute inset-x-0 bottom-0 p-6 z-10 pointer-events-none">
+                      <div className="flex flex-wrap gap-2">
+                        <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-[#020617]/60 px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-white backdrop-blur-md shadow-sm">
+                          {booking.bookingCode}
+                        </span>
+                        {tourGallery.length > 1 && (
+                          <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-bold text-slate-100 backdrop-blur-md">
+                            <ImageIcon size={13} className="text-[#9de09c]" />
+                            {tourGallery.length} ảnh tour
                           </span>
-                          {tourGallery.length > 1 && (
-                            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-[#020617]/55 px-3 py-1 text-[11px] font-bold text-slate-100 backdrop-blur-md">
-                              <ImageIcon size={13} />
-                              {tourGallery.length} ảnh tour
-                            </span>
-                          )}
-                        </div>
-                        <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#7FB77E]/18 px-3 py-1.5 text-xs font-black text-[#d9ffd8]">
-                          <CheckCircle2 size={14} />
-                          Tour đã đặt
-                        </div>
+                        )}
                       </div>
-                    </button>
-                  ) : (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[radial-gradient(circle_at_top,rgba(157,224,156,0.18),transparent_42%)] text-center text-slate-300">
-                      <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 text-[#9de09c]">
-                        <ImageIcon size={28} />
-                      </span>
-                      <p className="max-w-xs text-sm leading-7">
-                        Chưa có hình ảnh tour. Hệ thống vẫn hiển thị đầy đủ lịch trình, dịch vụ và thông tin booking cho bạn.
-                      </p>
+                      <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#7FB77E]/20 bg-[#7FB77E]/15 px-3 py-1.5 text-xs font-black text-[#d9ffd8] backdrop-blur-sm">
+                        <CheckCircle2 size={14} className="text-[#9de09c]" />
+                        Tour đã đặt
+                      </div>
                     </div>
-                  )}
-                </div>
-
-                <div className="bg-gradient-to-br from-white/[0.04] via-[#08101f] to-[#07111f] p-6 sm:p-7">
-                  <div className="flex flex-wrap gap-2">
-                    <StatusPill meta={statusMeta} />
-                    <StatusPill meta={paymentMeta} />
-                    {booking.paymentPlan && (
-                      <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-xs font-black text-slate-200">
-                        {paymentPlanText[booking.paymentPlan] || booking.paymentPlan}
-                      </span>
-                    )}
+                  </button>
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[radial-gradient(circle_at_top,rgba(157,224,156,0.18),transparent_42%)] text-center text-slate-300 p-6">
+                    <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 text-[#9de09c]">
+                      <ImageIcon size={28} />
+                    </span>
+                    <p className="max-w-xs text-sm leading-7">
+                      Chưa có hình ảnh tour. Hệ thống vẫn hiển thị đầy đủ lịch trình, dịch vụ và thông tin booking cho bạn.
+                    </p>
                   </div>
-
-                  <h1 className="mt-4 text-3xl font-black leading-tight text-white">
-                    {booking.tourName}
-                  </h1>
-                  <p className="mt-3 text-sm leading-7 text-slate-300">
-                    {tourSummary}
-                  </p>
-
-                  <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                    <HeroFact
-                      Icon={CalendarDays}
-                      label="Khởi hành"
-                      value={`${formatDate(booking.departureDate)}${
-                        booking.departureTime ? ` • ${booking.departureTime.slice(0, 5)}` : ""
-                      }`}
-                    />
-                    <HeroFact
-                      Icon={MapPin}
-                      label="Điểm xuất phát"
-                      value={booking.departureLocation || "Đang cập nhật"}
-                    />
-                    <HeroFact
-                      Icon={Clock3}
-                      label="Thời lượng"
-                      value={`${booking.durationDays || 0} ngày ${booking.durationNights || 0} đêm`}
-                    />
-                    <HeroFact
-                      Icon={Users}
-                      label="Số khách"
-                      value={`${booking.totalPeople || 0} khách`}
-                    />
-                  </div>
-
-                  <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                    <AmountTile
-                      label="Tổng booking"
-                      value={formatCurrency(totalAmount)}
-                    />
-                    <AmountTile
-                      label="Đã ghi nhận"
-                      value={formatCurrency(paidAmount)}
-                      accent="text-emerald-200"
-                    />
-                    <AmountTile
-                      label="Còn lại"
-                      value={formatCurrency(remainingAmount)}
-                      accent="text-[#f3d7b0]"
-                    />
-                  </div>
-
-                  <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                    <Link
-                      to={`/tours/${booking.tourId}`}
-                      className="btn-outline min-w-[180px] text-sm"
-                    >
-                      Xem tour gốc
-                    </Link>
-                    {activeTourImage && (
-                      <button
-                        type="button"
-                        onClick={() => setLightboxImage(activeTourImage.src)}
-                        className="inline-flex min-w-[180px] items-center justify-center gap-2 rounded-xl border border-[#7FB77E]/30 bg-[#7FB77E]/10 px-4 py-3 text-sm font-black text-[#d9ffd8] transition hover:border-[#7FB77E]/60 hover:bg-[#7FB77E]/18"
-                      >
-                        <ImageIcon size={16} />
-                        Xem ảnh lớn
-                      </button>
-                    )}
-                  </div>
-                </div>
+                )}
               </div>
 
               {tourGallery.length > 1 && (
-                <div className="border-t border-white/10 bg-[#020617]/50 p-4">
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
+                <div className="border-b border-white/10 bg-[#020617]/40 p-4">
+                  <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8">
                     {tourGallery.map((image, index) => (
                       <button
                         key={image.id}
                         type="button"
                         onClick={() => setActiveImageIndex(index)}
                         className={[
-                          "group relative overflow-hidden rounded-2xl border transition",
+                          "group relative overflow-hidden rounded-xl border transition outline-none w-full",
                           index === activeImageIndex
-                            ? "border-[#7FB77E]/60 shadow-[0_18px_40px_-30px_rgba(157,224,156,0.85)]"
+                            ? "border-[#7FB77E] shadow-[0_0_15px_rgba(157,224,156,0.25)] bg-white/5"
                             : "border-white/10 hover:border-white/25",
                         ].join(" ")}
                       >
@@ -677,10 +598,10 @@ export default function BookingDetailPage() {
                           alt={`${booking.tourName} ${index + 1}`}
                           className="aspect-[4/3] w-full object-cover transition duration-500 group-hover:scale-105"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/60 via-transparent to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/50 via-transparent to-transparent opacity-80" />
                         {image.isThumbnail && (
-                          <span className="absolute left-2 top-2 rounded-full bg-[#7FB77E] px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#04120d]">
-                            Ảnh chính
+                          <span className="absolute left-1.5 top-1.5 rounded-full bg-[#7FB77E] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.1em] text-[#04120d] shadow-sm">
+                            Chính
                           </span>
                         )}
                       </button>
@@ -688,6 +609,90 @@ export default function BookingDetailPage() {
                   </div>
                 </div>
               )}
+
+              <div className="bg-gradient-to-b from-white/[0.02] to-[#07111f] p-6 sm:p-8">
+                {/* Nhãn trạng thái */}
+                <div className="flex flex-wrap gap-2">
+                  <StatusPill meta={statusMeta} />
+                  <StatusPill meta={paymentMeta} />
+                  {booking.paymentPlan && (
+                    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-xs font-black text-slate-200">
+                      {paymentPlanText[booking.paymentPlan] || booking.paymentPlan}
+                    </span>
+                  )}
+                </div>
+
+                {/* Tên Tour */}
+                <h1 className="mt-4 text-3xl sm:text-4xl font-black leading-tight text-white tracking-tight">
+                  {booking.tourName}
+                </h1>
+
+                {tourSummary && (
+                  <p className="mt-3 text-sm sm:text-base leading-7 text-slate-300 max-w-4xl">
+                    {tourSummary}
+                  </p>
+                )}
+
+                <div className="mt-8 grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+                  <HeroFact
+                    Icon={CalendarDays}
+                    label="Khởi hành"
+                    value={`${formatDate(booking.departureDate)}${booking.departureTime ? ` • ${booking.departureTime.slice(0, 5)}` : ""}`}
+                  />
+                  <HeroFact
+                    Icon={MapPin}
+                    label="Điểm xuất phát"
+                    value={booking.departureLocation || "Đang cập nhật"}
+                  />
+                  <HeroFact
+                    Icon={Clock3}
+                    label="Thời lượng"
+                    value={`${booking.durationDays || 0} ngày ${booking.durationNights || 0} đêm`}
+                  />
+                  <HeroFact
+                    Icon={Users}
+                    label="Số khách"
+                    value={`${booking.totalPeople || 0} khách`}
+                  />
+                </div>
+
+                <div className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-3 border-t border-white/5 pt-6">
+                  <AmountTile
+                    label="Tổng booking"
+                    value={formatCurrency(totalAmount)}
+                  />
+                  <AmountTile
+                    label="Đã ghi nhận"
+                    value={formatCurrency(paidAmount)}
+                    accent="text-emerald-200"
+                  />
+                  <AmountTile
+                    label="Còn lại"
+                    value={formatCurrency(remainingAmount)}
+                    accent="text-[#f3d7b0]"
+                  />
+                </div>
+
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row border-t border-white/5 pt-6 justify-start">
+                  <Link
+                    to={`/tours/${booking.tourId}`}
+                    className="btn-outline min-w-[160px] text-sm text-center justify-center items-center inline-flex py-3"
+                  >
+                    Xem tour gốc
+                  </Link>
+                  {activeTourImage && (
+                    <button
+                      type="button"
+                      onClick={() => setLightboxImage(activeTourImage.src)}
+                      className="inline-flex min-w-[160px] items-center justify-center gap-2 rounded-xl border border-[#7FB77E]/30 bg-[#7FB77E]/10 px-5 py-3 text-sm font-black text-[#d9ffd8] transition hover:border-[#7FB77E]/60 hover:bg-[#7FB77E]/18"
+                    >
+                      <ImageIcon size={16} className="text-[#9de09c]" />
+                      Xem ảnh lớn
+                    </button>
+                  )}
+                </div>
+              </div>
+
             </div>
 
             {booking.status === "CANCELLED" ? (
@@ -1199,29 +1204,8 @@ export default function BookingDetailPage() {
                   <div className="rounded-2xl border border-sky-300/20 bg-sky-300/10 p-4 text-sm leading-7 text-sky-100">
                     Booking đã giữ chỗ bằng tiền cọc. Phần còn lại là{" "}
                     <b>{formatCurrency(remainingAmount)}</b> và có thể thanh toán
-                    tiền mặt khi khởi hành hoặc chuyển khoản trước bằng QR.
+                    tiền mặt khi khởi hành hoặc chuyển khoản bằng QR.
                   </div>
-
-                  {renderTransferPanel({
-                    amount: remainingAmount,
-                    paymentType: "REMAINING",
-                    title: "QR thanh toán phần còn lại",
-                    description: "Gửi xác nhận khi khách đã chuyển khoản phần còn lại trước ngày đi.",
-                  })}
-
-                  <button
-                    type="button"
-                    onClick={() => handlePay("REMAINING")}
-                    disabled={paying || remainingAmount <= 0}
-                    className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#7FB77E] px-5 text-sm font-black text-[#020617] transition hover:bg-[#9de09c] disabled:opacity-60"
-                  >
-                    {paying ? (
-                      <Loader2 size={18} className="animate-spin" />
-                    ) : (
-                      <CreditCard size={18} />
-                    )}
-                    Gửi xác nhận thanh toán phần còn lại
-                  </button>
                 </div>
               )}
 
@@ -1237,32 +1221,6 @@ export default function BookingDetailPage() {
                       "Mọi thay đổi thanh toán tiếp theo sẽ do bộ phận điều hành xử lý."}
                   </p>
                 </div>
-              )}
-
-              <div className="mt-5 rounded-2xl border border-[#d4a878]/20 bg-[#d4a878]/10 p-4 text-sm leading-7 text-[#f3d7b0]">
-                <div className="flex items-start gap-2">
-                  <RefreshCcw size={18} className="mt-0.5 shrink-0" />
-                  <p>
-                    {booking.refundPolicyNote ||
-                      "Hủy trước ngày khởi hành được hoàn số tiền đã thanh toán. Hủy từ ngày khởi hành trở đi sẽ mất cọc 30%, phần đã thanh toán vượt quá cọc sẽ được hoàn lại."}
-                  </p>
-                </div>
-              </div>
-
-              {canCancel && (
-                <button
-                  type="button"
-                  onClick={handleCancelBooking}
-                  disabled={cancelling}
-                  className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-rose-300/30 bg-rose-300/10 px-5 text-sm font-black text-rose-100 transition hover:bg-rose-300/20 disabled:opacity-60"
-                >
-                  {cancelling ? (
-                    <Loader2 size={18} className="animate-spin" />
-                  ) : (
-                    <XCircle size={18} />
-                  )}
-                  Hủy đặt lịch
-                </button>
               )}
             </div>
 
@@ -1287,9 +1245,8 @@ export default function BookingDetailPage() {
                   <ContactRow
                     Icon={ShieldCheck}
                     tone="gold"
-                    value={`${booking.organizationName}${
-                      booking.contactPerson ? ` • ${booking.contactPerson}` : ""
-                    }`}
+                    value={`${booking.organizationName}${booking.contactPerson ? ` • ${booking.contactPerson}` : ""
+                      }`}
                   />
                 )}
                 <ContactRow
@@ -1523,15 +1480,15 @@ function ServiceCard({ title, Icon, tone, items, emptyText }) {
   const toneClasses =
     tone === "gold"
       ? {
-          icon: "bg-[#d4a878]/15 text-[#f3d7b0]",
-          card: "border-[#d4a878]/20 bg-[#d4a878]/[0.05]",
-          bullet: "bg-[#f3d7b0]",
-        }
+        icon: "bg-[#d4a878]/15 text-[#f3d7b0]",
+        card: "border-[#d4a878]/20 bg-[#d4a878]/[0.05]",
+        bullet: "bg-[#f3d7b0]",
+      }
       : {
-          icon: "bg-[#7FB77E]/15 text-[#9de09c]",
-          card: "border-[#7FB77E]/20 bg-[#7FB77E]/[0.05]",
-          bullet: "bg-[#9de09c]",
-        };
+        icon: "bg-[#7FB77E]/15 text-[#9de09c]",
+        card: "border-[#7FB77E]/20 bg-[#7FB77E]/[0.05]",
+        bullet: "bg-[#9de09c]",
+      };
 
   return (
     <div className={`rounded-2xl border p-5 ${toneClasses.card}`}>

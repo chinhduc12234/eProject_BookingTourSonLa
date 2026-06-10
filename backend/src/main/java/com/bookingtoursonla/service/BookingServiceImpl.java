@@ -58,8 +58,7 @@ import com.bookingtoursonla.repository.UserRepository;
 @Service
 public class BookingServiceImpl implements BookingService {
 
-    private static final DateTimeFormatter BOOKING_DATE_FORMAT =
-            DateTimeFormatter.ofPattern("yyyyMMdd");
+    private static final DateTimeFormatter BOOKING_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     private static final BigDecimal DEPOSIT_RATE = new BigDecimal("0.30");
 
@@ -280,7 +279,8 @@ public class BookingServiceImpl implements BookingService {
         }
 
         if (booking.getPaymentStatus() == PaymentStatus.PENDING_REVIEW) {
-            throw new RuntimeException("Thanh toán đang chờ xét duyệt, vui lòng chờ admin xử lý trước khi hủy đặt lịch");
+            throw new RuntimeException(
+                    "Thanh toán đang chờ xét duyệt, vui lòng chờ admin xử lý trước khi hủy đặt lịch");
         }
 
         applyBookingStatusTransition(booking, BookingStatus.CANCELLED, null);
@@ -423,7 +423,8 @@ public class BookingServiceImpl implements BookingService {
             booking.setRemainingPaymentMethod(null);
             booking.setPaidAmount(booking.getTotalPrice());
             booking.setRemainingAmount(BigDecimal.ZERO);
-            booking.setPaymentStatus(PaymentStatus.PENDING_REVIEW);
+            booking.setPaymentStatus(PaymentStatus.PAID);
+            booking.setStatus(BookingStatus.PENDING);
             booking.setPaidAt(LocalDateTime.now());
             booking.setPaymentReference(generatePaymentReference(booking, "FULL"));
             return;
@@ -435,16 +436,15 @@ public class BookingServiceImpl implements BookingService {
                     && booking.getPaymentStatus() != PaymentStatus.FAILED) {
                 throw new RuntimeException("Booking này đã có giao dịch thanh toán");
             }
-
             BigDecimal depositAmount = calculateDepositAmount(booking.getTotalPrice());
-
             booking.setPaymentPlan("DEPOSIT");
             booking.setPaymentMethod("BANK_TRANSFER_QR");
             booking.setRemainingPaymentMethod(resolveRemainingPaymentMethod(request));
             booking.setDepositAmount(depositAmount);
             booking.setPaidAmount(depositAmount);
             booking.setRemainingAmount(nonNegative(booking.getTotalPrice().subtract(depositAmount)));
-            booking.setPaymentStatus(PaymentStatus.PENDING_REVIEW);
+            booking.setPaymentStatus(PaymentStatus.PARTIAL);
+            booking.setStatus(BookingStatus.PENDING);
             booking.setPaidAt(LocalDateTime.now());
             booking.setPaymentReference(generatePaymentReference(booking, "DEP"));
             return;
@@ -454,12 +454,11 @@ public class BookingServiceImpl implements BookingService {
             if (booking.getPaymentStatus() != PaymentStatus.PARTIAL) {
                 throw new RuntimeException("Chỉ booking đã đặt cọc mới được thanh toán phần còn lại");
             }
-
             booking.setPaymentPlan("DEPOSIT");
             booking.setRemainingPaymentMethod("BANK_TRANSFER_QR");
             booking.setPaidAmount(booking.getTotalPrice());
             booking.setRemainingAmount(BigDecimal.ZERO);
-            booking.setPaymentStatus(PaymentStatus.PENDING_REVIEW);
+            booking.setPaymentStatus(PaymentStatus.PAID);
             booking.setPaidAt(LocalDateTime.now());
             booking.setPaymentReference(generatePaymentReference(booking, "REM"));
             return;
@@ -1047,12 +1046,11 @@ public class BookingServiceImpl implements BookingService {
                 .map(BookingScheduleDay::getId)
                 .toList();
 
-        Map<Long, List<BookingScheduleActivity>> activitiesByDayId =
-                bookingScheduleActivityRepository
-                        .findByScheduleDayIds(dayIds)
-                        .stream()
-                        .collect(Collectors.groupingBy(
-                                activity -> activity.getBookingScheduleDay().getId()));
+        Map<Long, List<BookingScheduleActivity>> activitiesByDayId = bookingScheduleActivityRepository
+                .findByScheduleDayIds(dayIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        activity -> activity.getBookingScheduleDay().getId()));
 
         return days
                 .stream()
@@ -1172,10 +1170,9 @@ public class BookingServiceImpl implements BookingService {
             } else if (booking.getPaymentStatus() == PaymentStatus.PARTIAL) {
                 paidAmount = depositAmount;
             } else if (booking.getPaymentStatus() == PaymentStatus.PENDING_REVIEW) {
-                boolean awaitingFinalConfirmation =
-                        "FULL".equalsIgnoreCase(booking.getPaymentPlan())
-                                || (booking.getRemainingAmount() != null
-                                        && booking.getRemainingAmount().compareTo(BigDecimal.ZERO) == 0);
+                boolean awaitingFinalConfirmation = "FULL".equalsIgnoreCase(booking.getPaymentPlan())
+                        || (booking.getRemainingAmount() != null
+                                && booking.getRemainingAmount().compareTo(BigDecimal.ZERO) == 0);
 
                 paidAmount = awaitingFinalConfirmation
                         ? totalPrice

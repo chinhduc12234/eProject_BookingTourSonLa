@@ -494,6 +494,7 @@ export default function TourDetailPublicPage() {
                   selectedId={selectedDepartureId}
                   onSelect={setSelectedDepartureId}
                   tourPrice={tour.price}
+                  tourId={id}
                 />
               </div>
             </motion.div>
