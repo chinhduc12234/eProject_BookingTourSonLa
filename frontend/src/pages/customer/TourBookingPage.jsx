@@ -224,6 +224,7 @@ export default function TourBookingPage() {
                       selectedId={selectedDepartureId}
                       onSelect={setSelectedDepartureId}
                       tourPrice={tour.price}
+                      tourId={id}
                     />
                   </div>
                 </div>
@@ -244,6 +245,7 @@ export default function TourBookingPage() {
 
             <BookingForm
               tour={tour}
+              tourId={id}
               selectedDeparture={selectedDeparture}
               selectedDepartureId={selectedDepartureId}
               userProfile={userProfile}

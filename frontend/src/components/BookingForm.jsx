@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   ArrowLeft,
@@ -75,11 +76,13 @@ const formStepItems = [
 
 export default function BookingForm({
   tour,
+  tourId,
   selectedDeparture,
   selectedDepartureId,
   userProfile,
   onDraftReady,
 }) {
+  const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [customerDrafts, setCustomerDrafts] = useState({});
@@ -97,6 +100,59 @@ export default function BookingForm({
     note: "",
     specialRequest: "",
   });
+
+  // Restore form data from localStorage on mount
+  useEffect(() => {
+    const savedForm = localStorage.getItem('booking_temp_form');
+    if (savedForm) {
+      try {
+        const tempForm = JSON.parse(savedForm);
+        setForm(prev => ({
+          ...prev,
+          bookingType: tempForm.bookingType || prev.bookingType,
+          organizationName: tempForm.organizationName || prev.organizationName,
+          contactPerson: tempForm.contactPerson || prev.contactPerson,
+          fullName: tempForm.fullName || prev.fullName,
+          email: tempForm.email || prev.email,
+          phone: tempForm.phone || prev.phone,
+          pickupAddress: tempForm.pickupAddress || prev.pickupAddress,
+          adultCount: tempForm.adultCount || prev.adultCount,
+          childCount: tempForm.childCount || prev.childCount,
+          note: tempForm.note || prev.note,
+          specialRequest: tempForm.specialRequest || prev.specialRequest,
+        }));
+        if (tempForm.customers && Array.isArray(tempForm.customers)) {
+          const drafts = {};
+          tempForm.customers.forEach((customer, index) => {
+            const slotKey = customer.slotKey || `customer-${index}`;
+            drafts[slotKey] = customer;
+          });
+          setCustomerDrafts(drafts);
+        }
+      } catch (error) {
+        console.error('Error restoring form data:', error);
+      }
+    }
+  }, [userProfile]);
+
+  // Auto-save form data to localStorage whenever it changes
+  useEffect(() => {
+    const tempForm = {
+      bookingType: form.bookingType,
+      organizationName: form.organizationName,
+      contactPerson: form.contactPerson,
+      fullName: form.fullName,
+      email: form.email,
+      phone: form.phone,
+      pickupAddress: form.pickupAddress,
+      adultCount: form.adultCount,
+      childCount: form.childCount,
+      note: form.note,
+      specialRequest: form.specialRequest,
+      customers: Object.values(customerDrafts),
+    };
+    localStorage.setItem('booking_temp_form', JSON.stringify(tempForm));
+  }, [form, customerDrafts]);
 
   const adultCount = toNumber(form.adultCount);
   const childCount = toNumber(form.childCount);
@@ -240,6 +296,7 @@ export default function BookingForm({
       setSubmitting(true);
 
       const payload = {
+        tourId: tourId ? Number(tourId) : null,
         departureId: Number(selectedDepartureId),
         bookingType: form.bookingType,
         organizationName: requiresOrganization
@@ -297,9 +354,13 @@ export default function BookingForm({
 
       if (onDraftReady) {
         onDraftReady(draft);
+      } else {
+        localStorage.setItem("booking_temp_complete", JSON.stringify(payload));
+        navigate("/payment");
       }
     } catch (error) {
       toast.error(
+        error?.response?.data?.message ||
         error?.message ||
           "Không thể chuyển sang thanh toán, vui lòng kiểm tra lại thông tin",
       );

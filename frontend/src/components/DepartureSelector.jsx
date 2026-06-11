@@ -1,4 +1,5 @@
 import { CalendarDays, CheckCircle2, Clock3, Users } from "lucide-react";
+import toast from "react-hot-toast";
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return null;
@@ -25,6 +26,7 @@ export default function DepartureSelector({
   selectedId,
   onSelect,
   tourPrice,
+  tourId,
 }) {
   if (!departures || departures.length === 0) {
     return (
@@ -41,15 +43,17 @@ export default function DepartureSelector({
         const deadlineExpired =
           departure.bookingDeadline && new Date(departure.bookingDeadline) < new Date();
         const disabled =
-          departure.status !== "OPEN" || availableSeats <= 0 || deadlineExpired;
+          !tourId || departure.status !== "OPEN" || availableSeats <= 0 || deadlineExpired;
         const disabledReason =
-          departure.status !== "OPEN"
-            ? "Lịch chưa mở đặt"
-            : availableSeats <= 0
-              ? "Hết chỗ"
-              : deadlineExpired
-                ? "Quá hạn đặt chỗ"
-                : "";
+          !tourId
+            ? "Đang tải thông tin tour..."
+            : departure.status !== "OPEN"
+              ? "Lịch chưa mở đặt"
+              : availableSeats <= 0
+                ? "Hết chỗ"
+                : deadlineExpired
+                  ? "Quá hạn đặt chỗ"
+                  : "";
         const selected = Number(selectedId) === Number(departure.id);
         const adultPrice = departure.adultPrice ?? tourPrice;
         const childPrice = departure.childPrice ?? adultPrice;
@@ -59,7 +63,19 @@ export default function DepartureSelector({
             key={departure.id}
             type="button"
             disabled={disabled}
-            onClick={() => onSelect(departure.id)}
+            onClick={() => {
+              onSelect(departure.id);
+              const tempDeparture = {
+                id: departure.id,
+                tourId: tourId,
+                departureDate: departure.departureDate,
+                departureTime: departure.departureTime,
+                adultPrice: departure.adultPrice ?? tourPrice,
+                childPrice: departure.childPrice ?? (departure.adultPrice ?? tourPrice),
+                availableSeats: departure.availableSeats,
+              };
+              localStorage.setItem('booking_temp_departure', JSON.stringify(tempDeparture));
+            }}
             className={[
               "group relative overflow-hidden rounded-xl border p-4 text-left transition-all",
               selected
