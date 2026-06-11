@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: localhost:3306
--- Thời gian đã tạo: Th6 10, 2026 lúc 02:43 AM
+-- Thời gian đã tạo: Th6 11, 2026 lúc 11:12 AM
 -- Phiên bản máy phục vụ: 5.7.24
 -- Phiên bản PHP: 8.3.1
 
@@ -68,7 +68,6 @@ CREATE TABLE `bookings` (
   `confirmed_by` bigint(20) DEFAULT NULL,
   `cancelled_at` datetime DEFAULT NULL,
   `deleted_at` datetime DEFAULT NULL,
-  `assigned_at` datetime(6) DEFAULT NULL,
   `contact_person` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `deposit_amount` decimal(12,2) DEFAULT NULL,
   `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -85,6 +84,7 @@ CREATE TABLE `bookings` (
   `refunded_at` datetime(6) DEFAULT NULL,
   `remaining_amount` decimal(12,2) DEFAULT NULL,
   `remaining_payment_method` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `assigned_at` datetime(6) DEFAULT NULL,
   `assigned_staff_id` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
