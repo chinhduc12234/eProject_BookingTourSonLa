@@ -149,13 +149,6 @@ public class Booking {
     @JoinColumn(name = "confirmed_by")
     private User confirmedBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "assigned_staff_id")
-    private User assignedStaff;
-
-    @Column(name = "assigned_at")
-    private LocalDateTime assignedAt;
-
     @Column(name = "cancelled_at")
     private LocalDateTime cancelledAt;
 

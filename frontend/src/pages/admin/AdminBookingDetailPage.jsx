@@ -47,9 +47,28 @@ export default function AdminBookingDetailPage() {
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [staffOptions, setStaffOptions] = useState([]);
-  const [selectedStaffId, setSelectedStaffId] = useState("");
+  const [selectedStaffIds, setSelectedStaffIds] = useState([]);
   const [internalNote, setInternalNote] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+
+  const resolveSelectedStaffIds = (booking) => {
+    if (booking?.assignedStaffMembers?.length) {
+      return booking.assignedStaffMembers
+        .map((staff) => staff.employeeId)
+        .filter(Boolean)
+        .map(String);
+    }
+
+    return booking?.assignedStaffId ? [String(booking.assignedStaffId)] : [];
+  };
+
+  const toggleStaffSelection = (staffId) => {
+    setSelectedStaffIds((currentIds) =>
+      currentIds.includes(staffId)
+        ? currentIds.filter((id) => id !== staffId)
+        : [...currentIds, staffId],
+    );
+  };
 
   const loadDetail = async () => {
     try {
@@ -67,9 +86,7 @@ export default function AdminBookingDetailPage() {
 
       const nextDetail = detailResponse.data;
       setDetail(nextDetail);
-      setSelectedStaffId(
-        nextDetail.assignedStaffId ? String(nextDetail.assignedStaffId) : "",
-      );
+      setSelectedStaffIds(resolveSelectedStaffIds(nextDetail));
       setInternalNote(nextDetail.internalNote || "");
       setStaffOptions(staffResponse.data.content || []);
     } catch (error) {
@@ -97,9 +114,7 @@ export default function AdminBookingDetailPage() {
 
         const nextDetail = detailResponse.data;
         setDetail(nextDetail);
-        setSelectedStaffId(
-          nextDetail.assignedStaffId ? String(nextDetail.assignedStaffId) : "",
-        );
+        setSelectedStaffIds(resolveSelectedStaffIds(nextDetail));
         setInternalNote(nextDetail.internalNote || "");
         setStaffOptions(staffResponse.data.content || []);
       })
@@ -124,7 +139,7 @@ export default function AdminBookingDetailPage() {
   }) => {
     if (!detail) return;
 
-    if (confirm && !selectedStaffId) {
+    if (confirm && selectedStaffIds.length === 0) {
       toast.error("Vui lòng chọn nhân viên phụ trách trước khi xác nhận tour");
       return;
     }
@@ -142,15 +157,11 @@ export default function AdminBookingDetailPage() {
         payload.paymentStatus = paymentStatus;
       }
 
-      if (selectedStaffId) {
-        payload.assignedStaffId = Number(selectedStaffId);
-      }
+      payload.assignedStaffIds = selectedStaffIds.map(Number);
 
       const response = await updateAdminBooking(detail.id, payload);
       setDetail(response.data);
-      setSelectedStaffId(
-        response.data.assignedStaffId ? String(response.data.assignedStaffId) : "",
-      );
+      setSelectedStaffIds(resolveSelectedStaffIds(response.data));
       setInternalNote(response.data.internalNote || "");
       toast.success(
         paymentStatus === "FAILED"
@@ -197,6 +208,19 @@ export default function AdminBookingDetailPage() {
   const hasGroup = Number(detail.totalPeople || 0) > 1;
   const isCancelled = detail.status === "CANCELLED";
   const isTourConfirmed = detail.status === "CONFIRMED";
+  const assignedStaffMembers =
+    detail.assignedStaffMembers?.length
+      ? detail.assignedStaffMembers
+      : detail.assignedStaffName
+        ? [
+            {
+              employeeId: detail.assignedStaffId,
+              fullName: detail.assignedStaffName,
+              phone: detail.assignedStaffPhone,
+              email: detail.assignedStaffEmail,
+            },
+          ]
+        : [];
   const isPaymentPendingReview = detail.paymentStatus === "PENDING_REVIEW";
   const confirmedPaymentLabel =
     Number(detail.remainingAmount || 0) > 0 ? "Đã cọc" : "Đã thanh toán";
@@ -478,9 +502,47 @@ export default function AdminBookingDetailPage() {
               <label className="mt-5 block text-sm font-black text-slate-700">
                 Nhân viên phụ trách
               </label>
+              <div className="mt-2 max-h-64 space-y-2 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3">
+                {staffOptions.map((staff) => {
+                  const staffId = String(staff.id);
+                  const checked = selectedStaffIds.includes(staffId);
+
+                  return (
+                    <label
+                      key={staff.id}
+                      className={[
+                        "flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2 text-sm transition",
+                        checked
+                          ? "border-emerald-300 bg-emerald-50 text-emerald-900"
+                          : "border-slate-100 bg-slate-50 text-slate-700 hover:border-emerald-200",
+                        actionLoading || isCancelled
+                          ? "cursor-not-allowed opacity-60"
+                          : "",
+                      ].join(" ")}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleStaffSelection(staffId)}
+                        disabled={actionLoading || isCancelled}
+                        className="h-4 w-4 accent-emerald-600"
+                      />
+                      <span className="min-w-0">
+                        <span className="block truncate font-black">
+                          {staff.fullName}
+                        </span>
+                        <span className="block truncate text-xs font-semibold text-slate-500">
+                          {staff.phone || staff.email}
+                        </span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+              {false && (
               <select
-                value={selectedStaffId}
-                onChange={(event) => setSelectedStaffId(event.target.value)}
+                value=""
+                onChange={() => {}}
                 disabled={actionLoading || isCancelled}
                 className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 outline-none transition focus:border-emerald-500 disabled:opacity-60"
               >
@@ -491,8 +553,9 @@ export default function AdminBookingDetailPage() {
                   </option>
                 ))}
               </select>
+              )}
 
-              {detail.assignedStaffName && (
+              {assignedStaffMembers.length > 0 && (
                 <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm">
                   <div className="font-black text-emerald-800">
                     Đang giao cho {detail.assignedStaffName}

@@ -20,6 +20,7 @@ import com.bookingtoursonla.entity.Booking;
 import com.bookingtoursonla.entity.User;
 import com.bookingtoursonla.entity.enums.BookingStatus;
 import com.bookingtoursonla.entity.enums.RoleName;
+import com.bookingtoursonla.repository.BookingEmployeeRepository;
 import com.bookingtoursonla.repository.BookingRepository;
 import com.bookingtoursonla.repository.UserRepository;
 
@@ -33,6 +34,8 @@ public class EmployeeBookingController {
 
     private final BookingRepository bookingRepository;
 
+    private final BookingEmployeeRepository bookingEmployeeRepository;
+
     private final UserRepository userRepository;
 
     @GetMapping("/bookings")
@@ -42,7 +45,7 @@ public class EmployeeBookingController {
         Long staffId = currentEmployeeId(authentication);
 
         return ResponseEntity.ok(
-                bookingRepository.findDashboardBookingsByAssignedStaffId(staffId));
+                bookingEmployeeRepository.findDashboardBookingsByEmployeeId(staffId));
     }
 
     @GetMapping("/stats")
@@ -51,7 +54,7 @@ public class EmployeeBookingController {
 
         Long staffId = currentEmployeeId(authentication);
         List<BookingDashboardDTO> allBookings =
-                bookingRepository.findDashboardBookingsByAssignedStaffId(staffId);
+                bookingEmployeeRepository.findDashboardBookingsByEmployeeId(staffId);
 
         long totalBookings = allBookings.size();
         long confirmedBookings = allBookings
@@ -62,7 +65,7 @@ public class EmployeeBookingController {
                 .count();
 
         BigDecimal totalRevenue =
-                bookingRepository.calculateTotalConfirmedRevenueByAssignedStaffId(staffId);
+                bookingEmployeeRepository.calculateTotalConfirmedRevenueByEmployeeId(staffId);
 
         if (totalRevenue == null) {
             totalRevenue = BigDecimal.ZERO;
@@ -88,8 +91,7 @@ public class EmployeeBookingController {
         Booking booking = bookingRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy booking hợp lệ"));
 
-        if (booking.getAssignedStaff() == null
-                || !booking.getAssignedStaff().getId().equals(staffId)) {
+        if (!bookingEmployeeRepository.existsByBookingIdAndEmployeeId(id, staffId)) {
             throw new RuntimeException("Bạn không được phân công booking này");
         }
 

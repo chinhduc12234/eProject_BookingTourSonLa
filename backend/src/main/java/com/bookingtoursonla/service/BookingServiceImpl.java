@@ -5,8 +5,10 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -22,6 +24,7 @@ import com.bookingtoursonla.dto.BookingDetailResponse;
 import com.bookingtoursonla.dto.BookingResponse;
 import com.bookingtoursonla.dto.BookingScheduleActivityResponse;
 import com.bookingtoursonla.dto.BookingScheduleDayResponse;
+import com.bookingtoursonla.dto.BookingStaffAssignmentResponse;
 import com.bookingtoursonla.dto.CancelBookingRequest;
 import com.bookingtoursonla.dto.CreateBookingRequest;
 import com.bookingtoursonla.dto.PayBookingRequest;
@@ -29,6 +32,7 @@ import com.bookingtoursonla.dto.TourImageDto;
 import com.bookingtoursonla.dto.UpdateBookingAdminRequest;
 import com.bookingtoursonla.entity.Booking;
 import com.bookingtoursonla.entity.BookingCustomer;
+import com.bookingtoursonla.entity.BookingEmployee;
 import com.bookingtoursonla.entity.BookingScheduleActivity;
 import com.bookingtoursonla.entity.BookingScheduleDay;
 import com.bookingtoursonla.entity.Tour;
@@ -46,6 +50,7 @@ import com.bookingtoursonla.entity.enums.PaymentStatus;
 import com.bookingtoursonla.entity.enums.RoleName;
 import com.bookingtoursonla.entity.enums.TourStatus;
 import com.bookingtoursonla.repository.BookingCustomerRepository;
+import com.bookingtoursonla.repository.BookingEmployeeRepository;
 import com.bookingtoursonla.repository.BookingRepository;
 import com.bookingtoursonla.repository.BookingScheduleActivityRepository;
 import com.bookingtoursonla.repository.BookingScheduleDayRepository;
@@ -66,6 +71,8 @@ public class BookingServiceImpl implements BookingService {
 
     private final BookingCustomerRepository bookingCustomerRepository;
 
+    private final BookingEmployeeRepository bookingEmployeeRepository;
+
     private final BookingScheduleDayRepository bookingScheduleDayRepository;
 
     private final BookingScheduleActivityRepository bookingScheduleActivityRepository;
@@ -83,6 +90,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingServiceImpl(
             BookingRepository bookingRepository,
             BookingCustomerRepository bookingCustomerRepository,
+            BookingEmployeeRepository bookingEmployeeRepository,
             BookingScheduleDayRepository bookingScheduleDayRepository,
             BookingScheduleActivityRepository bookingScheduleActivityRepository,
             TourDepartureRepository tourDepartureRepository,
@@ -93,6 +101,7 @@ public class BookingServiceImpl implements BookingService {
 
         this.bookingRepository = bookingRepository;
         this.bookingCustomerRepository = bookingCustomerRepository;
+        this.bookingEmployeeRepository = bookingEmployeeRepository;
         this.bookingScheduleDayRepository = bookingScheduleDayRepository;
         this.bookingScheduleActivityRepository = bookingScheduleActivityRepository;
         this.tourDepartureRepository = tourDepartureRepository;
@@ -355,10 +364,10 @@ public class BookingServiceImpl implements BookingService {
                 .findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
 
-        if (request.getAssignedStaffId() != null) {
-            User assignedStaff = requireActiveStaff(request.getAssignedStaffId());
-            booking.setAssignedStaff(assignedStaff);
-            booking.setAssignedAt(LocalDateTime.now());
+        List<BookingEmployee> currentAssignments = null;
+        List<Long> assignedStaffIds = resolveAssignedStaffIds(request);
+        if (assignedStaffIds != null) {
+            currentAssignments = syncAssignedStaffMembers(booking, assignedStaffIds);
         }
 
         if (request.getInternalNote() != null) {
@@ -383,7 +392,12 @@ public class BookingServiceImpl implements BookingService {
                 throw new RuntimeException("Đặt lịch đã hủy nên không thể xác nhận");
             }
 
-            if (booking.getAssignedStaff() == null) {
+            if (currentAssignments == null) {
+                currentAssignments = bookingEmployeeRepository
+                        .findWithEmployeeByBookingIdOrderByIdAsc(booking.getId());
+            }
+
+            if (currentAssignments.isEmpty()) {
                 throw new RuntimeException("Vui lòng gán nhân viên phụ trách trước khi xác nhận tour");
             }
 
@@ -913,14 +927,7 @@ public class BookingServiceImpl implements BookingService {
         response.setTourId(tour.getId());
         response.setDepartureId(departure.getId());
         response.setTourName(tour.getTitle());
-        response.setAssignedStaffId(
-                booking.getAssignedStaff() != null ? booking.getAssignedStaff().getId() : null);
-        response.setAssignedStaffName(
-                booking.getAssignedStaff() != null ? booking.getAssignedStaff().getFullName() : null);
-        response.setAssignedStaffEmail(
-                booking.getAssignedStaff() != null ? booking.getAssignedStaff().getEmail() : null);
-        response.setAssignedStaffPhone(
-                booking.getAssignedStaff() != null ? booking.getAssignedStaff().getPhone() : null);
+        applyAssignedStaffResponse(response, loadAssignedStaffMembers(booking.getId()));
         response.setDepartureDate(departure.getDepartureDate());
         response.setAdultCount(booking.getAdultCount());
         response.setChildCount(booking.getChildCount());
@@ -990,14 +997,7 @@ public class BookingServiceImpl implements BookingService {
         response.setRefundableBeforeDeparture(isBeforeDepartureDate(booking));
         response.setForfeitedDepositAmount(calculateForfeitedDepositAmount(booking));
         response.setRefundPolicyNote(buildRefundPolicyNote(booking));
-        response.setAssignedStaffId(
-                booking.getAssignedStaff() != null ? booking.getAssignedStaff().getId() : null);
-        response.setAssignedStaffName(
-                booking.getAssignedStaff() != null ? booking.getAssignedStaff().getFullName() : null);
-        response.setAssignedStaffEmail(
-                booking.getAssignedStaff() != null ? booking.getAssignedStaff().getEmail() : null);
-        response.setAssignedStaffPhone(
-                booking.getAssignedStaff() != null ? booking.getAssignedStaff().getPhone() : null);
+        applyAssignedStaffResponse(response, loadAssignedStaffMembers(booking.getId()));
         response.setConfirmedById(
                 booking.getConfirmedBy() != null ? booking.getConfirmedBy().getId() : null);
         response.setConfirmedByName(
@@ -1012,6 +1012,107 @@ public class BookingServiceImpl implements BookingService {
         response.setScheduleDays(loadBookingSchedule(booking.getId()));
 
         return response;
+    }
+
+    private List<BookingEmployee> loadAssignedStaffMembers(Long bookingId) {
+
+        if (bookingId == null) {
+            return List.of();
+        }
+
+        return bookingEmployeeRepository.findWithEmployeeByBookingIdOrderByIdAsc(bookingId);
+    }
+
+    private void applyAssignedStaffResponse(
+            BookingResponse response,
+            List<BookingEmployee> assignments) {
+
+        List<BookingStaffAssignmentResponse> staffMembers = assignments
+                .stream()
+                .map(this::mapAssignedStaffMember)
+                .toList();
+
+        response.setAssignedStaffMembers(staffMembers);
+        applyLegacyAssignedStaffSummary(response, staffMembers);
+    }
+
+    private void applyAssignedStaffResponse(
+            BookingDetailResponse response,
+            List<BookingEmployee> assignments) {
+
+        List<BookingStaffAssignmentResponse> staffMembers = assignments
+                .stream()
+                .map(this::mapAssignedStaffMember)
+                .toList();
+
+        response.setAssignedStaffMembers(staffMembers);
+        applyLegacyAssignedStaffSummary(response, staffMembers);
+    }
+
+    private BookingStaffAssignmentResponse mapAssignedStaffMember(
+            BookingEmployee assignment) {
+
+        User employee = assignment.getEmployee();
+
+        BookingStaffAssignmentResponse response = new BookingStaffAssignmentResponse();
+        response.setId(assignment.getId());
+        response.setEmployeeId(employee != null ? employee.getId() : null);
+        response.setFullName(employee != null ? employee.getFullName() : null);
+        response.setEmail(employee != null ? employee.getEmail() : null);
+        response.setPhone(employee != null ? employee.getPhone() : null);
+        response.setRoleInTrip(assignment.getRoleInTrip());
+        response.setNote(assignment.getNote());
+        response.setAssignmentStatus(assignment.getAssignmentStatus());
+        response.setAssignedAt(assignment.getAssignedAt());
+        response.setAcceptedAt(assignment.getAcceptedAt());
+
+        return response;
+    }
+
+    private void applyLegacyAssignedStaffSummary(
+            BookingResponse response,
+            List<BookingStaffAssignmentResponse> staffMembers) {
+
+        if (staffMembers == null || staffMembers.isEmpty()) {
+            response.setAssignedStaffId(null);
+            response.setAssignedStaffName(null);
+            response.setAssignedStaffEmail(null);
+            response.setAssignedStaffPhone(null);
+            return;
+        }
+
+        BookingStaffAssignmentResponse first = staffMembers.get(0);
+        response.setAssignedStaffId(first.getEmployeeId());
+        response.setAssignedStaffEmail(first.getEmail());
+        response.setAssignedStaffPhone(first.getPhone());
+        response.setAssignedStaffName(staffMembers
+                .stream()
+                .map(BookingStaffAssignmentResponse::getFullName)
+                .filter(name -> !isBlank(name))
+                .collect(Collectors.joining(", ")));
+    }
+
+    private void applyLegacyAssignedStaffSummary(
+            BookingDetailResponse response,
+            List<BookingStaffAssignmentResponse> staffMembers) {
+
+        if (staffMembers == null || staffMembers.isEmpty()) {
+            response.setAssignedStaffId(null);
+            response.setAssignedStaffName(null);
+            response.setAssignedStaffEmail(null);
+            response.setAssignedStaffPhone(null);
+            return;
+        }
+
+        BookingStaffAssignmentResponse first = staffMembers.get(0);
+        response.setAssignedStaffId(first.getEmployeeId());
+        response.setAssignedStaffEmail(first.getEmail());
+        response.setAssignedStaffPhone(first.getPhone());
+        response.setAssignedStaffName(staffMembers
+                .stream()
+                .map(BookingStaffAssignmentResponse::getFullName)
+                .filter(name -> !isBlank(name))
+                .collect(Collectors.joining(", ")));
     }
 
     private List<TourImageDto> loadTourImages(Tour tour) {
@@ -1339,6 +1440,52 @@ public class BookingServiceImpl implements BookingService {
         if (user.getRole() == null || !RoleName.CUSTOMER.equals(user.getRole().getName())) {
             throw new RuntimeException("Chỉ tài khoản khách hàng mới được đặt tour");
         }
+    }
+
+    private List<Long> resolveAssignedStaffIds(UpdateBookingAdminRequest request) {
+
+        if (request.getAssignedStaffIds() != null) {
+            Set<Long> uniqueIds = new LinkedHashSet<>();
+            for (Long staffId : request.getAssignedStaffIds()) {
+                if (staffId != null) {
+                    uniqueIds.add(staffId);
+                }
+            }
+
+            return List.copyOf(uniqueIds);
+        }
+
+        if (request.getAssignedStaffId() != null) {
+            return List.of(request.getAssignedStaffId());
+        }
+
+        return null;
+    }
+
+    private List<BookingEmployee> syncAssignedStaffMembers(
+            Booking booking,
+            List<Long> staffIds) {
+
+        bookingEmployeeRepository.deleteByBookingId(booking.getId());
+
+        if (staffIds == null || staffIds.isEmpty()) {
+            return List.of();
+        }
+
+        LocalDateTime assignedAt = LocalDateTime.now();
+        List<BookingEmployee> assignments = staffIds
+                .stream()
+                .map(staffId -> BookingEmployee
+                        .builder()
+                        .booking(booking)
+                        .employee(requireActiveStaff(staffId))
+                        .roleInTrip("GUIDE")
+                        .assignmentStatus("ASSIGNED")
+                        .assignedAt(assignedAt)
+                        .build())
+                .toList();
+
+        return bookingEmployeeRepository.saveAll(assignments);
     }
 
     private User requireActiveStaff(Long staffId) {

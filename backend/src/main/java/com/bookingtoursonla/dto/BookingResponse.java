@@ -3,6 +3,7 @@ package com.bookingtoursonla.dto;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import lombok.Data;
 
@@ -66,6 +67,8 @@ public class BookingResponse {
     private String assignedStaffEmail;
 
     private String assignedStaffPhone;
+
+    private List<BookingStaffAssignmentResponse> assignedStaffMembers;
 
     private LocalDate departureDate;
 

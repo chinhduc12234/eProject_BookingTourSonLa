@@ -117,6 +117,8 @@ public class BookingDetailResponse {
 
     private String assignedStaffPhone;
 
+    private List<BookingStaffAssignmentResponse> assignedStaffMembers;
+
     private Long confirmedById;
 
     private String confirmedByName;

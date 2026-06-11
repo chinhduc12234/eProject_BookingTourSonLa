@@ -83,9 +83,7 @@ CREATE TABLE `bookings` (
   `refunded_amount` decimal(12,2) DEFAULT NULL,
   `refunded_at` datetime(6) DEFAULT NULL,
   `remaining_amount` decimal(12,2) DEFAULT NULL,
-  `remaining_payment_method` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `assigned_at` datetime(6) DEFAULT NULL,
-  `assigned_staff_id` bigint(20) DEFAULT NULL
+  `remaining_payment_method` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -140,9 +138,9 @@ CREATE TABLE `booking_employees` (
   `id` bigint(20) NOT NULL,
   `booking_id` bigint(20) NOT NULL,
   `employee_id` bigint(20) NOT NULL,
-  `role_in_trip` enum('GUIDE','ASSISTANT','DRIVER','PHOTOGRAPHER') COLLATE utf8mb4_unicode_ci DEFAULT 'GUIDE',
+  `role_in_trip` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT 'GUIDE',
   `note` text COLLATE utf8mb4_unicode_ci,
-  `assignment_status` enum('ASSIGNED','ACCEPTED','REJECTED') COLLATE utf8mb4_unicode_ci DEFAULT 'ASSIGNED',
+  `assignment_status` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT 'ASSIGNED',
   `assigned_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `accepted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -518,8 +516,7 @@ ALTER TABLE `bookings`
   ADD KEY `idx_bookings_payment_status` (`payment_status`),
   ADD KEY `idx_booking_departure` (`tour_departure_id`),
   ADD KEY `idx_booking_user` (`user_id`),
-  ADD KEY `idx_booking_type` (`booking_type`),
-  ADD KEY `FKdw7qh4vpvnwe2mp89a7lr514l` (`assigned_staff_id`);
+  ADD KEY `idx_booking_type` (`booking_type`);
 
 --
 -- Chỉ mục cho bảng `booking_contacts`
@@ -836,7 +833,6 @@ ALTER TABLE `activity_change_logs`
 -- Các ràng buộc cho bảng `bookings`
 --
 ALTER TABLE `bookings`
-  ADD CONSTRAINT `FKdw7qh4vpvnwe2mp89a7lr514l` FOREIGN KEY (`assigned_staff_id`) REFERENCES `users` (`id`),
   ADD CONSTRAINT `fk_booking_confirmed_by` FOREIGN KEY (`confirmed_by`) REFERENCES `users` (`id`),
   ADD CONSTRAINT `fk_bookings_tour_departure` FOREIGN KEY (`tour_departure_id`) REFERENCES `tour_departures` (`id`),
   ADD CONSTRAINT `fk_bookings_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);

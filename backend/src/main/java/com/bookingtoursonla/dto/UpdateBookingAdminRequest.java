@@ -1,5 +1,7 @@
 package com.bookingtoursonla.dto;
 
+import java.util.List;
+
 import lombok.Data;
 
 @Data
@@ -10,6 +12,8 @@ public class UpdateBookingAdminRequest {
     private String paymentStatus;
 
     private Long assignedStaffId;
+
+    private List<Long> assignedStaffIds;
 
     private Boolean confirm;
 
