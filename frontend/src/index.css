@@ -579,81 +579,235 @@ button, input, select, textarea {
 
 
 
-/* Scoped admin readability. Keep these rules under .admin-shell so public pages
-   can keep their theme overrides without washing out admin forms. */
+/* Scoped admin theme. Admin is intentionally light for dense data/forms,
+   while the public site keeps its darker travel mood. */
 .admin-shell {
-    --admin-text: #e2e8f0;
-    --admin-text-soft: #cbd5e1;
-    --admin-text-muted: #94a3b8;
-    --admin-border: rgba(255, 255, 255, 0.12);
-    --admin-field-bg: rgba(255, 255, 255, 0.06);
-    background: #020617;
-    color: var(--admin-text);
+    --admin-ink: #16231b;
+    --admin-ink-soft: #425247;
+    --admin-muted: #6b7a70;
+    --admin-border: rgba(42, 72, 55, 0.13);
+    --admin-border-strong: rgba(42, 72, 55, 0.22);
+    --admin-surface: rgba(255, 255, 255, 0.9);
+    --admin-surface-solid: #ffffff;
+    --admin-surface-soft: #f2f7f1;
+    --admin-accent: #2f7d55;
+    --admin-accent-soft: #e5f3e4;
+    --admin-gold: #a66f35;
+    --admin-shadow: 0 24px 70px -36px rgba(25, 55, 36, 0.36);
+    background: #f3f7f1;
+    color: var(--admin-ink);
 }
 
-.admin-shell :where(main, .admin-modal-panel) {
-    color: var(--admin-text);
-    background: #020617;
+.admin-shell,
+.admin-shell :where(button, input, select, textarea) {
+    font-family: "Be Vietnam Pro", system-ui, sans-serif;
 }
 
-.admin-shell :where(label) {
-    color: var(--admin-text-soft);
+.admin-shell :where(h1, h2, h3, .font-display) {
+    font-family: "Manrope", "Be Vietnam Pro", system-ui, sans-serif;
+    letter-spacing: -0.025em;
 }
 
-.admin-shell [class*="bg-[#f8fafc]"],
-.admin-shell :where(.bg-white, .bg-slate-50, .bg-slate-100) {
-    background-color: rgba(255, 255, 255, 0.04) !important;
-    color: var(--admin-text) !important;
+.admin-sidebar {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    background:
+        radial-gradient(circle at 36% 0%, rgba(127, 183, 126, 0.24), transparent 30%),
+        linear-gradient(180deg, #13271d 0%, #0a1812 54%, #06110d 100%) !important;
+    box-shadow: 18px 0 60px -38px rgba(6, 17, 13, 0.72);
+}
+
+.admin-sidebar::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 88%);
+    -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 88%);
+}
+
+.admin-main {
+    background:
+        radial-gradient(circle at 84% 0%, rgba(127, 183, 126, 0.24), transparent 28rem),
+        radial-gradient(circle at 8% 16%, rgba(166, 124, 82, 0.12), transparent 26rem),
+        linear-gradient(135deg, #f8faf5 0%, #eef6ec 46%, #f7faf6 100%);
+    color: var(--admin-ink);
+}
+
+.admin-main > * {
+    position: relative;
+    z-index: 1;
+}
+
+.admin-shell [class*="bg-[#f8fafc]"] {
+    background: transparent !important;
+}
+
+.admin-shell :where(.bg-white) {
+    background-color: var(--admin-surface) !important;
+    color: var(--admin-ink) !important;
+    backdrop-filter: blur(12px);
+}
+
+.admin-shell :where(.bg-slate-50, .bg-slate-50\/50, .bg-slate-50\/80) {
+    background-color: var(--admin-surface-soft) !important;
+    color: var(--admin-ink) !important;
+}
+
+.admin-shell :where(.bg-slate-100, .bg-slate-100\/80) {
+    background-color: #e8f0e6 !important;
+    color: var(--admin-ink-soft) !important;
+}
+
+.admin-shell :where(.bg-slate-950, .bg-slate-900) {
+    background:
+        linear-gradient(135deg, #1d3b2b 0%, #0b1d15 100%) !important;
+    color: #f8fafc !important;
+}
+
+.admin-shell :where(.bg-blue-600, .bg-emerald-600) {
+    background:
+        linear-gradient(135deg, #2f7d55 0%, #1d5f3e 100%) !important;
+    color: #ffffff !important;
 }
 
 .admin-shell :where(.border-slate-100, .border-slate-200, .border-slate-300) {
-    border-color: rgba(255, 255, 255, 0.12) !important;
+    border-color: var(--admin-border) !important;
+}
+
+.admin-shell :where(.divide-slate-50 > :not([hidden]) ~ :not([hidden]),
+.divide-slate-100 > :not([hidden]) ~ :not([hidden])) {
+    border-color: rgba(42, 72, 55, 0.09) !important;
 }
 
 .admin-shell :where(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
-    color: var(--admin-text);
-    caret-color: var(--admin-text);
-    background: var(--admin-field-bg) !important;
-    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: var(--admin-ink);
+    caret-color: var(--admin-accent);
+    background: rgba(248, 251, 247, 0.95) !important;
+    border-color: var(--admin-border) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.admin-shell :where(input:not([type="checkbox"]):not([type="radio"]), textarea, select):focus {
+    background: #ffffff !important;
+    border-color: rgba(47, 125, 85, 0.62) !important;
+    box-shadow:
+        0 0 0 4px rgba(127, 183, 126, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.82) !important;
 }
 
 .admin-shell :where(input:not([type="checkbox"]):not([type="radio"]), textarea, select)::placeholder {
-    color: var(--admin-text-muted);
+    color: #8a9a90;
     opacity: 1;
 }
 
 .admin-shell :where(input:not([type="checkbox"]):not([type="radio"]):disabled, textarea:disabled, select:disabled) {
-    color: var(--admin-text-muted);
-    -webkit-text-fill-color: var(--admin-text-muted);
+    color: #87958c;
+    -webkit-text-fill-color: #87958c;
+    background: #edf3eb !important;
 }
 
 .admin-shell :where(option) {
-    color: var(--admin-text);
-    background: #0f172a;
-}
-
-.admin-shell :where(button:not([class*="text-"])) {
-    color: var(--admin-text-soft);
+    color: var(--admin-ink);
+    background: #ffffff;
 }
 
 .admin-shell :where(table) {
-    color: var(--admin-text);
+    color: var(--admin-ink);
 }
 
 .admin-shell :where(thead) {
-    color: var(--admin-text-muted);
+    color: #657468;
 }
 
-.admin-shell :where(.text-slate-900, .text-slate-800, .text-slate-700) {
-    color: var(--admin-text) !important;
+.admin-shell :where(tbody tr) {
+    transition: background-color 0.18s ease, color 0.18s ease;
 }
 
-.admin-shell :where(.text-slate-600, .text-slate-500, .text-slate-400) {
-    color: var(--admin-text-soft) !important;
+.admin-shell :where(tbody tr:hover) {
+    background-color: rgba(127, 183, 126, 0.08) !important;
 }
 
-.admin-shell :where(.shadow-sm, .shadow-lg) {
-    box-shadow: 0 24px 60px -20px rgba(2, 6, 23, 0.55) !important;
+.admin-shell :where(.text-slate-950, .text-slate-900, .text-slate-800) {
+    color: var(--admin-ink) !important;
+}
+
+.admin-shell :where(.text-slate-700, .text-slate-600) {
+    color: var(--admin-ink-soft) !important;
+}
+
+.admin-shell :where(.text-slate-500, .text-slate-400, .text-slate-300) {
+    color: var(--admin-muted) !important;
+}
+
+.admin-shell :where(.text-blue-500, .text-blue-600, .text-emerald-600, .text-emerald-700) {
+    color: var(--admin-accent) !important;
+}
+
+.admin-sidebar :where(.text-slate-300, .text-slate-400, .text-slate-500),
+.admin-shell :where(.bg-slate-950, .bg-slate-900) :where(.text-slate-300, .text-slate-400, .text-slate-500, .text-slate-600, .text-slate-700) {
+    color: #cbd5e1 !important;
+}
+
+.admin-shell :where(.shadow-sm, .shadow-lg, .shadow-xl, .shadow-2xl) {
+    box-shadow: var(--admin-shadow) !important;
+}
+
+.admin-shell :where([class*="rounded-3xl"], [class*="rounded-\\[32px\\]"]) {
+    box-shadow: var(--admin-shadow);
+}
+
+.admin-shell :where(.hover\:shadow-lg:hover, .hover\:shadow-xl:hover) {
+    box-shadow: 0 30px 80px -36px rgba(30, 88, 55, 0.44) !important;
+}
+
+.admin-modal-overlay {
+    background:
+        radial-gradient(circle at 50% 15%, rgba(127, 183, 126, 0.22), transparent 34rem),
+        rgba(8, 20, 15, 0.48) !important;
+}
+
+.admin-modal-panel {
+    background: rgba(255, 255, 255, 0.96) !important;
+    color: var(--admin-ink) !important;
+    border-color: var(--admin-border-strong) !important;
+    box-shadow: 0 28px 90px -32px rgba(8, 20, 15, 0.45) !important;
+}
+
+@media (max-width: 900px) {
+    .admin-shell {
+        height: auto !important;
+        min-height: 100vh;
+        flex-direction: column;
+        overflow: visible;
+    }
+
+    .admin-sidebar {
+        width: 100% !important;
+        min-height: auto;
+        padding: 1rem !important;
+    }
+
+    .admin-sidebar nav {
+        flex-direction: row;
+        gap: 0.5rem;
+        overflow-x: auto;
+        padding-bottom: 0.25rem;
+    }
+
+    .admin-sidebar nav a {
+        min-width: max-content;
+    }
+
+    .admin-main {
+        min-height: 0;
+    }
 }
 
 .account-shell {

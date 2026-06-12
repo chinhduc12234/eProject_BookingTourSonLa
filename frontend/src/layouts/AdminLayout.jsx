@@ -32,7 +32,7 @@ const navClass = ({ isActive }) =>
 
 export default function AdminLayout() {
   return (
-    <div className="admin-shell flex h-screen bg-[#f8fafc] text-slate-900">
+    <div className="admin-shell flex h-screen overflow-hidden text-slate-900">
       <aside className="admin-sidebar flex w-[260px] shrink-0 flex-col border-r border-slate-800 bg-[#0f172a] px-4 py-5 text-[#f8fafc]">
         <Link
           to="/admin"
@@ -77,7 +77,7 @@ export default function AdminLayout() {
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1 overflow-auto bg-[#f8fafc]">
+      <main className="admin-main min-w-0 flex-1 overflow-auto">
         <Outlet />
       </main>
     </div>
