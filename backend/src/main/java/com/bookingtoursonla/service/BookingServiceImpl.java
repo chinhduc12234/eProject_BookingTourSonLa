@@ -5,6 +5,8 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +24,7 @@ import com.bookingtoursonla.dto.BookingCustomerRequest;
 import com.bookingtoursonla.dto.BookingCustomerResponse;
 import com.bookingtoursonla.dto.BookingDetailResponse;
 import com.bookingtoursonla.dto.BookingResponse;
+import com.bookingtoursonla.dto.BookingStaffAssignmentRequest;
 import com.bookingtoursonla.dto.BookingScheduleActivityResponse;
 import com.bookingtoursonla.dto.BookingScheduleDayResponse;
 import com.bookingtoursonla.dto.BookingStaffAssignmentResponse;
@@ -177,12 +180,9 @@ public class BookingServiceImpl implements BookingService {
         booking.setTotalPrice(totalPrice);
         booking.setNote(trimToNull(request.getNote()));
         booking.setSpecialRequest(trimToNull(request.getSpecialRequest()));
-        booking.setStatus(BookingStatus.CONFIRMED);
+        applyBookingStatusTransition(booking, BookingStatus.PENDING, null);
         booking.setRefundedAmount(BigDecimal.ZERO);
         applySimulatedPayment(booking, request);
-
-        departure.setCurrentPeople(valueOrZero(departure.getCurrentPeople()) + totalPeople);
-        tourDepartureRepository.save(departure);
 
         Booking saved = bookingRepository.save(booking);
 
@@ -365,9 +365,9 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
 
         List<BookingEmployee> currentAssignments = null;
-        List<Long> assignedStaffIds = resolveAssignedStaffIds(request);
-        if (assignedStaffIds != null) {
-            currentAssignments = syncAssignedStaffMembers(booking, assignedStaffIds);
+        List<BookingStaffAssignmentRequest> assignedStaffMembers = resolveAssignedStaffAssignments(request);
+        if (assignedStaffMembers != null) {
+            currentAssignments = syncAssignedStaffMembers(booking, assignedStaffMembers);
         }
 
         if (request.getInternalNote() != null) {
@@ -1442,7 +1442,26 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private List<Long> resolveAssignedStaffIds(UpdateBookingAdminRequest request) {
+    private List<BookingStaffAssignmentRequest> resolveAssignedStaffAssignments(
+            UpdateBookingAdminRequest request) {
+
+        if (request.getAssignedStaffMembers() != null) {
+            Map<Long, BookingStaffAssignmentRequest> uniqueAssignments = new LinkedHashMap<>();
+
+            for (BookingStaffAssignmentRequest assignment : request.getAssignedStaffMembers()) {
+                if (assignment == null || assignment.getEmployeeId() == null) {
+                    continue;
+                }
+
+                BookingStaffAssignmentRequest normalizedAssignment = new BookingStaffAssignmentRequest();
+                normalizedAssignment.setEmployeeId(assignment.getEmployeeId());
+                normalizedAssignment.setRoleInTrip(assignment.getRoleInTrip());
+                normalizedAssignment.setNote(assignment.getNote());
+                uniqueAssignments.put(assignment.getEmployeeId(), normalizedAssignment);
+            }
+
+            return new ArrayList<>(uniqueAssignments.values());
+        }
 
         if (request.getAssignedStaffIds() != null) {
             Set<Long> uniqueIds = new LinkedHashSet<>();
@@ -1452,11 +1471,19 @@ public class BookingServiceImpl implements BookingService {
                 }
             }
 
-            return List.copyOf(uniqueIds);
+            return uniqueIds.stream().map(staffId -> {
+                BookingStaffAssignmentRequest assignment = new BookingStaffAssignmentRequest();
+                assignment.setEmployeeId(staffId);
+                assignment.setRoleInTrip("GUIDE");
+                return assignment;
+            }).toList();
         }
 
         if (request.getAssignedStaffId() != null) {
-            return List.of(request.getAssignedStaffId());
+            BookingStaffAssignmentRequest assignment = new BookingStaffAssignmentRequest();
+            assignment.setEmployeeId(request.getAssignedStaffId());
+            assignment.setRoleInTrip("GUIDE");
+            return List.of(assignment);
         }
 
         return null;
@@ -1464,28 +1491,48 @@ public class BookingServiceImpl implements BookingService {
 
     private List<BookingEmployee> syncAssignedStaffMembers(
             Booking booking,
-            List<Long> staffIds) {
+            List<BookingStaffAssignmentRequest> staffAssignments) {
 
         bookingEmployeeRepository.deleteByBookingId(booking.getId());
 
-        if (staffIds == null || staffIds.isEmpty()) {
+        if (staffAssignments == null || staffAssignments.isEmpty()) {
             return List.of();
         }
 
         LocalDateTime assignedAt = LocalDateTime.now();
-        List<BookingEmployee> assignments = staffIds
+        List<BookingEmployee> assignments = staffAssignments
                 .stream()
-                .map(staffId -> BookingEmployee
+                .map(assignment -> BookingEmployee
                         .builder()
                         .booking(booking)
-                        .employee(requireActiveStaff(staffId))
-                        .roleInTrip("GUIDE")
+                        .employee(requireActiveStaff(assignment.getEmployeeId()))
+                        .roleInTrip(normalizeRoleInTrip(assignment.getRoleInTrip()))
+                        .note(trimToNull(assignment.getNote()))
                         .assignmentStatus("ASSIGNED")
                         .assignedAt(assignedAt)
                         .build())
                 .toList();
 
         return bookingEmployeeRepository.saveAll(assignments);
+    }
+
+    private String normalizeRoleInTrip(String roleInTrip) {
+
+        if (isBlank(roleInTrip)) {
+            return "GUIDE";
+        }
+
+        String normalized = roleInTrip.trim().toUpperCase();
+
+        return switch (normalized) {
+            case "GUIDE",
+                    "LEAD_GUIDE",
+                    "ASSISTANT_GUIDE",
+                    "TOUR_COORDINATOR",
+                    "SUPPORT_STAFF",
+                    "DRIVER" -> normalized;
+            default -> throw new RuntimeException("Vai trò nhân viên không hợp lệ");
+        };
     }
 
     private User requireActiveStaff(Long staffId) {

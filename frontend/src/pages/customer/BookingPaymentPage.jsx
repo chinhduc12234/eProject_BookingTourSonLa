@@ -90,7 +90,7 @@ export default function BookingPaymentPage() {
           : "Đã ghi nhận thanh toán và lưu booking",
       );
 
-      navigate(`/tai-khoan/booking/${response.data.id}?stage=success`, {
+      navigate(`/thank-you?bookingId=${response.data.id}`, {
         replace: true,
       });
     } catch (error) {
@@ -149,8 +149,8 @@ export default function BookingPaymentPage() {
     },
     {
       key: "done",
-      label: "Hoàn tất",
-      description: "Nhận mã booking và lịch sử đặt tour",
+      label: "Thanh toán thành công",
+      description: "Booking đã được ghi nhận và chuyển sang lịch sử",
       disabled: true,
     },
   ];
@@ -371,14 +371,6 @@ export default function BookingPaymentPage() {
                       <CheckCircle2 size={18} />
                     )}
                     Đã chuyển khoản
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleConfirmPayment}
-                    disabled={submitting}
-                    className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-5 text-sm font-black text-white transition hover:border-[#7FB77E]/40 hover:bg-[#7FB77E]/10 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    Hoàn tất thanh toán
                   </button>
                 </div>
               </div>

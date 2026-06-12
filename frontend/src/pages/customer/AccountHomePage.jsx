@@ -102,7 +102,7 @@ export default function AccountHomePage() {
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { label: "Booking", value: summary.totalBookings, Icon: CalendarDays },
-          { label: "Đã xác nhận", value: summary.confirmedBookings, Icon: Clock3 },
+          { label: "Đang xử lý", value: summary.confirmedBookings, Icon: Clock3 },
           { label: "Đã thanh toán", value: summary.paidBookings, Icon: CreditCard },
           {
             label: "Tổng giá trị",

@@ -15,6 +15,8 @@ public class UpdateBookingAdminRequest {
 
     private List<Long> assignedStaffIds;
 
+    private List<BookingStaffAssignmentRequest> assignedStaffMembers;
+
     private Boolean confirm;
 
     private Boolean confirmPayment;

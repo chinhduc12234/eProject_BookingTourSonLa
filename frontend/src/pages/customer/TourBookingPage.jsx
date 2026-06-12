@@ -142,8 +142,8 @@ export default function TourBookingPage() {
     },
     {
       key: "done",
-      label: "Hoàn tất",
-      description: "Nhận mã booking và theo dõi lịch sử",
+      label: "Thanh toán thành công",
+      description: "Booking đã được ghi nhận và chuyển sang lịch sử",
       disabled: true,
     },
   ];

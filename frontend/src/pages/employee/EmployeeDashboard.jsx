@@ -261,7 +261,7 @@ export default function EmployeeDashboard() {
                           <td className="price-text-highlight">{formatVND(booking.totalPrice)}</td>
                           <td className="text-center">
                             {booking.status === "PENDING" && (
-                              <span className="status-badge badge-pending">Đã xác nhận</span>
+                              <span className="status-badge badge-pending">Chờ xác nhận</span>
                             )}
                             {booking.status === "CONFIRMED" && (
                               <span className="status-badge badge-confirmed">Đã xác nhận</span>

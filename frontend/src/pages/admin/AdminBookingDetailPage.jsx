@@ -12,11 +12,14 @@ import {
   MapPin,
   Phone,
   RefreshCcw,
+  Search,
   ShieldCheck,
   TicketCheck,
   UserCog,
+  UserPlus,
   UserRound,
   Users,
+  X,
 } from "lucide-react";
 
 import {
@@ -42,95 +45,192 @@ import {
   statusMeta,
 } from "./bookingShared";
 
+const defaultStaffRole = "GUIDE";
+
+const staffRoleOptions = [
+  { value: "GUIDE", label: "Hướng dẫn viên" },
+  { value: "LEAD_GUIDE", label: "Hướng dẫn tour chính" },
+  { value: "ASSISTANT_GUIDE", label: "Phụ tour" },
+  { value: "TOUR_COORDINATOR", label: "Điều phối tour" },
+  { value: "SUPPORT_STAFF", label: "Hỗ trợ đoàn" },
+  { value: "DRIVER", label: "Tài xế" },
+];
+
+const staffRoleLabels = Object.fromEntries(
+  staffRoleOptions.map((item) => [item.value, item.label]),
+);
+
+const getStaffRoleLabel = (role) => {
+  if (!role) return "Chưa chọn vai trò";
+  return staffRoleLabels[role] || role;
+};
+
+const mergeStaffOptions = (...groups) => {
+  const uniqueStaff = new Map();
+
+  groups.flat().filter(Boolean).forEach((staff) => {
+    const id = String(staff.id ?? staff.employeeId ?? "");
+    if (!id) return;
+
+    uniqueStaff.set(id, {
+      id: Number(staff.id ?? staff.employeeId),
+      fullName: staff.fullName || "Nhân viên",
+      phone: staff.phone || "",
+      email: staff.email || "",
+    });
+  });
+
+  return Array.from(uniqueStaff.values());
+};
+
 export default function AdminBookingDetailPage() {
   const { bookingId } = useParams();
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [staffOptions, setStaffOptions] = useState([]);
-  const [selectedStaffIds, setSelectedStaffIds] = useState([]);
+  const [staffAssignments, setStaffAssignments] = useState([]);
+  const [staffPickerOpen, setStaffPickerOpen] = useState(false);
+  const [staffSearch, setStaffSearch] = useState("");
+  const [staffLoading, setStaffLoading] = useState(false);
   const [internalNote, setInternalNote] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
 
-  const resolveSelectedStaffIds = (booking) => {
+  const resolveSelectedStaffAssignments = (booking) => {
     if (booking?.assignedStaffMembers?.length) {
       return booking.assignedStaffMembers
-        .map((staff) => staff.employeeId)
-        .filter(Boolean)
-        .map(String);
+        .filter((staff) => staff?.employeeId)
+        .map((staff) => ({
+          employeeId: String(staff.employeeId),
+          fullName: staff.fullName || "",
+          phone: staff.phone || "",
+          email: staff.email || "",
+          roleInTrip: staff.roleInTrip || defaultStaffRole,
+        }));
     }
 
-    return booking?.assignedStaffId ? [String(booking.assignedStaffId)] : [];
+    if (!booking?.assignedStaffId) {
+      return [];
+    }
+
+    return [
+      {
+        employeeId: String(booking.assignedStaffId),
+        fullName: booking.assignedStaffName || "",
+        phone: booking.assignedStaffPhone || "",
+        email: booking.assignedStaffEmail || "",
+        roleInTrip: defaultStaffRole,
+      },
+    ];
   };
 
-  const toggleStaffSelection = (staffId) => {
-    setSelectedStaffIds((currentIds) =>
-      currentIds.includes(staffId)
-        ? currentIds.filter((id) => id !== staffId)
-        : [...currentIds, staffId],
+  const loadStaffOptions = async (
+    keyword = "",
+    selectedAssignments = staffAssignments,
+  ) => {
+    try {
+      setStaffLoading(true);
+
+      const response = await getAllStaff({
+        page: 0,
+        size: 20,
+        keyword: keyword.trim() || undefined,
+        isActive: true,
+        sortBy: "fullName",
+        direction: "asc",
+      });
+
+      const selectedStaff = selectedAssignments.map((assignment) => ({
+        id: Number(assignment.employeeId),
+        fullName: assignment.fullName,
+        phone: assignment.phone,
+        email: assignment.email,
+      }));
+
+      setStaffOptions(
+        mergeStaffOptions(response.data.content || [], selectedStaff),
+      );
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message || "Không thể tải danh sách nhân viên",
+      );
+    } finally {
+      setStaffLoading(false);
+    }
+  };
+
+  const addStaffAssignment = (staff) => {
+    const staffId = String(staff.id);
+
+    setStaffAssignments((currentAssignments) => {
+      if (currentAssignments.some((item) => item.employeeId === staffId)) {
+        return currentAssignments;
+      }
+
+      return [
+        ...currentAssignments,
+        {
+          employeeId: staffId,
+          fullName: staff.fullName || "",
+          phone: staff.phone || "",
+          email: staff.email || "",
+          roleInTrip: defaultStaffRole,
+        },
+      ];
+    });
+  };
+
+  const removeStaffAssignment = (employeeId) => {
+    setStaffAssignments((currentAssignments) =>
+      currentAssignments.filter((item) => item.employeeId !== employeeId),
+    );
+  };
+
+  const updateStaffAssignment = (employeeId, patch) => {
+    setStaffAssignments((currentAssignments) =>
+      currentAssignments.map((item) =>
+        item.employeeId === employeeId
+          ? {
+              ...item,
+              ...patch,
+            }
+          : item,
+      ),
     );
   };
 
   const loadDetail = async () => {
     try {
       setLoading(true);
-      const [detailResponse, staffResponse] = await Promise.all([
-        getAdminBookingDetail(bookingId),
-        getAllStaff({
-          page: 0,
-          size: 100,
-          isActive: true,
-          sortBy: "fullName",
-          direction: "asc",
-        }),
-      ]);
-
+      const detailResponse = await getAdminBookingDetail(bookingId);
       const nextDetail = detailResponse.data;
+      const nextAssignments = resolveSelectedStaffAssignments(nextDetail);
+
       setDetail(nextDetail);
-      setSelectedStaffIds(resolveSelectedStaffIds(nextDetail));
+      setStaffAssignments(nextAssignments);
       setInternalNote(nextDetail.internalNote || "");
-      setStaffOptions(staffResponse.data.content || []);
+      await loadStaffOptions("", nextAssignments);
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Không thể tải chi tiết booking");
+      toast.error(
+        error?.response?.data?.message || "Không thể tải chi tiết booking",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    let mounted = true;
-
-    Promise.all([
-      getAdminBookingDetail(bookingId),
-      getAllStaff({
-        page: 0,
-        size: 100,
-        isActive: true,
-        sortBy: "fullName",
-        direction: "asc",
-      }),
-    ])
-      .then(([detailResponse, staffResponse]) => {
-        if (!mounted) return;
-
-        const nextDetail = detailResponse.data;
-        setDetail(nextDetail);
-        setSelectedStaffIds(resolveSelectedStaffIds(nextDetail));
-        setInternalNote(nextDetail.internalNote || "");
-        setStaffOptions(staffResponse.data.content || []);
-      })
-      .catch((error) => {
-        if (mounted) {
-          toast.error(error?.response?.data?.message || "Không thể tải chi tiết booking");
-        }
-      })
-      .finally(() => {
-        if (mounted) setLoading(false);
-      });
-
-    return () => {
-      mounted = false;
-    };
+    loadDetail();
   }, [bookingId]);
+
+  useEffect(() => {
+    if (!staffPickerOpen) return undefined;
+
+    const timer = window.setTimeout(() => {
+      loadStaffOptions(staffSearch);
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [staffPickerOpen, staffSearch]);
 
   const handleAdminAction = async ({
     confirm = false,
@@ -139,7 +239,7 @@ export default function AdminBookingDetailPage() {
   }) => {
     if (!detail) return;
 
-    if (confirm && selectedStaffIds.length === 0) {
+    if (confirm && staffAssignments.length === 0) {
       toast.error("Vui lòng chọn nhân viên phụ trách trước khi xác nhận tour");
       return;
     }
@@ -151,29 +251,40 @@ export default function AdminBookingDetailPage() {
         internalNote,
         confirm,
         confirmPayment,
+        assignedStaffMembers: staffAssignments.map((assignment) => ({
+          employeeId: Number(assignment.employeeId),
+          roleInTrip: assignment.roleInTrip || defaultStaffRole,
+        })),
       };
 
       if (paymentStatus) {
         payload.paymentStatus = paymentStatus;
       }
 
-      payload.assignedStaffIds = selectedStaffIds.map(Number);
-
       const response = await updateAdminBooking(detail.id, payload);
-      setDetail(response.data);
-      setSelectedStaffIds(resolveSelectedStaffIds(response.data));
-      setInternalNote(response.data.internalNote || "");
+      const nextDetail = response.data;
+      const nextAssignments = resolveSelectedStaffAssignments(nextDetail);
+
+      setDetail(nextDetail);
+      setStaffAssignments(nextAssignments);
+      setInternalNote(nextDetail.internalNote || "");
+      setStaffOptions((currentOptions) =>
+        mergeStaffOptions(currentOptions, nextAssignments),
+      );
+
       toast.success(
         paymentStatus === "FAILED"
           ? "Đã từ chối thanh toán"
           : confirmPayment
-          ? "Đã xác nhận thanh toán"
-          : confirm
-            ? "Đã gán nhân viên và xác nhận tour"
-            : "Đã lưu phân công",
+            ? "Đã xác nhận thanh toán"
+            : confirm
+              ? "Đã gán nhân viên và xác nhận tour"
+              : "Đã lưu phân công",
       );
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Không thể cập nhật booking");
+      toast.error(
+        error?.response?.data?.message || "Không thể cập nhật booking",
+      );
     } finally {
       setActionLoading(false);
     }
@@ -208,19 +319,7 @@ export default function AdminBookingDetailPage() {
   const hasGroup = Number(detail.totalPeople || 0) > 1;
   const isCancelled = detail.status === "CANCELLED";
   const isTourConfirmed = detail.status === "CONFIRMED";
-  const assignedStaffMembers =
-    detail.assignedStaffMembers?.length
-      ? detail.assignedStaffMembers
-      : detail.assignedStaffName
-        ? [
-            {
-              employeeId: detail.assignedStaffId,
-              fullName: detail.assignedStaffName,
-              phone: detail.assignedStaffPhone,
-              email: detail.assignedStaffEmail,
-            },
-          ]
-        : [];
+  const assignedStaffMembers = staffAssignments;
   const isPaymentPendingReview = detail.paymentStatus === "PENDING_REVIEW";
   const confirmedPaymentLabel =
     Number(detail.remainingAmount || 0) > 0 ? "Đã cọc" : "Đã thanh toán";
@@ -244,7 +343,8 @@ export default function AdminBookingDetailPage() {
               Chi tiết booking
             </h1>
             <p className="mt-1 text-sm font-semibold text-slate-500">
-              Xem thông tin tour, khách đi tour, thanh toán và phân công nhân viên.
+              Xem thông tin tour, khách đi tour, thanh toán và phân công nhân
+              viên.
             </p>
           </div>
 
@@ -265,7 +365,8 @@ export default function AdminBookingDetailPage() {
 
         {isCancelled && (
           <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-800">
-            Đặt lịch đã hủy. Chính sách hoàn tiền bên dưới đang phản ánh theo ngày khởi hành của booking này.
+            Đặt lịch đã hủy. Chính sách hoàn tiền bên dưới đang phản ánh theo
+            ngày khởi hành của booking này.
           </div>
         )}
 
@@ -368,7 +469,10 @@ export default function AdminBookingDetailPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <TextBlock title="Mô tả tour" value={detail.tourDescription} />
               <TextBlock title="Dịch vụ bao gồm" value={detail.includedServices} />
-              <TextBlock title="Dịch vụ không bao gồm" value={detail.excludedServices} />
+              <TextBlock
+                title="Dịch vụ không bao gồm"
+                value={detail.excludedServices}
+              />
               <TextBlock
                 title="Ghi chú/yêu cầu của khách"
                 value={[detail.note, detail.specialRequest].filter(Boolean).join("\n")}
@@ -494,7 +598,7 @@ export default function AdminBookingDetailPage() {
                     Phân công nhân viên
                   </h2>
                   <p className="text-sm font-semibold text-slate-500">
-                    Chọn nhân viên phụ trách rồi xác nhận tour.
+                    Tìm nhanh nhân viên, gán vai trò rồi xác nhận tour.
                   </p>
                 </div>
               </div>
@@ -502,67 +606,56 @@ export default function AdminBookingDetailPage() {
               <label className="mt-5 block text-sm font-black text-slate-700">
                 Nhân viên phụ trách
               </label>
-              <div className="mt-2 max-h-64 space-y-2 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3">
-                {staffOptions.map((staff) => {
-                  const staffId = String(staff.id);
-                  const checked = selectedStaffIds.includes(staffId);
-
-                  return (
-                    <label
-                      key={staff.id}
-                      className={[
-                        "flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2 text-sm transition",
-                        checked
-                          ? "border-emerald-300 bg-emerald-50 text-emerald-900"
-                          : "border-slate-100 bg-slate-50 text-slate-700 hover:border-emerald-200",
-                        actionLoading || isCancelled
-                          ? "cursor-not-allowed opacity-60"
-                          : "",
-                      ].join(" ")}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => toggleStaffSelection(staffId)}
-                        disabled={actionLoading || isCancelled}
-                        className="h-4 w-4 accent-emerald-600"
-                      />
-                      <span className="min-w-0">
-                        <span className="block truncate font-black">
-                          {staff.fullName}
-                        </span>
-                        <span className="block truncate text-xs font-semibold text-slate-500">
-                          {staff.phone || staff.email}
-                        </span>
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-              {false && (
-              <select
-                value=""
-                onChange={() => {}}
+              <button
+                type="button"
+                onClick={() => {
+                  setStaffPickerOpen(true);
+                  loadStaffOptions(staffSearch);
+                }}
                 disabled={actionLoading || isCancelled}
-                className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 outline-none transition focus:border-emerald-500 disabled:opacity-60"
+                className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-emerald-300 bg-emerald-50 px-4 text-sm font-black text-emerald-800 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <option value="">Chọn nhân viên</option>
-                {staffOptions.map((staff) => (
-                  <option key={staff.id} value={staff.id}>
-                    {staff.fullName} - {staff.phone}
-                  </option>
-                ))}
-              </select>
-              )}
+                <UserPlus size={18} />
+                Tìm và gán nhân viên
+              </button>
 
-              {assignedStaffMembers.length > 0 && (
-                <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm">
-                  <div className="font-black text-emerald-800">
-                    Đang giao cho {detail.assignedStaffName}
-                  </div>
-                  <div className="mt-1 text-emerald-700">
-                    {detail.assignedStaffPhone || detail.assignedStaffEmail}
-                  </div>
+              {assignedStaffMembers.length > 0 ? (
+                <div className="mt-4 space-y-3">
+                  {assignedStaffMembers.map((staff) => (
+                    <div
+                      key={staff.employeeId}
+                      className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="truncate font-black text-emerald-900">
+                            {staff.fullName || `Nhân viên #${staff.employeeId}`}
+                          </div>
+                          <div className="mt-1 truncate text-emerald-700">
+                            {staff.phone || staff.email || "Chưa có liên hệ"}
+                          </div>
+                        </div>
+                        {!isCancelled && (
+                          <button
+                            type="button"
+                            onClick={() => removeStaffAssignment(staff.employeeId)}
+                            disabled={actionLoading}
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-rose-200 bg-white text-rose-600 transition hover:bg-rose-50 disabled:opacity-60"
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="mt-3 rounded-2xl bg-white/80 px-3 py-2 text-xs font-black uppercase tracking-wide text-emerald-800">
+                        Vai trò hiện tại: {getStaffRoleLabel(staff.roleInTrip)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 text-sm font-semibold text-slate-500">
+                  Chưa có nhân viên nào được gán cho booking này.
                 </div>
               )}
 
@@ -604,7 +697,7 @@ export default function AdminBookingDetailPage() {
                   ) : (
                     <CheckCircle2 size={17} />
                   )}
-                  {isTourConfirmed ? "Tour đã xác nhận" : "Gán nhân viên & xác nhận"}
+                  {isTourConfirmed ? "Tour đã xác nhận" : "Xác nhận tour"}
                 </button>
               </div>
             </div>
@@ -612,7 +705,8 @@ export default function AdminBookingDetailPage() {
             <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
               <h2 className="font-black text-slate-950">Duyệt thanh toán</h2>
               <p className="mt-1 text-sm font-semibold text-slate-500">
-                Khách gửi xác nhận chuyển khoản trước, admin kiểm tra giao dịch rồi mới chốt trạng thái thanh toán.
+                Khách gửi xác nhận chuyển khoản trước, admin kiểm tra giao dịch
+                rồi mới chốt trạng thái thanh toán.
               </p>
 
               <div className="mt-4 space-y-3 text-sm text-slate-600">
@@ -695,9 +789,12 @@ export default function AdminBookingDetailPage() {
                 )}
                 {isPaymentPendingReview && (
                   <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-amber-900">
-                    <div className="font-black">Khách đã gửi xác nhận thanh toán</div>
+                    <div className="font-black">
+                      Khách đã gửi xác nhận thanh toán
+                    </div>
                     <p className="mt-1 text-sm leading-6">
-                      Kiểm tra chuyển khoản rồi xác nhận để hệ thống chuyển sang trạng thái {confirmedPaymentLabel}.
+                      Kiểm tra chuyển khoản rồi xác nhận để hệ thống chuyển sang
+                      trạng thái {confirmedPaymentLabel}.
                     </p>
                     <button
                       type="button"
@@ -742,6 +839,159 @@ export default function AdminBookingDetailPage() {
           </aside>
         </div>
       </div>
+
+      {staffPickerOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
+          <div className="w-full max-w-4xl rounded-3xl border border-slate-200 bg-white shadow-2xl">
+            <div className="flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-4">
+              <div>
+                <h2 className="text-xl font-black text-slate-950">
+                  Gán nhân viên phụ trách
+                </h2>
+                <p className="text-sm font-semibold text-slate-500">
+                  Tìm theo tên rồi thêm vào danh sách phân công của booking này.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setStaffPickerOpen(false)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 text-slate-500 transition hover:bg-slate-50"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="grid gap-0 lg:grid-cols-[1.1fr_0.9fr]">
+              <div className="border-b border-slate-200 p-5 lg:border-b-0 lg:border-r">
+                <div className="relative">
+                  <Search
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                    size={18}
+                  />
+                  <input
+                    value={staffSearch}
+                    onChange={(event) => setStaffSearch(event.target.value)}
+                    placeholder="Tìm theo tên, email hoặc số điện thoại"
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white"
+                  />
+                </div>
+
+                <div className="mt-4 max-h-[420px] space-y-2 overflow-y-auto">
+                  {staffLoading ? (
+                    <div className="flex min-h-[220px] items-center justify-center">
+                      <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+                    </div>
+                  ) : staffOptions.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm font-semibold text-slate-500">
+                      Không tìm thấy nhân viên phù hợp.
+                    </div>
+                  ) : (
+                    staffOptions.map((staff) => {
+                      const alreadySelected = assignedStaffMembers.some(
+                        (item) => item.employeeId === String(staff.id),
+                      );
+
+                      return (
+                        <button
+                          key={staff.id}
+                          type="button"
+                          onClick={() => addStaffAssignment(staff)}
+                          disabled={alreadySelected}
+                          className={[
+                            "flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition",
+                            alreadySelected
+                              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                              : "border-slate-200 bg-white text-slate-800 hover:border-emerald-300 hover:bg-emerald-50/60",
+                          ].join(" ")}
+                        >
+                          <span className="min-w-0">
+                            <span className="block truncate font-black">
+                              {staff.fullName}
+                            </span>
+                            <span className="mt-1 block truncate text-xs font-semibold text-slate-500">
+                              {staff.phone || staff.email || "Chưa có thông tin liên hệ"}
+                            </span>
+                          </span>
+                          <span className="shrink-0 rounded-full px-3 py-1 text-xs font-black">
+                            {alreadySelected ? "Đã chọn" : "Thêm"}
+                          </span>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              <div className="p-5">
+                <h3 className="text-sm font-black uppercase tracking-[0.16em] text-slate-500">
+                  Danh sách đã chọn
+                </h3>
+                <div className="mt-4 space-y-3">
+                  {assignedStaffMembers.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm font-semibold text-slate-500">
+                      Chưa có nhân viên nào trong danh sách phân công.
+                    </div>
+                  ) : (
+                    assignedStaffMembers.map((staff) => (
+                      <div
+                        key={staff.employeeId}
+                        className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="truncate font-black text-slate-950">
+                              {staff.fullName || `Nhân viên #${staff.employeeId}`}
+                            </div>
+                            <div className="mt-1 truncate text-xs font-semibold text-slate-500">
+                              {staff.phone || staff.email || "Chưa có liên hệ"}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeStaffAssignment(staff.employeeId)}
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-rose-200 bg-white text-rose-600 transition hover:bg-rose-50"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+
+                        <label className="mt-3 block text-xs font-black uppercase tracking-wide text-slate-500">
+                          Vai trò
+                        </label>
+                        <select
+                          value={staff.roleInTrip || defaultStaffRole}
+                          onChange={(event) =>
+                            updateStaffAssignment(staff.employeeId, {
+                              roleInTrip: event.target.value,
+                            })
+                          }
+                          className="mt-2 h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 outline-none transition focus:border-emerald-500"
+                        >
+                          {staffRoleOptions.map((item) => (
+                            <option key={item.value} value={item.value}>
+                              {item.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="mt-5 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setStaffPickerOpen(false)}
+                    className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-5 text-sm font-black text-white transition hover:bg-emerald-700"
+                  >
+                    Xong
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

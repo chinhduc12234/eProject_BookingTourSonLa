@@ -146,7 +146,7 @@ export default function BookingPage() {
         <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {[
             { label: "Tổng booking", value: totalElements, Icon: TicketCheck },
-            { label: "Đã xác nhận", value: summary.confirmed, Icon: CalendarDays },
+            { label: "Chờ/Xác nhận", value: summary.confirmed, Icon: CalendarDays },
             { label: "Kiểm tra thanh toán", value: summary.pendingPayment, Icon: CreditCard },
             { label: "Khách trong trang", value: summary.people, Icon: Users },
           ].map(({ label, value, Icon }) => (

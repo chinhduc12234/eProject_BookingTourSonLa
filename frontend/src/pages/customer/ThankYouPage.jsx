@@ -1,27 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { CheckCircle2, Home, Loader2, Calendar, User, Users, Wallet, CreditCard, Mail, Info, ArrowRight, Tag, Clock } from "lucide-react";
+import { CheckCircle2, Home, Loader2, Mail, Info, ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { getBookingDetail } from "../../api/bookingApi";
 import PublicLayout from "../public/PublicLayout";
-
-const formatCurrency = (value) =>
-  Number(value || 0).toLocaleString("vi-VN") + " đ";
-
-const safeFormatDate = (value) => {
-  if (!value) return "Chưa rõ ngày";
-  try {
-    const datePart = value.includes("T") ? value.split("T")[0] : value;
-    const parts = datePart.split("-");
-    if (parts.length === 3) {
-      return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    }
-    return datePart;
-  } catch (e) {
-    return "Chưa rõ ngày";
-  }
-};
 
 export default function ThankYouPage() {
   const navigate = useNavigate();
@@ -75,28 +58,6 @@ export default function ThankYouPage() {
   // Khai báo an toàn sau khi đã kết thúc trạng thái loading
   const isDeposit = booking?.paymentPlan === "DEPOSIT";
   
-  // Hàm xử lý thời gian bọc an toàn để tránh crash khi object lồng nhau chưa có sẵn
-  const getTourDuration = () => {
-    if (!booking) return "Đang cập nhật...";
-    
-    // 1. Thử lấy từ trường text có sẵn
-    if (booking?.tourDeparture?.tour?.durationText) {
-      return booking.tourDeparture.tour.durationText;
-    }
-    // 2. Thử lấy từ trường của thực thể Tour trực tiếp nếu mapping nông hơn
-    if (booking?.tour?.durationText) {
-      return booking.tour.durationText;
-    }
-    // 3. Tự động tính toán ghép chuỗi từ số ngày / số đêm công thức phòng hờ
-    const days = booking?.tourDeparture?.tour?.numberOfDays || booking?.tour?.numberOfDays;
-    if (days) {
-      const nights = booking?.tourDeparture?.tour?.numberOfNights || booking?.tour?.numberOfNights || (days - 1 > 0 ? days - 1 : 0);
-      return `${days}N${nights}Đ`;
-    }
-    
-    return "Theo lịch trình";
-  };
-
   return (
     <PublicLayout>
       <section className="bg-[#020617] py-16 sm:py-24 min-h-screen text-slate-100 selection:bg-[#7FB77E]/30">
@@ -121,103 +82,6 @@ export default function ThankYouPage() {
               Yêu cầu đặt tour của bạn đã thành công, chúng tôi sẽ liên hệ với bạn sớm.
             </p>
           </div>
-
-          {/* Premium Booking Details Card */}
-          {booking && (
-            <div className="rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-md p-6 sm:p-8 mb-8 shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#7FB77E]/50 to-transparent" />
-              
-              <div className="space-y-4">
-                {/* Mã đặt tour */}
-                <div className="flex justify-between items-center pb-4 border-b border-white/[0.06]">
-                  <span className="text-slate-400 font-medium flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#7FB77E]" />
-                    Mã đặt tour
-                  </span>
-                  <span className="font-mono font-black text-[#9de09c] text-xl tracking-wider bg-[#7FB77E]/10 px-3 py-1 rounded-md border border-[#7FB77E]/20">
-                    {booking?.bookingCode || "N/A"}
-                  </span>
-                </div>
-
-                {/* Ngày khởi hành */}
-                <div className="flex justify-between items-center pb-4 border-b border-white/[0.06]">
-                  <span className="text-slate-400 font-medium flex items-center gap-2">
-                    <Calendar size={16} className="text-slate-400" />
-                    Ngày khởi hành
-                  </span>
-                  <span className="text-white font-bold">
-                    {safeFormatDate(booking?.tourDeparture?.departureDate || booking?.departureDate)}
-                  </span>
-                </div>
-
-                {/* Số lượng */}
-                <div className="flex justify-between items-center pb-4 border-b border-white/[0.06]">
-                  <span className="text-slate-400 font-medium flex items-center gap-2">
-                    <Users size={16} className="text-slate-400" />
-                    Số lượng người đi
-                  </span>
-                  <span className="text-white font-bold">
-                    {booking?.totalPeople || 0} khách{" "}
-                    <span className="text-xs text-slate-400 font-normal">
-                      ({booking?.adultCount || 0} người lớn, {booking?.childCount || 0} trẻ em)
-                    </span>
-                  </span>
-                </div>
-
-                {/* Tổng hóa đơn gốc */}
-                <div className="flex justify-between items-center pb-4 border-b border-white/[0.06]">
-                  <span className="text-slate-400 font-medium flex items-center gap-2">
-                    <Wallet size={16} className="text-slate-400" />
-                    Tổng giá trị tour
-                  </span>
-                  <span className="text-white font-bold text-lg">
-                    {formatCurrency(booking?.totalPrice)}
-                  </span>
-                </div>
-
-                {/* Phân tách dòng tiền thanh toán cọc hoặc trả hết */}
-                {isDeposit ? (
-                  <>
-                    <div className="flex justify-between items-center pb-4 border-b border-white/[0.06] bg-[#7FB77E]/5 -mx-4 px-4 py-2 rounded-lg">
-                      <span className="text-[#9de09c] font-semibold flex items-center gap-2">
-                        <CreditCard size={16} />
-                        Số tiền đã đặt cọc
-                      </span>
-                      <span className="font-bold text-[#9de09c] text-lg">
-                        {formatCurrency(booking?.paidAmount)}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between items-center pt-2">
-                      <span className="text-amber-400 font-semibold flex items-center gap-2">
-                        <Info size={16} />
-                        Số tiền còn lại cần đóng
-                      </span>
-                      <span className="font-black text-amber-400 text-2xl tracking-tight">
-                        {formatCurrency(booking?.remainingAmount)}
-                      </span>
-                    </div>
-                    {booking?.remainingPaymentMethod && (
-                      <p className="text-[11px] text-right text-slate-400 italic -mt-1">
-                        * Sẽ được thanh toán bằng: {booking.remainingPaymentMethod === "CASH_ON_DEPARTURE" ? "Tiền mặt khi khởi hành" : "Chuyển khoản"}
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <div className="flex justify-between items-center pt-4 bg-emerald-500/[0.03] -mx-4 px-4 py-2 rounded-lg">
-                    <span className="text-[#7FB77E] font-bold flex items-center gap-2">
-                      <CreditCard size={16} />
-                      Trạng thái thanh toán
-                    </span>
-                    <span className="font-black text-[#7FB77E] text-2xl tracking-tight">
-                      Đã trả hết (100%)
-                    </span>
-                  </div>
-                )}
-
-              </div>
-            </div>
-          )}
 
           {/* Styled Information Cards */}
           <div className="grid gap-4 mb-8 sm:grid-cols-2">

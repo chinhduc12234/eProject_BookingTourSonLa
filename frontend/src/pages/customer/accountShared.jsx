@@ -9,8 +9,8 @@ export const emptyProfileForm = {
 
 export const bookingStatusMeta = {
   PENDING: {
-    label: "Đã xác nhận",
-    className: "border-emerald-200 bg-emerald-50 text-emerald-900",
+    label: "Chờ xác nhận",
+    className: "border-amber-200 bg-amber-50 text-amber-900",
   },
   CONFIRMED: {
     label: "Đã xác nhận",
@@ -66,7 +66,7 @@ export const paymentStatusMeta = {
 };
 
 export const bookingSteps = [
-  { key: "PENDING", label: "Đã xác nhận" },
+  { key: "PENDING", label: "Chờ xác nhận" },
   { key: "CONFIRMED", label: "Xác nhận" },
   { key: "IN_PROGRESS", label: "Khởi hành" },
   { key: "COMPLETED", label: "Hoàn thành" },

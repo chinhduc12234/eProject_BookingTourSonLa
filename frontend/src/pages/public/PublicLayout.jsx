@@ -8,17 +8,14 @@ import {
     LogOut,
     Menu,
     MessageCircle,
-    Moon,
     Phone,
     Send,
     Share2,
-    Sun,
     UserRound,
     X,
 } from "lucide-react";
 import { getCurrentUserProfile } from "../../api/userApi";
 import { getAuthName, getRole, isLoggedIn, logout } from "../../utils/auth";
-import { applyTheme, getInitialTheme } from "../../utils/theme";
 import { brand, navLinks, photoCredits } from "./publicContent";
 
 const navClass = ({ isActive }) =>
@@ -29,22 +26,12 @@ export default function PublicLayout({ children }) {
     const [scrolled, setScrolled] = useState(false);
     const [authenticated, setAuthenticated] = useState(isLoggedIn());
     const [profile, setProfile] = useState(null);
-    const [theme, setTheme] = useState(getInitialTheme);
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 12);
         handleScroll();
         window.addEventListener("scroll", handleScroll, { passive: true });
         return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
-
-    useEffect(() => {
-        const syncTheme = (event) => {
-            setTheme(event.detail || getInitialTheme());
-        };
-
-        window.addEventListener("theme-change", syncTheme);
-        return () => window.removeEventListener("theme-change", syncTheme);
     }, []);
 
     useEffect(() => {
@@ -88,23 +75,6 @@ export default function PublicLayout({ children }) {
             : getRole() === "EMPLOYEE"
                 ? "/employee"
                 : "/tai-khoan";
-    const isLightTheme = theme === "light";
-
-    const toggleTheme = () => {
-        setTheme(applyTheme(isLightTheme ? "dark" : "light"));
-    };
-
-    const themeButton = (
-        <button
-            type="button"
-            onClick={toggleTheme}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white transition hover:border-[#7FB77E]/60 hover:bg-[#7FB77E]/10"
-            aria-label={isLightTheme ? "Chuyển sang nền tối" : "Chuyển sang nền sáng"}
-            title={isLightTheme ? "Nền tối" : "Nền sáng"}
-        >
-            {isLightTheme ? <Moon size={18} /> : <Sun size={18} />}
-        </button>
-    );
 
     return (
         <div className="public-shell min-h-screen bg-[#020617] text-slate-100">
@@ -135,7 +105,6 @@ export default function PublicLayout({ children }) {
                     </nav>
 
                     <div className="hidden items-center gap-3 md:flex">
-                        {themeButton}
                         {authenticated ? (
                             <>
                                 <Link
@@ -194,12 +163,6 @@ export default function PublicLayout({ children }) {
                                     {item.label}
                         </NavLink>
                             ))}
-                            <div className="mt-3 flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2">
-                                <span className="text-sm font-bold text-slate-200">
-                                    {isLightTheme ? "Nền sáng" : "Nền tối"}
-                                </span>
-                                {themeButton}
-                            </div>
                             {authenticated ? (
                                 <>
                                     <Link

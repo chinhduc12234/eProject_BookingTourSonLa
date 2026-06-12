@@ -2,8 +2,6 @@ import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
-  ArrowLeft,
-  ArrowRight,
   Building2,
   CheckCircle2,
   ClipboardList,
@@ -886,26 +884,6 @@ export default function BookingForm({
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => jumpToFormStep(Math.max(0, currentFormStep - 1))}
-            disabled={currentFormStep === 0}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-5 text-sm font-black text-white transition hover:border-[#7FB77E]/40 hover:bg-[#7FB77E]/10 disabled:cursor-not-allowed disabled:opacity-45"
-          >
-            <ArrowLeft size={17} />
-            Quay lại bước trước
-          </button>
-          <button
-            type="button"
-            onClick={() => jumpToFormStep(Math.min(3, currentFormStep + 1))}
-            disabled={currentFormStep === 3}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-[#7FB77E]/35 bg-[#7FB77E]/10 px-5 text-sm font-black text-white transition hover:border-[#7FB77E]/70 hover:bg-[#7FB77E]/18 disabled:cursor-not-allowed disabled:opacity-45"
-          >
-            Tiếp tục bước sau
-            <ArrowRight size={17} />
-          </button>
-        </div>
 
         <button
           type="submit"

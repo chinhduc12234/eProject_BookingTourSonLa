@@ -328,7 +328,7 @@ export default function BookingDetailPage() {
       });
 
       setBooking(response.data);
-      navigate(`/tai-khoan/booking/${booking.id}?stage=success`, { replace: true });
+      navigate(`/tai-khoan/booking/${booking.id}`, { replace: true });
       toast.success("Đã gửi xác nhận thanh toán. Hệ thống đang kiểm tra giao dịch.");
     } catch (error) {
       toast.error(getPaymentErrorMessage(error));
@@ -407,106 +407,6 @@ export default function BookingDetailPage() {
     </div>
   );
 
-  const successTitle =
-    booking?.paymentPlan === "DEPOSIT"
-      ? isPaymentPendingReview
-        ? "Gửi xác nhận đặt cọc thành công"
-        : "Đặt cọc thành công"
-      : isPaymentPendingReview
-        ? "Gửi xác nhận thanh toán thành công"
-        : "Thanh toán thành công";
-  const successDescription =
-    booking?.paymentPlan === "DEPOSIT"
-      ? isPaymentPendingReview
-        ? "Khoản cọc của bạn đã được ghi nhận. Hệ thống đang kiểm tra giao dịch trước khi chốt giữ chỗ cho booking này."
-        : "Khoản cọc của bạn đã được ghi nhận. Booking đã được lưu và xuất hiện trong hệ thống admin để quản lý."
-      : isPaymentPendingReview
-        ? "Hệ thống đã ghi nhận yêu cầu thanh toán của bạn. Admin sẽ kiểm tra giao dịch trước khi cập nhật trạng thái cuối cùng."
-        : "Hệ thống đã ghi nhận thanh toán thành công. Booking đã được lưu và xuất hiện trong hệ thống admin để quản lý.";
-
-  if (!loading && booking && stage === "success") {
-    return (
-      <AccountShell
-        title="Xác nhận thanh toán"
-        description="Hệ thống đã ghi nhận yêu cầu của bạn."
-        actions={
-          <Link
-            to="/tai-khoan/booking"
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-5 text-sm font-black text-white transition hover:border-[#7FB77E]/40 hover:bg-[#7FB77E]/10"
-          >
-            <ChevronLeft size={18} />
-            Lịch sử booking
-          </Link>
-        }
-      >
-        <div className="mx-auto flex min-h-[calc(100vh-220px)] max-w-4xl items-center justify-center py-8">
-          <div className="w-full max-w-2xl rounded-[28px] border border-[#7FB77E]/30 bg-gradient-to-br from-[#f7fff5] via-[#eff9ed] to-[#dff2de] px-6 py-9 text-slate-900 shadow-[0_30px_100px_-40px_rgba(95,163,92,0.65)] sm:px-10">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[24px] bg-[#7FB77E] text-[#04120d] shadow-[0_18px_40px_-16px_rgba(95,163,92,0.8)]">
-              <CheckCircle2 size={40} />
-            </div>
-
-            <div className="mt-6 text-center">
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/80 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-emerald-800">
-                Đã ghi nhận
-              </div>
-              <h2 className="mt-5 text-3xl font-black leading-tight text-slate-950 sm:text-4xl">
-                {successTitle}
-              </h2>
-              <p className="mx-auto mt-4 max-w-xl text-base leading-8 text-slate-700">
-                {successDescription}
-              </p>
-            </div>
-
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
-              <SuccessStat
-                label="Mã booking"
-                value={booking.bookingCode}
-                accent="text-emerald-700"
-              />
-              <SuccessStat
-                label="Đã ghi nhận"
-                value={formatCurrency(paidAmount)}
-              />
-              <SuccessStat
-                label="Trạng thái"
-                value={paymentMeta.label}
-              />
-            </div>
-
-            <div className="mt-6 rounded-3xl border border-slate-200 bg-white/80 p-5 text-left shadow-sm">
-              <div className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">
-                Mã giao dịch
-              </div>
-              <div className="mt-2 break-all text-lg font-black leading-8 text-slate-950">
-                {booking.paymentReference || "Đang cập nhật"}
-              </div>
-              <p className="mt-4 text-sm leading-7 text-slate-600">
-                {isPaymentPendingReview
-                  ? "Admin sẽ kiểm tra giao dịch và cập nhật booking của bạn. Bạn có thể xem chi tiết trạng thái hoặc quay lại lịch sử booking bất cứ lúc nào."
-                  : "Bạn có thể xem chi tiết trạng thái hoặc quay lại lịch sử booking bất cứ lúc nào. Admin đã có thể thấy booking này trong khu vực quản lý."}
-              </p>
-            </div>
-
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-              <Link
-                to={`/tai-khoan/booking/${booking.id}`}
-                replace
-                className="btn-primary min-w-[220px] text-sm"
-              >
-                Xem chi tiết booking
-              </Link>
-              <Link
-                to="/tai-khoan/booking"
-                className="inline-flex min-h-12 min-w-[220px] items-center justify-center rounded-xl border border-slate-300 bg-white/85 px-5 text-sm font-black text-slate-950 transition hover:border-[#7FB77E] hover:bg-[#eef9ec]"
-              >
-                Về Lịch Sử Booking
-              </Link>
-            </div>
-          </div>
-        </div>
-      </AccountShell>
-    );
-  }
 
   return (
     <AccountShell
@@ -1592,19 +1492,6 @@ function PaymentRow({ label, value }) {
       <b className="min-w-0 max-w-[210px] break-words text-right text-white">
         {value}
       </b>
-    </div>
-  );
-}
-
-function SuccessStat({ label, value, accent = "text-slate-950" }) {
-  return (
-    <div className="rounded-2xl border border-white/70 bg-white/80 p-4 shadow-sm">
-      <div className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
-        {label}
-      </div>
-      <div className={["mt-2 break-words text-lg font-black", accent].join(" ")}>
-        {value}
-      </div>
     </div>
   );
 }

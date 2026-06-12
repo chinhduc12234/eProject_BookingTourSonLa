@@ -1,6 +1,6 @@
 export const bookingStatuses = [
   { value: "", label: "Tất cả booking" },
-  { value: "PENDING", label: "Đã xác nhận" },
+  { value: "PENDING", label: "Chờ xác nhận" },
   { value: "CONFIRMED", label: "Đã xác nhận" },
   { value: "IN_PROGRESS", label: "Đang đi tour" },
   { value: "COMPLETED", label: "Hoàn thành" },
@@ -21,8 +21,8 @@ export const paymentStatuses = [
 
 export const statusMeta = {
   PENDING: {
-    label: "Đã xác nhận",
-    className: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    label: "Chờ xác nhận",
+    className: "border-amber-200 bg-amber-50 text-amber-800",
   },
   CONFIRMED: {
     label: "Đã xác nhận",

@@ -41,8 +41,8 @@ const emptyProfileForm = {
 
 const bookingStatusMeta = {
   PENDING: {
-    label: "Đã xác nhận",
-    className: "border-emerald-300/30 bg-emerald-300/10 text-emerald-100",
+    label: "Chờ xác nhận",
+    className: "border-amber-300/30 bg-amber-300/10 text-amber-100",
   },
   CONFIRMED: {
     label: "Đã xác nhận",
@@ -94,7 +94,7 @@ const paymentStatusMeta = {
 };
 
 const bookingSteps = [
-  { key: "PENDING", label: "Đã xác nhận" },
+  { key: "PENDING", label: "Chờ xác nhận" },
   { key: "CONFIRMED", label: "Xác nhận" },
   { key: "IN_PROGRESS", label: "Khởi hành" },
   { key: "COMPLETED", label: "Hoàn thành" },
@@ -354,7 +354,7 @@ export default function AccountPage() {
                   Icon: CalendarDays,
                 },
                 {
-                  label: "Đã xác nhận",
+                  label: "Đang xử lý",
                   value: summary.confirmedBookings,
                   Icon: Clock3,
                 },
