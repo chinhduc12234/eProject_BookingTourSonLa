@@ -19,6 +19,13 @@ export const paymentStatuses = [
   { value: "FAILED", label: "Thanh toán lỗi" },
 ];
 
+export const scheduleActivityStatuses = [
+  { value: "PENDING", label: "Chờ thực hiện" },
+  { value: "DONE", label: "Hoàn thành" },
+  { value: "CHANGED", label: "Có thay đổi" },
+  { value: "SKIPPED", label: "Bỏ qua" },
+];
+
 export const statusMeta = {
   PENDING: {
     label: "Chờ xác nhận",
@@ -38,6 +45,25 @@ export const statusMeta = {
   },
   CANCELLED: {
     label: "Đã hủy",
+    className: "border-rose-200 bg-rose-50 text-rose-800",
+  },
+};
+
+export const scheduleActivityStatusMeta = {
+  PENDING: {
+    label: "Chờ thực hiện",
+    className: "border-slate-200 bg-slate-50 text-slate-600",
+  },
+  DONE: {
+    label: "Hoàn thành",
+    className: "border-emerald-200 bg-emerald-50 text-emerald-800",
+  },
+  CHANGED: {
+    label: "Có thay đổi",
+    className: "border-amber-200 bg-amber-50 text-amber-800",
+  },
+  SKIPPED: {
+    label: "Bỏ qua",
     className: "border-rose-200 bg-rose-50 text-rose-800",
   },
 };
@@ -115,6 +141,18 @@ export const formatDateTime = (value) => {
   return new Intl.DateTimeFormat("vi-VN", {
     dateStyle: "short",
     timeStyle: "short",
+  }).format(new Date(value));
+};
+
+export const formatTime = (value) => {
+  if (!value) return "Chưa rõ giờ";
+  if (typeof value === "string" && value.includes(":")) {
+    return value.slice(0, 5);
+  }
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
   }).format(new Date(value));
 };
 

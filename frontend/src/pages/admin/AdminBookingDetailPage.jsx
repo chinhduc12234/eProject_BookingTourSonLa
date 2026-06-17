@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
+  Activity,
   ArrowLeft,
   CalendarDays,
   CheckCircle2,
@@ -38,10 +39,12 @@ import {
   formatCurrency,
   formatDate,
   formatDateTime,
+  formatTime,
   getMeta,
   paymentMeta,
   paymentMethodText,
   paymentPlanText,
+  scheduleActivityStatusMeta,
   statusMeta,
 } from "./bookingShared";
 
@@ -223,6 +226,16 @@ export default function AdminBookingDetailPage() {
   }, [bookingId]);
 
   useEffect(() => {
+    if (!detail || window.location.hash !== "#timeline") return;
+
+    const timer = window.setTimeout(() => {
+      document.getElementById("timeline")?.scrollIntoView({ block: "start" });
+    }, 80);
+
+    return () => window.clearTimeout(timer);
+  }, [detail]);
+
+  useEffect(() => {
     if (!staffPickerOpen) return undefined;
 
     const timer = window.setTimeout(() => {
@@ -318,11 +331,21 @@ export default function AdminBookingDetailPage() {
 
   const hasGroup = Number(detail.totalPeople || 0) > 1;
   const isCancelled = detail.status === "CANCELLED";
-  const isTourConfirmed = detail.status === "CONFIRMED";
+  const isTourConfirmed = ["CONFIRMED", "IN_PROGRESS", "COMPLETED"].includes(
+    detail.status,
+  );
   const assignedStaffMembers = staffAssignments;
   const isPaymentPendingReview = detail.paymentStatus === "PENDING_REVIEW";
   const confirmedPaymentLabel =
     Number(detail.remainingAmount || 0) > 0 ? "Đã cọc" : "Đã thanh toán";
+  const scheduleActivities =
+    detail.scheduleDays?.flatMap((day) => day.activities || []) || [];
+  const completedScheduleActivities = scheduleActivities.filter((activity) =>
+    ["DONE", "CHANGED", "SKIPPED"].includes(activity.status),
+  ).length;
+  const scheduleProgress = scheduleActivities.length
+    ? Math.round((completedScheduleActivities / scheduleActivities.length) * 100)
+    : 0;
 
   return (
     <div className="min-h-screen bg-[#f8fafc] p-4 text-slate-900 md:p-8">
@@ -480,66 +503,221 @@ export default function AdminBookingDetailPage() {
             </div>
 
             {detail.scheduleDays?.length > 0 && (
-              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-                    <ClipboardList size={20} />
-                  </span>
-                  <div>
-                    <h2 className="text-xl font-black text-slate-950">
-                      Lịch trình tour
-                    </h2>
-                    <p className="text-sm font-semibold text-slate-500">
-                      Lịch trình được snapshot riêng cho booking này.
-                    </p>
+              <div
+                id="timeline"
+                className="scroll-mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
+              >
+                <div className="flex flex-col gap-4 border-b border-slate-100 pb-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                      <Activity size={20} />
+                    </span>
+                    <div>
+                      <h2 className="text-xl font-black text-slate-950">
+                        Timeline tình trạng tour
+                      </h2>
+                      <p className="text-sm font-semibold text-slate-500">
+                        Admin theo dõi xác nhận, từng hoạt động thực tế và mốc hoàn thành.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="min-w-[180px]">
+                    <div className="flex items-center justify-between text-xs font-black uppercase tracking-wide text-slate-500">
+                      <span>Tiến độ</span>
+                      <span>{scheduleProgress}%</span>
+                    </div>
+                    <div className="mt-2 h-2 rounded-full bg-slate-100">
+                      <div
+                        className="h-full rounded-full bg-emerald-600"
+                        style={{ width: `${scheduleProgress}%` }}
+                      />
+                    </div>
+                    <div className="mt-2 text-right text-xs font-bold text-slate-500">
+                      {completedScheduleActivities}/{scheduleActivities.length} mốc đã xử lý
+                    </div>
                   </div>
                 </div>
 
-                <div className="mt-5 space-y-4">
-                  {detail.scheduleDays.map((day) => (
-                    <div
-                      key={day.id}
-                      className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-                    >
-                      <div className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">
-                        Ngày {day.dayNumber}
+                <div className="mt-5 grid gap-3 md:grid-cols-3">
+                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+                    <div className="text-xs font-black uppercase tracking-wide text-emerald-700">
+                      Mốc xác nhận
+                    </div>
+                    <div className="mt-2 font-black text-emerald-950">
+                      {detail.confirmedAt
+                        ? "Tour đã được xác nhận"
+                        : "Tour chưa được xác nhận"}
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-emerald-800">
+                      {formatDateTime(detail.confirmedAt)}
+                    </div>
+                    {detail.confirmedByName && (
+                      <div className="mt-1 text-xs font-bold text-emerald-700">
+                        Bởi {detail.confirmedByName}
                       </div>
-                      <h3 className="mt-1 font-black text-slate-950">
-                        {day.title}
-                      </h3>
-                      {day.description && (
-                        <p className="mt-2 text-sm leading-6 text-slate-600">
-                          {day.description}
-                        </p>
-                      )}
+                    )}
+                  </div>
+                  <div className="rounded-2xl border border-sky-100 bg-sky-50 p-4">
+                    <div className="text-xs font-black uppercase tracking-wide text-sky-700">
+                      Điểm xuất phát / đón khách
+                    </div>
+                    <div className="mt-2 font-black text-sky-950">
+                      {detail.departureLocation || "Chưa cập nhật điểm xuất phát"}
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-sky-800">
+                      Đón: {detail.pickupAddress || "Chưa có địa chỉ đón riêng"}
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="text-xs font-black uppercase tracking-wide text-slate-500">
+                      Mốc hoàn thành
+                    </div>
+                    <div className="mt-2 font-black text-slate-950">
+                      {detail.status === "COMPLETED"
+                        ? "Tour đã hoàn thành"
+                        : "Đang chờ hoàn thành đủ lịch trình"}
+                    </div>
+                    <div className="mt-3">
+                      <Badge meta={getMeta(statusMeta, detail.status)} />
+                    </div>
+                  </div>
+                </div>
 
-                      {day.activities?.length > 0 && (
-                        <div className="mt-4 grid gap-3">
-                          {day.activities.map((activity) => (
-                            <div
-                              key={activity.id}
-                              className="rounded-xl border border-slate-200 bg-white p-3"
-                            >
-                              <div className="text-xs font-black text-slate-400">
-                                {activity.startTime
-                                  ? activity.startTime.slice(0, 5)
-                                  : "Chưa rõ giờ"}
-                                {activity.endTime
-                                  ? ` - ${activity.endTime.slice(0, 5)}`
-                                  : ""}
-                              </div>
-                              <div className="mt-1 font-black text-slate-900">
-                                {activity.title}
-                              </div>
-                              {activity.description && (
-                                <p className="mt-1 text-sm leading-6 text-slate-600">
-                                  {activity.description}
-                                </p>
-                              )}
-                            </div>
-                          ))}
+                <div className="mt-6 space-y-5">
+                  {detail.scheduleDays.map((day) => (
+                    <div key={day.id} className="relative border-l-2 border-emerald-100 pl-5">
+                      <span className="absolute -left-[9px] top-1 h-4 w-4 rounded-full border-4 border-white bg-emerald-600 shadow" />
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <div className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">
+                            Ngày {day.dayNumber} · {formatDate(day.scheduleDate)}
+                          </div>
+                          <h3 className="mt-1 font-black text-slate-950">
+                            {day.title}
+                          </h3>
+                          {day.description && (
+                            <p className="mt-2 text-sm leading-6 text-slate-600">
+                              {day.description}
+                            </p>
+                          )}
                         </div>
-                      )}
+                      </div>
+
+                      <div className="mt-4 grid gap-3">
+                        {day.activities?.length > 0 ? (
+                          day.activities.map((activity) => {
+                            const hasActualInfo =
+                              activity.actualStartTime ||
+                              activity.actualEndTime ||
+                              activity.actualLocation ||
+                              activity.actualNote ||
+                              activity.updatedByEmployeeName;
+
+                            return (
+                              <div
+                                key={activity.id}
+                                className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                              >
+                                <div className="grid gap-3 lg:grid-cols-[130px_1fr_auto] lg:items-start">
+                                  <div>
+                                    <div className="text-xs font-black uppercase tracking-wide text-slate-400">
+                                      Theo lịch
+                                    </div>
+                                    <div className="mt-1 font-black text-slate-900">
+                                      {formatTime(activity.startTime)}
+                                      {activity.endTime
+                                        ? ` - ${formatTime(activity.endTime)}`
+                                        : ""}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="font-black text-slate-950">
+                                      {activity.title}
+                                    </div>
+                                    {activity.description && (
+                                      <p className="mt-1 text-sm leading-6 text-slate-600">
+                                        {activity.description}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="lg:text-right">
+                                    <Badge
+                                      meta={getMeta(
+                                        scheduleActivityStatusMeta,
+                                        activity.status,
+                                      )}
+                                    />
+                                  </div>
+                                </div>
+
+                                {hasActualInfo && (
+                                  <div className="mt-3 grid gap-3 rounded-2xl border border-white bg-white p-3 text-sm text-slate-600 md:grid-cols-2">
+                                    {(activity.actualStartTime || activity.actualEndTime) && (
+                                      <div>
+                                        <div className="text-xs font-black uppercase tracking-wide text-slate-400">
+                                          Thời gian thực tế
+                                        </div>
+                                        <div className="mt-1 font-bold text-slate-900">
+                                          {activity.actualStartTime
+                                            ? formatDateTime(activity.actualStartTime)
+                                            : "Chưa nhập"}
+                                          {activity.actualEndTime
+                                            ? ` - ${formatDateTime(activity.actualEndTime)}`
+                                            : ""}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {activity.completedAt && (
+                                      <div>
+                                        <div className="text-xs font-black uppercase tracking-wide text-slate-400">
+                                          Ghi nhận lúc
+                                        </div>
+                                        <div className="mt-1 font-bold text-slate-900">
+                                          {formatDateTime(activity.completedAt)}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {activity.actualLocation && (
+                                      <div>
+                                        <div className="text-xs font-black uppercase tracking-wide text-slate-400">
+                                          Địa điểm thực tế
+                                        </div>
+                                        <div className="mt-1 font-bold text-slate-900">
+                                          {activity.actualLocation}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {activity.updatedByEmployeeName && (
+                                      <div>
+                                        <div className="text-xs font-black uppercase tracking-wide text-slate-400">
+                                          Nhân viên cập nhật
+                                        </div>
+                                        <div className="mt-1 font-bold text-slate-900">
+                                          {activity.updatedByEmployeeName}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {activity.actualNote && (
+                                      <div className="md:col-span-2">
+                                        <div className="text-xs font-black uppercase tracking-wide text-slate-400">
+                                          Nội dung cập nhật
+                                        </div>
+                                        <div className="mt-1 whitespace-pre-line font-semibold leading-6 text-slate-700">
+                                          {activity.actualNote}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm font-semibold text-slate-500">
+                            Ngày này chưa có hoạt động trong lịch trình.
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

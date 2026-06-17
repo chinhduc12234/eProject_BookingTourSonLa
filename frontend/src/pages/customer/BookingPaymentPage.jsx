@@ -84,11 +84,6 @@ export default function BookingPaymentPage() {
       });
 
       clearBookingDraft();
-      toast.success(
-        paymentChoice === "DEPOSIT"
-          ? "Đã ghi nhận đặt cọc và lưu booking"
-          : "Đã ghi nhận thanh toán và lưu booking",
-      );
 
       navigate(`/thank-you?bookingId=${response.data.id}`, {
         replace: true,

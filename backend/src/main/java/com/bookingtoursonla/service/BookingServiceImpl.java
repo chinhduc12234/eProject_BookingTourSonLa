@@ -32,6 +32,7 @@ import com.bookingtoursonla.dto.CancelBookingRequest;
 import com.bookingtoursonla.dto.CreateBookingRequest;
 import com.bookingtoursonla.dto.PayBookingRequest;
 import com.bookingtoursonla.dto.TourImageDto;
+import com.bookingtoursonla.dto.UpdateBookingScheduleActivityRequest;
 import com.bookingtoursonla.dto.UpdateBookingAdminRequest;
 import com.bookingtoursonla.entity.Booking;
 import com.bookingtoursonla.entity.BookingCustomer;
@@ -45,6 +46,7 @@ import com.bookingtoursonla.entity.TourDeparture;
 import com.bookingtoursonla.entity.TourImage;
 import com.bookingtoursonla.entity.User;
 import com.bookingtoursonla.entity.enums.BookingCustomerType;
+import com.bookingtoursonla.entity.enums.BookingScheduleActivityStatus;
 import com.bookingtoursonla.entity.enums.BookingStatus;
 import com.bookingtoursonla.entity.enums.BookingType;
 import com.bookingtoursonla.entity.enums.DepartureStatus;
@@ -405,6 +407,63 @@ public class BookingServiceImpl implements BookingService {
                 applyBookingStatusTransition(booking, BookingStatus.CONFIRMED, adminEmail);
             }
         }
+
+        Booking saved = bookingRepository.save(booking);
+
+        List<BookingCustomer> customers = bookingCustomerRepository
+                .findByBookingIdOrderByIdAsc(saved.getId());
+
+        return mapToDetailResponse(saved, customers);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BookingDetailResponse getEmployeeBookingDetail(
+            Long id,
+            String employeeEmail) {
+
+        User employee = requireEmployee(employeeEmail);
+
+        Booking booking = bookingRepository
+                .findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
+
+        ensureEmployeeAssignedToBooking(booking.getId(), employee.getId());
+
+        List<BookingCustomer> customers = bookingCustomerRepository
+                .findByBookingIdOrderByIdAsc(booking.getId());
+
+        return mapToDetailResponse(booking, customers);
+    }
+
+    @Override
+    @Transactional
+    public BookingDetailResponse updateEmployeeScheduleActivity(
+            Long bookingId,
+            Long activityId,
+            UpdateBookingScheduleActivityRequest request,
+            String employeeEmail) {
+
+        if (request == null) {
+            request = new UpdateBookingScheduleActivityRequest();
+        }
+
+        User employee = requireEmployee(employeeEmail);
+
+        Booking booking = bookingRepository
+                .findByIdAndDeletedAtIsNull(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
+
+        ensureEmployeeAssignedToBooking(booking.getId(), employee.getId());
+        ensureBookingCanReceiveScheduleUpdate(booking);
+
+        BookingScheduleActivity activity = bookingScheduleActivityRepository
+                .findByIdAndBookingId(activityId, booking.getId())
+                .orElseThrow(() -> new RuntimeException("Mốc lịch trình không tồn tại trong booking này"));
+
+        applyScheduleActivityUpdate(activity, request, employee);
+        bookingScheduleActivityRepository.save(activity);
+        syncBookingProgressFromSchedule(booking);
 
         Booking saved = bookingRepository.save(booking);
 
@@ -893,6 +952,105 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
+    private void applyScheduleActivityUpdate(
+            BookingScheduleActivity activity,
+            UpdateBookingScheduleActivityRequest request,
+            User employee) {
+
+        BookingScheduleActivityStatus nextStatus =
+                parseScheduleActivityStatus(request.getStatus());
+        BookingScheduleActivityStatus currentStatus = activity.getStatus();
+        LocalDateTime actualStartTime = request.getActualStartTime();
+        LocalDateTime actualEndTime = request.getActualEndTime();
+        String actualNote = trimToNull(request.getActualNote());
+
+        if (actualStartTime != null
+                && actualEndTime != null
+                && actualEndTime.isBefore(actualStartTime)) {
+            throw new RuntimeException("Thời gian kết thúc thực tế không được trước thời gian bắt đầu");
+        }
+
+        if (nextStatus == BookingScheduleActivityStatus.CHANGED
+                && (actualStartTime == null || actualNote == null)) {
+            throw new RuntimeException("Khi chọn Có thay đổi, vui lòng nhập thời gian thực tế và nội dung thay đổi");
+        }
+
+        if (nextStatus == BookingScheduleActivityStatus.SKIPPED && actualNote == null) {
+            throw new RuntimeException("Vui lòng nhập lý do khi bỏ qua hoạt động");
+        }
+
+        activity.setStatus(nextStatus);
+        activity.setUpdatedByEmployee(employee);
+
+        if (nextStatus == BookingScheduleActivityStatus.PENDING) {
+            activity.setActualStartTime(null);
+            activity.setActualEndTime(null);
+            activity.setActualLocation(null);
+            activity.setAttachmentUrl(null);
+            activity.setActualNote(null);
+            activity.setCompletedAt(null);
+            return;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+
+        activity.setActualStartTime(actualStartTime);
+        activity.setActualEndTime(
+                actualEndTime != null
+                        ? actualEndTime
+                        : now);
+        activity.setActualLocation(trimToNull(request.getActualLocation()));
+        activity.setAttachmentUrl(trimToNull(request.getAttachmentUrl()));
+        activity.setActualNote(actualNote);
+
+        if (activity.getCompletedAt() == null || currentStatus != nextStatus) {
+            activity.setCompletedAt(now);
+        }
+    }
+
+    private void syncBookingProgressFromSchedule(Booking booking) {
+
+        if (booking.getStatus() == BookingStatus.PENDING
+                || booking.getStatus() == BookingStatus.CANCELLED) {
+            return;
+        }
+
+        List<BookingScheduleActivity> activities = bookingScheduleActivityRepository
+                .findByBookingId(booking.getId());
+
+        if (activities.isEmpty()) {
+            return;
+        }
+
+        boolean hasStarted = activities
+                .stream()
+                .anyMatch(activity -> activity.getStatus() != BookingScheduleActivityStatus.PENDING);
+        boolean allFinished = activities
+                .stream()
+                .allMatch(activity -> isFinishedScheduleStatus(activity.getStatus()));
+
+        if (allFinished && booking.getStatus() != BookingStatus.COMPLETED) {
+            applyBookingStatusTransition(booking, BookingStatus.COMPLETED, null);
+            return;
+        }
+
+        if (hasStarted && booking.getStatus() != BookingStatus.IN_PROGRESS) {
+            applyBookingStatusTransition(booking, BookingStatus.IN_PROGRESS, null);
+            return;
+        }
+
+        if (!hasStarted && booking.getStatus() != BookingStatus.CONFIRMED) {
+            applyBookingStatusTransition(booking, BookingStatus.CONFIRMED, null);
+        }
+    }
+
+    private boolean isFinishedScheduleStatus(BookingScheduleActivityStatus status) {
+
+        return status == BookingScheduleActivityStatus.DONE
+                || status == BookingScheduleActivityStatus.CHANGED
+                || status == BookingScheduleActivityStatus.SKIPPED;
+    }
+
     private BookingResponse mapToResponse(Booking booking) {
 
         ensurePaymentDefaults(booking);
@@ -1009,7 +1167,7 @@ public class BookingServiceImpl implements BookingService {
         response.setCustomers(customers.stream()
                 .map(customer -> mapCustomerResponse(customer, hasGroup))
                 .toList());
-        response.setScheduleDays(loadBookingSchedule(booking.getId()));
+        response.setScheduleDays(loadBookingSchedule(booking));
 
         return response;
     }
@@ -1168,10 +1326,10 @@ public class BookingServiceImpl implements BookingService {
         return response;
     }
 
-    private List<BookingScheduleDayResponse> loadBookingSchedule(Long bookingId) {
+    private List<BookingScheduleDayResponse> loadBookingSchedule(Booking booking) {
 
         List<BookingScheduleDay> days = bookingScheduleDayRepository
-                .findByBookingIdOrderByDayNumberAsc(bookingId);
+                .findByBookingIdOrderByDayNumberAsc(booking.getId());
 
         if (days.isEmpty()) {
             return List.of();
@@ -1192,18 +1350,23 @@ public class BookingServiceImpl implements BookingService {
                 .stream()
                 .map(day -> mapScheduleDayResponse(
                         day,
+                        booking.getTourDeparture().getDepartureDate(),
                         activitiesByDayId.getOrDefault(day.getId(), List.of())))
                 .toList();
     }
 
     private BookingScheduleDayResponse mapScheduleDayResponse(
             BookingScheduleDay day,
+            LocalDate departureDate,
             List<BookingScheduleActivity> activities) {
 
         BookingScheduleDayResponse response = new BookingScheduleDayResponse();
 
         response.setId(day.getId());
         response.setDayNumber(day.getDayNumber());
+        if (departureDate != null && day.getDayNumber() != null) {
+            response.setScheduleDate(departureDate.plusDays(Math.max(0, day.getDayNumber() - 1)));
+        }
         response.setTitle(day.getTitle());
         response.setDescription(day.getDescription());
         response.setActivities(activities.stream().map(this::mapScheduleActivityResponse).toList());
@@ -1226,6 +1389,21 @@ public class BookingServiceImpl implements BookingService {
         response.setStartTime(activity.getStartTime());
         response.setEndTime(activity.getEndTime());
         response.setStatus(activity.getStatus().name());
+        response.setActualStartTime(activity.getActualStartTime());
+        response.setActualEndTime(activity.getActualEndTime());
+        response.setActualLocation(activity.getActualLocation());
+        response.setAttachmentUrl(activity.getAttachmentUrl());
+        response.setActualNote(activity.getActualNote());
+        response.setCompletedAt(activity.getCompletedAt());
+        response.setUpdatedAt(activity.getUpdatedAt());
+        response.setUpdatedByEmployeeId(
+                activity.getUpdatedByEmployee() != null
+                        ? activity.getUpdatedByEmployee().getId()
+                        : null);
+        response.setUpdatedByEmployeeName(
+                activity.getUpdatedByEmployee() != null
+                        ? activity.getUpdatedByEmployee().getFullName()
+                        : null);
 
         return response;
     }
@@ -1442,6 +1620,49 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
+    private User requireEmployee(String employeeEmail) {
+
+        if (isBlank(employeeEmail)) {
+            throw new RuntimeException("Bạn cần đăng nhập bằng tài khoản nhân viên");
+        }
+
+        User employee = userRepository
+                .findByEmail(employeeEmail)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
+
+        if (employee.getRole() == null
+                || !RoleName.EMPLOYEE.equals(employee.getRole().getName())
+                || employee.getDeletedAt() != null) {
+            throw new RuntimeException("Tài khoản này không phải nhân viên");
+        }
+
+        if (!Boolean.TRUE.equals(employee.getIsActive())) {
+            throw new RuntimeException("Tài khoản nhân viên đã bị vô hiệu hóa");
+        }
+
+        return employee;
+    }
+
+    private void ensureEmployeeAssignedToBooking(
+            Long bookingId,
+            Long employeeId) {
+
+        if (!bookingEmployeeRepository.existsByBookingIdAndEmployeeId(bookingId, employeeId)) {
+            throw new RuntimeException("Bạn không được phân công booking này");
+        }
+    }
+
+    private void ensureBookingCanReceiveScheduleUpdate(Booking booking) {
+
+        if (booking.getStatus() == BookingStatus.CANCELLED) {
+            throw new RuntimeException("Booking đã hủy nên không thể cập nhật tình trạng tour");
+        }
+
+        if (booking.getStatus() == BookingStatus.PENDING) {
+            throw new RuntimeException("Booking chưa được admin xác nhận");
+        }
+    }
+
     private List<BookingStaffAssignmentRequest> resolveAssignedStaffAssignments(
             UpdateBookingAdminRequest request) {
 
@@ -1590,6 +1811,19 @@ public class BookingServiceImpl implements BookingService {
             return PaymentStatus.valueOf(value.trim().toUpperCase());
         } catch (IllegalArgumentException ex) {
             throw new RuntimeException("Trạng thái thanh toán không hợp lệ");
+        }
+    }
+
+    private BookingScheduleActivityStatus parseScheduleActivityStatus(String value) {
+
+        if (isBlank(value)) {
+            throw new RuntimeException("Vui lòng chọn trạng thái hoạt động");
+        }
+
+        try {
+            return BookingScheduleActivityStatus.valueOf(value.trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new RuntimeException("Trạng thái hoạt động không hợp lệ");
         }
     }
 

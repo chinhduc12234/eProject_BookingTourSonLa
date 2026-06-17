@@ -348,8 +348,6 @@ export default function BookingForm({
         createdAt: new Date().toISOString(),
       };
 
-      toast.success("Thông tin đã sẵn sàng, chuyển sang thanh toán");
-
       if (onDraftReady) {
         onDraftReady(draft);
       } else {

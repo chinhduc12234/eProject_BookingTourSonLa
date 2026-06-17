@@ -30,8 +30,17 @@ export const employeeApi = {
   getEmployeeBookings: async () => {
     return await axiosClient.get("/employee/bookings");
   },
+  getEmployeeBookingDetail: async (bookingId) => {
+    return await axiosClient.get(`/employee/bookings/${bookingId}`);
+  },
   getDashboardStats: async () => {
     return await axiosClient.get("/employee/stats");
+  },
+  updateScheduleActivity: async (bookingId, activityId, data) => {
+    return await axiosClient.put(
+      `/employee/bookings/${bookingId}/schedule-activities/${activityId}`,
+      data,
+    );
   },
   updateBookingStatus: async (bookingId, status) => {
     return await axiosClient.put(`/employee/bookings/${bookingId}/status`, null, {

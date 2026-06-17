@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
+  Activity,
   CalendarDays,
   CreditCard,
   Eye,
@@ -232,7 +233,7 @@ export default function BookingPage() {
                     <th className="px-5 py-4">Tổng tiền</th>
                     <th className="px-5 py-4">Trạng thái</th>
                     <th className="px-5 py-4">Thanh toán</th>
-                    <th className="px-5 py-4">Chi tiết</th>
+                    <th className="px-5 py-4">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -276,13 +277,26 @@ export default function BookingPage() {
                         <Badge meta={getMeta(paymentMeta, booking.paymentStatus)} />
                       </td>
                       <td className="px-5 py-4">
-                        <Link
-                          to={`/admin/bookings/${booking.id}`}
-                          className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700"
-                        >
-                          <Eye size={16} />
-                          Chi tiết
-                        </Link>
+                        <div className="flex flex-wrap gap-2">
+                          <Link
+                            to={`/admin/bookings/${booking.id}`}
+                            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700"
+                          >
+                            <Eye size={16} />
+                            Chi tiết
+                          </Link>
+                          {["CONFIRMED", "IN_PROGRESS", "COMPLETED"].includes(
+                            booking.status,
+                          ) && (
+                            <Link
+                              to={`/admin/bookings/${booking.id}#timeline`}
+                              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 text-sm font-black text-white transition hover:bg-slate-950"
+                            >
+                              <Activity size={16} />
+                              Theo dõi
+                            </Link>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

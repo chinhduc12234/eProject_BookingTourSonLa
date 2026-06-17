@@ -1,5 +1,6 @@
 package com.bookingtoursonla.dto;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import lombok.Data;
@@ -20,4 +21,22 @@ public class BookingScheduleActivityResponse {
     private LocalTime endTime;
 
     private String status;
+
+    private LocalDateTime actualStartTime;
+
+    private LocalDateTime actualEndTime;
+
+    private String actualLocation;
+
+    private String attachmentUrl;
+
+    private String actualNote;
+
+    private LocalDateTime completedAt;
+
+    private LocalDateTime updatedAt;
+
+    private Long updatedByEmployeeId;
+
+    private String updatedByEmployeeName;
 }

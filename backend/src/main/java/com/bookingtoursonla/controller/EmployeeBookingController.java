@@ -11,11 +11,14 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bookingtoursonla.dto.BookingDetailResponse;
 import com.bookingtoursonla.dto.BookingDashboardDTO;
+import com.bookingtoursonla.dto.UpdateBookingScheduleActivityRequest;
 import com.bookingtoursonla.entity.Booking;
 import com.bookingtoursonla.entity.User;
 import com.bookingtoursonla.entity.enums.BookingStatus;
@@ -23,6 +26,7 @@ import com.bookingtoursonla.entity.enums.RoleName;
 import com.bookingtoursonla.repository.BookingEmployeeRepository;
 import com.bookingtoursonla.repository.BookingRepository;
 import com.bookingtoursonla.repository.UserRepository;
+import com.bookingtoursonla.service.BookingService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -38,6 +42,8 @@ public class EmployeeBookingController {
 
     private final UserRepository userRepository;
 
+    private final BookingService bookingService;
+
     @GetMapping("/bookings")
     public ResponseEntity<List<BookingDashboardDTO>> getEmployeeBookings(
             Authentication authentication) {
@@ -46,6 +52,32 @@ public class EmployeeBookingController {
 
         return ResponseEntity.ok(
                 bookingEmployeeRepository.findDashboardBookingsByEmployeeId(staffId));
+    }
+
+    @GetMapping("/bookings/{id}")
+    public ResponseEntity<BookingDetailResponse> getEmployeeBookingDetail(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        return ResponseEntity.ok(
+                bookingService.getEmployeeBookingDetail(
+                        id,
+                        authentication != null ? authentication.getName() : null));
+    }
+
+    @PutMapping("/bookings/{bookingId}/schedule-activities/{activityId}")
+    public ResponseEntity<BookingDetailResponse> updateScheduleActivity(
+            @PathVariable Long bookingId,
+            @PathVariable Long activityId,
+            @RequestBody UpdateBookingScheduleActivityRequest request,
+            Authentication authentication) {
+
+        return ResponseEntity.ok(
+                bookingService.updateEmployeeScheduleActivity(
+                        bookingId,
+                        activityId,
+                        request,
+                        authentication != null ? authentication.getName() : null));
     }
 
     @GetMapping("/stats")
