@@ -7,6 +7,7 @@ import RegisterPage from "./pages/auth/RegisterPage";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import EmployeeDashboard from "./pages/employee/EmployeeDashboard";
+import EmployeeTimelinePage from "./pages/employee/EmployeeTimelinePage";
 import CustomerHome from "./pages/customer/CustomerHome";
 import AccountHomePage from "./pages/customer/AccountHomePage";
 import BookingDetailPage from "./pages/customer/BookingDetailPage";
@@ -142,6 +143,14 @@ function AnimatedRoutes() {
           element={
             <ProtectedRoute allowRoles={["EMPLOYEE"]}>
               <EmployeeDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/bookings/:bookingId/timeline"
+          element={
+            <ProtectedRoute allowRoles={["EMPLOYEE"]}>
+              <EmployeeTimelinePage />
             </ProtectedRoute>
           }
         />

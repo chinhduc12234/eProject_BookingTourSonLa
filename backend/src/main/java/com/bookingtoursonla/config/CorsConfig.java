@@ -14,15 +14,11 @@ public class CorsConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-
         CorsConfiguration config = new CorsConfiguration();
-
-        // FRONTEND DEV SERVERS
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:*",
                 "http://127.0.0.1:*"));
 
-        // METHODS
         config.setAllowedMethods(List.of(
                 "GET",
                 "POST",
@@ -30,19 +26,11 @@ public class CorsConfig {
                 "DELETE",
                 "OPTIONS"));
 
-        // HEADERS
         config.setAllowedHeaders(List.of("*"));
-
-        // EXPOSE
         config.setExposedHeaders(List.of(HttpHeaders.AUTHORIZATION));
-
-        // CREDENTIALS
         config.setAllowCredentials(true);
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-
         source.registerCorsConfiguration("/**", config);
-
         return source;
     }
 }
