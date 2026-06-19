@@ -34,6 +34,10 @@ import {
 
 import { useNavigate } from "react-router-dom";
 
+function normalizeMoneyInput(value) {
+    return value.replace(/[^\d.]/g, "").replace(/(\..*)\./g, "$1");
+}
+
 export default function TourPage() {
 
     const [data, setData] = useState([]);
@@ -272,7 +276,8 @@ export default function TourPage() {
         const normalizedDurationNights =
             durationNights === "" ? 0 : Number(durationNights);
         const normalizedMaxPeople = Number(maxPeople);
-        const normalizedPrice = Number(price);
+        const normalizedPriceText = String(price).trim();
+        const normalizedPrice = Number(normalizedPriceText);
 
         if (!normalizedTitle) {
 
@@ -366,7 +371,7 @@ export default function TourPage() {
                     departureLocation.trim(),
                 maxPeople:
                     normalizedMaxPeople,
-                price: normalizedPrice,
+                price: normalizedPriceText,
                 status,
             };
 
@@ -1090,11 +1095,12 @@ export default function TourPage() {
                                     </label>
 
                                     <input
-                                        type="number"
+                                        type="text"
+                                        inputMode="decimal"
                                         value={price}
                                         onChange={(e) =>
                                             setPrice(
-                                                e.target.value
+                                                normalizeMoneyInput(e.target.value)
                                             )
                                         }
                                         className="w-full h-14 px-5 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"

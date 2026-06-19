@@ -45,6 +45,7 @@ export default function EmployeeDashboard() {
   const [stats, setStats] = useState({
     totalBookings: 0,
     pendingBookings: 0,
+    completedBookings: 0,
     totalRevenue: 0,
   });
   const [loading, setLoading] = useState(true);
@@ -117,6 +118,18 @@ export default function EmployeeDashboard() {
       style: "currency",
       currency: "VND",
     }).format(value || 0);
+
+  const confirmedCount =
+    stats.confirmedBookings ??
+    bookings.filter((booking) => booking.status === "CONFIRMED").length;
+
+  const completedCount =
+    stats.completedBookings ??
+    bookings.filter((booking) => booking.status === "COMPLETED").length;
+
+  const confirmedOnlyCount = bookings.filter(
+    (booking) => booking.status === "CONFIRMED",
+  ).length;
 
   if (loading) {
     return (
@@ -202,7 +215,7 @@ export default function EmployeeDashboard() {
               <div>
                 <span className="stat-label">Chờ / đã xác nhận</span>
                 <span className="stat-value text-amber">
-                  {stats.confirmedBookings ?? stats.pendingBookings}
+                  {confirmedCount}
                 </span>
               </div>
               <div className="stat-icon icon-amber pulse">
@@ -214,7 +227,19 @@ export default function EmployeeDashboard() {
               <div>
                 <span className="stat-label">Đã xác nhận</span>
                 <span className="stat-value text-green">
-                  {bookings.filter((booking) => booking.status === "CONFIRMED").length}
+                  {confirmedOnlyCount}
+                </span>
+              </div>
+              <div className="stat-icon icon-green">
+                <CheckCircle />
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div>
+                <span className="stat-label">Đã hoàn thành</span>
+                <span className="stat-value text-green">
+                  {completedCount}
                 </span>
               </div>
               <div className="stat-icon icon-green">

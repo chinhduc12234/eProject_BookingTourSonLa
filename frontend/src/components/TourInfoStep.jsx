@@ -1,5 +1,9 @@
 import { resolveUploadedFileUrl } from "../api/userApi";
 
+function normalizeMoneyInput(value) {
+  return value.replace(/[^\d.]/g, "").replace(/(\..*)\./g, "$1");
+}
+
 function formatDateTime(value) {
   if (!value) return "—";
   try {
@@ -308,10 +312,11 @@ export default function TourInfoStep({
             </label>
 
             <input
-              type="number"
+              type="text"
+              inputMode="decimal"
               value={data?.price || ""}
               onChange={(e) =>
-                set("price", Number(e.target.value))
+                set("price", normalizeMoneyInput(e.target.value))
               }
               className="
                 w-full

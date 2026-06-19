@@ -126,14 +126,14 @@ public class TourDepartureServiceImpl implements TourDepartureService {
 
     private Tour getTourOrThrow(Long tourId) {
         return tourRepository.findById(tourId)
-                .orElseThrow(() -> new RuntimeException("Tour not found"));
+                .orElseThrow(() -> new RuntimeException("Kh\u00f4ng t\u00ecm th\u1ea5y tour"));
     }
 
     private TourDeparture createOrRestoreDeparture(Tour tour, TourDepartureRequest request) {
         return departureRepository.findAnyByTourIdAndDepartureDate(tour.getId(), request.getDepartureDate())
                 .map(existing -> {
                     if (existing.getDeletedAt() == null) {
-                        throw new RuntimeException("Departure date already exists");
+                        throw new RuntimeException("Ng\u00e0y kh\u1edfi h\u00e0nh \u0111\u00e3 t\u1ed3n t\u1ea1i");
                     }
                     existing.setDeletedAt(null);
                     existing.setTour(tour);
@@ -171,19 +171,19 @@ public class TourDepartureServiceImpl implements TourDepartureService {
 
     private void validateRequest(TourDepartureRequest request) {
         if (request.getDepartureDate() == null) {
-            throw new RuntimeException("Departure date is required");
+            throw new RuntimeException("Ng\u00e0y kh\u1edfi h\u00e0nh kh\u00f4ng \u0111\u01b0\u1ee3c \u0111\u1ec3 tr\u1ed1ng");
         }
 
         if (request.getMaxPeople() == null || request.getMaxPeople() <= 0) {
-            throw new RuntimeException("Max people must be > 0");
+            throw new RuntimeException("S\u1ed1 kh\u00e1ch t\u1ed1i \u0111a ph\u1ea3i l\u1edbn h\u01a1n 0");
         }
 
         if (request.getCurrentPeople() != null && request.getCurrentPeople() < 0) {
-            throw new RuntimeException("Current people cannot be negative");
+            throw new RuntimeException("S\u1ed1 kh\u00e1ch \u0111\u00e3 x\u00e1c nh\u1eadn kh\u00f4ng \u0111\u01b0\u1ee3c \u00e2m");
         }
 
         if (request.getReservedPeople() != null && request.getReservedPeople() < 0) {
-            throw new RuntimeException("Reserved people cannot be negative");
+            throw new RuntimeException("S\u1ed1 ch\u1ed7 \u0111ang gi\u1eef kh\u00f4ng \u0111\u01b0\u1ee3c \u00e2m");
         }
     }
 
@@ -193,11 +193,11 @@ public class TourDepartureServiceImpl implements TourDepartureService {
 
         for (TourDepartureRequest request : requests) {
             if (request.getId() != null && !seenIds.add(request.getId())) {
-                throw new RuntimeException("Duplicate departure ids are not allowed");
+                throw new RuntimeException("M\u00e3 l\u1ecbch kh\u1edfi h\u00e0nh b\u1ecb tr\u00f9ng");
             }
 
             if (request.getDepartureDate() != null && !seenDates.add(request.getDepartureDate())) {
-                throw new RuntimeException("Duplicate departure dates are not allowed");
+                throw new RuntimeException("Ng\u00e0y kh\u1edfi h\u00e0nh b\u1ecb tr\u00f9ng");
             }
         }
     }
@@ -208,7 +208,7 @@ public class TourDepartureServiceImpl implements TourDepartureService {
                         departure.getTour().getId(),
                         departureDate,
                         departure.getId())) {
-            throw new RuntimeException("Departure date already exists");
+            throw new RuntimeException("Ng\u00e0y kh\u1edfi h\u00e0nh \u0111\u00e3 t\u1ed3n t\u1ea1i");
         }
     }
 

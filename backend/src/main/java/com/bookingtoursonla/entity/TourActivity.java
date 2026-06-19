@@ -43,6 +43,9 @@ public class TourActivity {
     @JoinColumn(name = "location_id")
     private Location location;
 
+    @Column(name = "location_name", length = 255)
+    private String locationName;
+
     @Column(name = "start_time")
     private LocalTime startTime;
 

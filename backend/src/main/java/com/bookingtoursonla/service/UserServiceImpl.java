@@ -120,16 +120,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public StaffResponse createStaff(CreateStaffRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new RuntimeException("Email \u0111\u00e3 t\u1ed3n t\u1ea1i");
         }
 
         if (userRepository.existsByPhone(request.getPhone())) {
-            throw new RuntimeException("Phone already exists");
+            throw new RuntimeException("S\u1ed1 \u0111i\u1ec7n tho\u1ea1i \u0111\u00e3 t\u1ed3n t\u1ea1i");
         }
 
         Role employeeRole = roleRepository
                 .findByName(RoleName.EMPLOYEE)
-                .orElseThrow(() -> new RuntimeException("EMPLOYEE role not found"));
+                .orElseThrow(() -> new RuntimeException("Kh\u00f4ng t\u00ecm th\u1ea5y vai tr\u00f2 nh\u00e2n vi\u00ean"));
 
         User staff = new User();
         staff.setFullName(request.getFullName());
@@ -150,10 +150,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public StaffResponse updateStaff(Long id, UpdateStaffRequest request) {
         User staff = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Staff not found"));
+                .orElseThrow(() -> new RuntimeException("Kh\u00f4ng t\u00ecm th\u1ea5y nh\u00e2n vi\u00ean"));
 
         if (!RoleName.EMPLOYEE.equals(staff.getRole().getName())) {
-            throw new RuntimeException("User is not a staff member");
+            throw new RuntimeException("Ng\u01b0\u1eddi d\u00f9ng n\u00e0y kh\u00f4ng ph\u1ea3i nh\u00e2n vi\u00ean");
         }
 
         if (request.getFullName() != null) {
@@ -163,7 +163,7 @@ public class UserServiceImpl implements UserService {
         if (request.getEmail() != null && !request.getEmail().isEmpty()) {
             if (!staff.getEmail().equals(request.getEmail()) &&
                     userRepository.existsByEmail(request.getEmail())) {
-                throw new RuntimeException("Email already exists");
+                throw new RuntimeException("Email \u0111\u00e3 t\u1ed3n t\u1ea1i");
             }
             staff.setEmail(request.getEmail());
         }
@@ -171,7 +171,7 @@ public class UserServiceImpl implements UserService {
         if (request.getPhone() != null && !request.getPhone().isEmpty()) {
             if (!staff.getPhone().equals(request.getPhone()) &&
                     userRepository.existsByPhone(request.getPhone())) {
-                throw new RuntimeException("Phone already exists");
+                throw new RuntimeException("S\u1ed1 \u0111i\u1ec7n tho\u1ea1i \u0111\u00e3 t\u1ed3n t\u1ea1i");
             }
             staff.setPhone(request.getPhone());
         }
@@ -200,10 +200,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteStaff(Long id) {
         User staff = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Staff not found"));
+                .orElseThrow(() -> new RuntimeException("Kh\u00f4ng t\u00ecm th\u1ea5y nh\u00e2n vi\u00ean"));
 
         if (!RoleName.EMPLOYEE.equals(staff.getRole().getName())) {
-            throw new RuntimeException("User is not a staff member");
+            throw new RuntimeException("Ng\u01b0\u1eddi d\u00f9ng n\u00e0y kh\u00f4ng ph\u1ea3i nh\u00e2n vi\u00ean");
         }
 
         staff.setDeletedAt(LocalDateTime.now());
@@ -213,10 +213,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public StaffResponse getStaffById(Long id) {
         User staff = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Staff not found"));
+                .orElseThrow(() -> new RuntimeException("Kh\u00f4ng t\u00ecm th\u1ea5y nh\u00e2n vi\u00ean"));
 
         if (!RoleName.EMPLOYEE.equals(staff.getRole().getName())) {
-            throw new RuntimeException("User is not a staff member");
+            throw new RuntimeException("Ng\u01b0\u1eddi d\u00f9ng n\u00e0y kh\u00f4ng ph\u1ea3i nh\u00e2n vi\u00ean");
         }
 
         return new StaffResponse(staff);
@@ -225,7 +225,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserProfileResponse getCurrentUser(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Kh\u00f4ng t\u00ecm th\u1ea5y ng\u01b0\u1eddi d\u00f9ng"));
 
         return new UserProfileResponse(user);
     }
@@ -236,7 +236,7 @@ public class UserServiceImpl implements UserService {
             UpdateUserProfileRequest request) {
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Kh\u00f4ng t\u00ecm th\u1ea5y ng\u01b0\u1eddi d\u00f9ng"));
 
         boolean emailChanged = false;
 
@@ -255,7 +255,7 @@ public class UserServiceImpl implements UserService {
             }
             if (!user.getEmail().equalsIgnoreCase(newEmail)
                     && userRepository.existsByEmail(newEmail)) {
-                throw new RuntimeException("Email already exists");
+                throw new RuntimeException("Email \u0111\u00e3 t\u1ed3n t\u1ea1i");
             }
             emailChanged = !user.getEmail().equals(newEmail);
             user.setEmail(newEmail);
@@ -268,7 +268,7 @@ public class UserServiceImpl implements UserService {
             }
             if (!user.getPhone().equals(newPhone)
                     && userRepository.existsByPhone(newPhone)) {
-                throw new RuntimeException("Phone already exists");
+                throw new RuntimeException("S\u1ed1 \u0111i\u1ec7n tho\u1ea1i \u0111\u00e3 t\u1ed3n t\u1ea1i");
             }
             user.setPhone(newPhone);
         }
@@ -318,7 +318,7 @@ public class UserServiceImpl implements UserService {
         }
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Kh\u00f4ng t\u00ecm th\u1ea5y ng\u01b0\u1eddi d\u00f9ng"));
 
         try {
             Path avatarDir = UploadPathUtils.resolveUploadRoot(uploadDir)

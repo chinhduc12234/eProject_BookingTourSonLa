@@ -75,7 +75,7 @@ public class ProvinceServiceImpl implements ProvinceService {
                 .existsByNameIgnoreCaseAndDeletedFalse(provinceName)) {
 
             throw new RuntimeException(
-                    "Province name already exists");
+                    "T\u00ean t\u1ec9nh \u0111\u00e3 t\u1ed3n t\u1ea1i");
         }
 
         Province province = new Province();
@@ -103,7 +103,7 @@ public class ProvinceServiceImpl implements ProvinceService {
                         .existsByNameIgnoreCaseAndDeletedFalse(newName)) {
 
             throw new RuntimeException(
-                    "Province name already exists");
+                    "T\u00ean t\u1ec9nh \u0111\u00e3 t\u1ed3n t\u1ea1i");
         }
 
         existing.setName(newName);

@@ -42,9 +42,26 @@ export const employeeApi = {
       data,
     );
   },
+  uploadScheduleActivityReportImage: async (bookingId, activityId, file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return await axiosClient.post(
+      `/employee/bookings/${bookingId}/schedule-activities/${activityId}/report-image`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+  },
   updateBookingStatus: async (bookingId, status) => {
     return await axiosClient.put(`/employee/bookings/${bookingId}/status`, null, {
       params: { status }
     });
+  },
+  completeBooking: async (bookingId) => {
+    return await axiosClient.put(`/employee/bookings/${bookingId}/complete`);
   }
 };

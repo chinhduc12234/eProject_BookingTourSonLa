@@ -149,7 +149,7 @@ public class TourImageServiceImpl
         return tourRepository
                 .findById(tourId)
                 .orElseThrow(() -> new RuntimeException(
-                        "Tour not found"));
+                        "Kh\u00f4ng t\u00ecm th\u1ea5y tour"));
     }
 
     // ================= MAPPER =================

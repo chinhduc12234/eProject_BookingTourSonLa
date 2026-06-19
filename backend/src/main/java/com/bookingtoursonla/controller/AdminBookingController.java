@@ -15,6 +15,8 @@ import com.bookingtoursonla.dto.BookingResponse;
 import com.bookingtoursonla.dto.UpdateBookingAdminRequest;
 import com.bookingtoursonla.service.BookingService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/admin/bookings")
 public class AdminBookingController {
@@ -49,7 +51,7 @@ public class AdminBookingController {
     @PutMapping("/{id}")
     public BookingDetailResponse update(
             @PathVariable Long id,
-            @RequestBody UpdateBookingAdminRequest request,
+            @Valid @RequestBody UpdateBookingAdminRequest request,
             Authentication authentication) {
 
         return bookingService.updateAdminBooking(

@@ -46,7 +46,7 @@ public class TourDayServiceImpl implements TourDayService {
     public TourDayDto create(Long tourId, TourDayRequest request) {
 
         Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new RuntimeException("Tour not found"));
+                .orElseThrow(() -> new RuntimeException("Kh\u00f4ng t\u00ecm th\u1ea5y tour"));
 
         TourDay day = new TourDay();
         day.setTour(tour);
@@ -90,10 +90,10 @@ public class TourDayServiceImpl implements TourDayService {
     public void replaceAll(Long tourId, List<TourDayRequest> requests) {
 
         Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new RuntimeException("Tour not found"));
+                .orElseThrow(() -> new RuntimeException("Kh\u00f4ng t\u00ecm th\u1ea5y tour"));
 
         if (requests == null || requests.isEmpty()) {
-            throw new RuntimeException("Tour days request is empty");
+            throw new RuntimeException("Danh s\u00e1ch ng\u00e0y tour kh\u00f4ng \u0111\u01b0\u1ee3c \u0111\u1ec3 tr\u1ed1ng");
         }
 
         // 1. DELETE ACTIVITIES TRƯỚC
@@ -167,9 +167,26 @@ public class TourDayServiceImpl implements TourDayService {
 
         if (a.getLocation() != null) {
             dto.setLocationId(a.getLocation().getId());
-            dto.setLocationName(a.getLocation().getName());
         }
 
+        dto.setLocationName(resolveActivityLocationName(a));
+
         return dto;
+    }
+
+    private String resolveActivityLocationName(TourActivity activity) {
+        String customName = trimToNull(activity.getLocationName());
+        if (customName != null) {
+            return customName;
+        }
+        return activity.getLocation() != null ? activity.getLocation().getName() : null;
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

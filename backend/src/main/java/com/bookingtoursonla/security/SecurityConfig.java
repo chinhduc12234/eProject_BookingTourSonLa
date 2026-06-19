@@ -49,7 +49,12 @@ public class SecurityConfig {
                                                 .permitAll()
 
                                                 .requestMatchers(
-                                                                "/error")
+                                                "/error")
+                                                .permitAll()
+
+                                                .requestMatchers(
+                                                                "/actuator/health",
+                                                                "/actuator/info")
                                                 .permitAll()
 
                                                 .requestMatchers(
@@ -75,6 +80,14 @@ public class SecurityConfig {
                                                 .requestMatchers(
                                                                 "/api/admin/**")
                                                 .hasRole("ADMIN")
+
+                                                .requestMatchers(
+                                                                "/api/users/admin/**")
+                                                .hasRole("ADMIN")
+
+                                                .requestMatchers(
+                                                                "/api/employee/**")
+                                                .hasRole("EMPLOYEE")
 
                                                 .anyRequest()
                                                 .authenticated());

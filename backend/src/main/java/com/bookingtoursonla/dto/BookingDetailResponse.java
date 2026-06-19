@@ -132,4 +132,24 @@ public class BookingDetailResponse {
     private List<BookingCustomerResponse> customers;
 
     private List<BookingScheduleDayResponse> scheduleDays;
+
+    private Integer scheduleTotalActivities;
+
+    private Integer scheduleCompletedActivities;
+
+    private Integer scheduleChangedActivities;
+
+    private Integer scheduleSkippedActivities;
+
+    private Integer schedulePendingActivities;
+
+    private Integer scheduleProgressPercent;
+
+    private Boolean scheduleNeedsReview;
+
+    private String scheduleReportStatus;
+
+    private LocalDateTime scheduleLastUpdatedAt;
+
+    private String scheduleLastUpdatedBy;
 }

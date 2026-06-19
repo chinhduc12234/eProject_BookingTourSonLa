@@ -79,4 +79,24 @@ public class BookingResponse {
     private Integer totalPeople;
 
     private LocalDateTime bookedAt;
+
+    private Integer scheduleTotalActivities;
+
+    private Integer scheduleCompletedActivities;
+
+    private Integer scheduleChangedActivities;
+
+    private Integer scheduleSkippedActivities;
+
+    private Integer schedulePendingActivities;
+
+    private Integer scheduleProgressPercent;
+
+    private Boolean scheduleNeedsReview;
+
+    private String scheduleReportStatus;
+
+    private LocalDateTime scheduleLastUpdatedAt;
+
+    private String scheduleLastUpdatedBy;
 }

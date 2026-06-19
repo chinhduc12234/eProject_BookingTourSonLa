@@ -60,6 +60,7 @@ public class TourActivityServiceImpl implements TourActivityService {
         activity.setDescription(request.getDescription());
         activity.setStartTime(request.getStartTime());
         activity.setEndTime(request.getEndTime());
+        activity.setLocationName(trimToNull(request.getLocationName()));
 
         activity.setSortOrder(
                 request.getSortOrder() != null ? request.getSortOrder() : nextOrder);
@@ -79,6 +80,7 @@ public class TourActivityServiceImpl implements TourActivityService {
         activity.setDescription(request.getDescription());
         activity.setStartTime(request.getStartTime());
         activity.setEndTime(request.getEndTime());
+        activity.setLocationName(trimToNull(request.getLocationName()));
 
         if (request.getSortOrder() != null) {
             activity.setSortOrder(request.getSortOrder());
@@ -115,6 +117,7 @@ public class TourActivityServiceImpl implements TourActivityService {
             a.setDescription(r.getDescription());
             a.setStartTime(r.getStartTime());
             a.setEndTime(r.getEndTime());
+            a.setLocationName(trimToNull(r.getLocationName()));
 
             a.setSortOrder(r.getSortOrder() != null ? r.getSortOrder() : index++);
 
@@ -156,9 +159,26 @@ public class TourActivityServiceImpl implements TourActivityService {
 
         if (a.getLocation() != null) {
             dto.setLocationId(a.getLocation().getId());
-            dto.setLocationName(a.getLocation().getName());
         }
 
+        dto.setLocationName(resolveLocationName(a));
+
         return dto;
+    }
+
+    private String resolveLocationName(TourActivity activity) {
+        String customName = trimToNull(activity.getLocationName());
+        if (customName != null) {
+            return customName;
+        }
+        return activity.getLocation() != null ? activity.getLocation().getName() : null;
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

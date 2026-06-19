@@ -15,6 +15,8 @@ import com.bookingtoursonla.dto.TourActivityDto;
 import com.bookingtoursonla.dto.TourActivityRequest;
 import com.bookingtoursonla.service.TourActivityService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/admin")
 public class TourActivityController {
@@ -33,14 +35,14 @@ public class TourActivityController {
     @PostMapping("/tour-days/{tourDayId}/activities")
     public TourActivityDto create(
             @PathVariable Long tourDayId,
-            @RequestBody TourActivityRequest request) {
+            @Valid @RequestBody TourActivityRequest request) {
         return tourActivityService.create(tourDayId, request);
     }
 
     @PutMapping("/tour-activities/{id}")
     public TourActivityDto update(
             @PathVariable Long id,
-            @RequestBody TourActivityRequest request) {
+            @Valid @RequestBody TourActivityRequest request) {
         return tourActivityService.update(id, request);
     }
 
@@ -52,7 +54,7 @@ public class TourActivityController {
     @PutMapping("/tour-days/{tourDayId}/activities/replace")
     public void replaceAll(
             @PathVariable Long tourDayId,
-            @RequestBody List<TourActivityRequest> requests) {
+            @Valid @RequestBody List<@Valid TourActivityRequest> requests) {
         tourActivityService.replaceAll(tourDayId, requests);
     }
 }

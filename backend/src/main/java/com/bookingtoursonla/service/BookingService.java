@@ -3,6 +3,7 @@ package com.bookingtoursonla.service;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.bookingtoursonla.dto.BookingDetailResponse;
 import com.bookingtoursonla.dto.BookingResponse;
@@ -52,5 +53,15 @@ public interface BookingService {
             Long bookingId,
             Long activityId,
             UpdateBookingScheduleActivityRequest request,
+            String employeeEmail);
+
+    BookingDetailResponse completeEmployeeBooking(
+            Long bookingId,
+            String employeeEmail);
+
+    String uploadScheduleActivityReportImage(
+            Long bookingId,
+            Long activityId,
+            MultipartFile file,
             String employeeEmail);
 }

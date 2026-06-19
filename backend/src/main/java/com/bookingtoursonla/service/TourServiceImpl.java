@@ -140,7 +140,7 @@ public class TourServiceImpl
                                 request.getSlug().trim())) {
 
                         throw new RuntimeException(
-                                        "Slug already exists");
+                                        "Slug \u0111\u00e3 t\u1ed3n t\u1ea1i");
                 }
 
                 String email = SecurityUtils.getCurrentUserEmail();
@@ -148,7 +148,7 @@ public class TourServiceImpl
                 User createdBy = userRepository
                                 .findByEmail(email)
                                 .orElseThrow(() -> new RuntimeException(
-                                                "User not found"));
+                                                "Kh\u00f4ng t\u00ecm th\u1ea5y ng\u01b0\u1eddi d\u00f9ng"));
 
                 Tour tour = new Tour();
 
@@ -210,14 +210,14 @@ public class TourServiceImpl
                 Tour existing = tourRepository
                                 .findByIdAndDeletedAtIsNull(id)
                                 .orElseThrow(() -> new RuntimeException(
-                                                "Tour not found"));
+                                                "Kh\u00f4ng t\u00ecm th\u1ea5y tour"));
 
                 if (tourRepository.existsBySlugAndIdNot(
                                 request.getSlug().trim(),
                                 id)) {
 
                         throw new RuntimeException(
-                                        "Slug already exists");
+                                        "Slug \u0111\u00e3 t\u1ed3n t\u1ea1i");
                 }
 
                 existing.setTitle(
@@ -271,7 +271,7 @@ public class TourServiceImpl
                 Tour existing = tourRepository
                                 .findByIdAndDeletedAtIsNull(id)
                                 .orElseThrow(() -> new RuntimeException(
-                                                "Tour not found"));
+                                                "Kh\u00f4ng t\u00ecm th\u1ea5y tour"));
 
                 existing.setDeletedAt(
                                 LocalDateTime.now());
@@ -286,7 +286,7 @@ public class TourServiceImpl
                 Tour tour = tourRepository
                                 .findByIdAndDeletedAtIsNull(id)
                                 .orElseThrow(() -> new RuntimeException(
-                                                "Tour not found"));
+                                                "Kh\u00f4ng t\u00ecm th\u1ea5y tour"));
 
                 return mapToDto(tour);
         }

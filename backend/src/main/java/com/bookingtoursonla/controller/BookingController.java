@@ -59,7 +59,7 @@ public class BookingController {
     @PostMapping("/{id}/pay")
     public BookingDetailResponse pay(
             @PathVariable Long id,
-            @RequestBody(required = false) PayBookingRequest request,
+            @Valid @RequestBody(required = false) PayBookingRequest request,
             Authentication authentication) {
 
         return bookingService.payBooking(
@@ -71,7 +71,7 @@ public class BookingController {
     @PostMapping("/{id}/cancel")
     public BookingDetailResponse cancel(
             @PathVariable Long id,
-            @RequestBody(required = false) CancelBookingRequest request,
+            @Valid @RequestBody(required = false) CancelBookingRequest request,
             Authentication authentication) {
 
         return bookingService.cancelBooking(

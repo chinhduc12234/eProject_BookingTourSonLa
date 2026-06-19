@@ -11,17 +11,17 @@ import jakarta.validation.constraints.Size;
 
 public class UpdateStaffRequest {
 
-    @NotBlank(message = "Full name is required")
-    @Size(min = 2, max = 255, message = "Full name must be between 2 and 255 characters")
+    @NotBlank(message = "H\u1ecd t\u00ean nh\u00e2n vi\u00ean kh\u00f4ng \u0111\u01b0\u1ee3c \u0111\u1ec3 tr\u1ed1ng")
+    @Size(min = 2, max = 255, message = "H\u1ecd t\u00ean nh\u00e2n vi\u00ean ph\u1ea3i t\u1eeb 2 \u0111\u1ebfn 255 k\u00fd t\u1ef1")
     private String fullName;
 
-    @Email(message = "Email must be valid")
+    @Email(message = "Email nh\u00e2n vi\u00ean kh\u00f4ng \u0111\u00fang \u0111\u1ecbnh d\u1ea1ng")
     private String email;
 
-    @Pattern(regexp = "^\\d{10,20}$", message = "Phone must be between 10 and 20 digits")
+    @Pattern(regexp = "^\\d{10,20}$", message = "S\u1ed1 \u0111i\u1ec7n tho\u1ea1i ph\u1ea3i c\u00f3 t\u1eeb 10 \u0111\u1ebfn 20 ch\u1eef s\u1ed1")
     private String phone;
 
-    @Size(max = 500, message = "Avatar URL must not exceed 500 characters")
+    @Size(max = 500, message = "\u0110\u01b0\u1eddng d\u1eabn avatar kh\u00f4ng \u0111\u01b0\u1ee3c v\u01b0\u1ee3t qu\u00e1 500 k\u00fd t\u1ef1")
     private String avatar;
 
     private Gender gender;

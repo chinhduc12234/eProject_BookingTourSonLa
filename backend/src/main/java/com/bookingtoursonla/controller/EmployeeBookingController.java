@@ -7,36 +7,33 @@ import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.bookingtoursonla.dto.BookingDetailResponse;
 import com.bookingtoursonla.dto.BookingDashboardDTO;
 import com.bookingtoursonla.dto.UpdateBookingScheduleActivityRequest;
-import com.bookingtoursonla.entity.Booking;
 import com.bookingtoursonla.entity.User;
 import com.bookingtoursonla.entity.enums.BookingStatus;
 import com.bookingtoursonla.entity.enums.RoleName;
 import com.bookingtoursonla.repository.BookingEmployeeRepository;
-import com.bookingtoursonla.repository.BookingRepository;
 import com.bookingtoursonla.repository.UserRepository;
 import com.bookingtoursonla.service.BookingService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/employee")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
 public class EmployeeBookingController {
-
-    private final BookingRepository bookingRepository;
 
     private final BookingEmployeeRepository bookingEmployeeRepository;
 
@@ -69,7 +66,7 @@ public class EmployeeBookingController {
     public ResponseEntity<BookingDetailResponse> updateScheduleActivity(
             @PathVariable Long bookingId,
             @PathVariable Long activityId,
-            @RequestBody UpdateBookingScheduleActivityRequest request,
+            @Valid @RequestBody UpdateBookingScheduleActivityRequest request,
             Authentication authentication) {
 
         return ResponseEntity.ok(
@@ -78,6 +75,22 @@ public class EmployeeBookingController {
                         activityId,
                         request,
                         authentication != null ? authentication.getName() : null));
+    }
+
+    @PostMapping("/bookings/{bookingId}/schedule-activities/{activityId}/report-image")
+    public ResponseEntity<Map<String, String>> uploadScheduleActivityReportImage(
+            @PathVariable Long bookingId,
+            @PathVariable Long activityId,
+            @RequestParam("file") MultipartFile file,
+            Authentication authentication) {
+
+        String url = bookingService.uploadScheduleActivityReportImage(
+                bookingId,
+                activityId,
+                file,
+                authentication != null ? authentication.getName() : null);
+
+        return ResponseEntity.ok(Map.of("url", url));
     }
 
     @GetMapping("/stats")
@@ -96,6 +109,11 @@ public class EmployeeBookingController {
                                 || booking.getStatus() == BookingStatus.CONFIRMED)
                 .count();
 
+        long completedBookings = allBookings
+                .stream()
+                .filter(booking -> booking.getStatus() == BookingStatus.COMPLETED)
+                .count();
+
         BigDecimal totalRevenue =
                 bookingEmployeeRepository.calculateTotalConfirmedRevenueByEmployeeId(staffId);
 
@@ -107,32 +125,37 @@ public class EmployeeBookingController {
         stats.put("totalBookings", totalBookings);
         stats.put("pendingBookings", confirmedBookings);
         stats.put("confirmedBookings", confirmedBookings);
+        stats.put("completedBookings", completedBookings);
         stats.put("totalRevenue", totalRevenue);
 
         return ResponseEntity.ok(stats);
     }
 
     @PutMapping("/bookings/{id}/status")
-    public ResponseEntity<Map<String, String>> updateBookingStatus(
+    public ResponseEntity<BookingDetailResponse> updateBookingStatus(
             @PathVariable Long id,
             @RequestParam BookingStatus status,
             Authentication authentication) {
 
-        Long staffId = currentEmployeeId(authentication);
-
-        Booking booking = bookingRepository.findByIdAndDeletedAtIsNull(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy booking hợp lệ"));
-
-        if (!bookingEmployeeRepository.existsByBookingIdAndEmployeeId(id, staffId)) {
-            throw new RuntimeException("Bạn không được phân công booking này");
+        if (status != BookingStatus.COMPLETED) {
+            throw new RuntimeException("Nhân viên chỉ được đánh dấu tour hoàn thành từ timeline");
         }
 
-        booking.setStatus(status);
-        bookingRepository.save(booking);
+        return ResponseEntity.ok(
+                bookingService.completeEmployeeBooking(
+                        id,
+                        authentication != null ? authentication.getName() : null));
+    }
 
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Cập nhật trạng thái booking thành công");
-        return ResponseEntity.ok(response);
+    @PutMapping("/bookings/{id}/complete")
+    public ResponseEntity<BookingDetailResponse> completeBooking(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        return ResponseEntity.ok(
+                bookingService.completeEmployeeBooking(
+                        id,
+                        authentication != null ? authentication.getName() : null));
     }
 
     private Long currentEmployeeId(Authentication authentication) {

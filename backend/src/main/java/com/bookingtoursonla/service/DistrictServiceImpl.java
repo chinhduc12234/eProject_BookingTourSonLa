@@ -101,7 +101,7 @@ public class DistrictServiceImpl implements DistrictService {
 
         if (exists) {
             throw new RuntimeException(
-                    "District name already exists in this province");
+                    "T\u00ean huy\u1ec7n \u0111\u00e3 t\u1ed3n t\u1ea1i trong t\u1ec9nh n\u00e0y");
         }
 
         District district = new District();
@@ -139,7 +139,7 @@ public class DistrictServiceImpl implements DistrictService {
                                 province.getId())) {
 
             throw new RuntimeException(
-                    "District name already exists in this province");
+                    "T\u00ean huy\u1ec7n \u0111\u00e3 t\u1ed3n t\u1ea1i trong t\u1ec9nh n\u00e0y");
         }
 
         existing.setName(newName);

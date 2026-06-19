@@ -31,14 +31,14 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
 
     public AuthResponse register(
-            RegisterRequest request) {
+        RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new RuntimeException("Email \u0111\u00e3 t\u1ed3n t\u1ea1i");
         }
 
         if (userRepository.existsByPhone(request.getPhone())) {
-            throw new RuntimeException("Phone already exists");
+            throw new RuntimeException("S\u1ed1 \u0111i\u1ec7n tho\u1ea1i \u0111\u00e3 t\u1ed3n t\u1ea1i");
         }
 
         Role customerRole = roleRepository

@@ -401,6 +401,7 @@ CREATE TABLE `tour_activities` (
   `id` bigint(20) NOT NULL,
   `tour_day_id` bigint(20) NOT NULL,
   `location_id` bigint(20) DEFAULT NULL,
+  `location_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `start_time` time DEFAULT NULL,
   `end_time` time DEFAULT NULL,
   `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,

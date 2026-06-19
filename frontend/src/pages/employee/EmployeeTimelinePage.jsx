@@ -14,6 +14,7 @@ import {
   Circle,
   Clock,
   Flag,
+  Image,
   Loader2,
   Mail,
   MapPin,
@@ -21,12 +22,14 @@ import {
   Save,
   ShieldCheck,
   Sparkles,
+  UploadCloud,
   UserCheck,
   Users,
   XCircle,
   Zap,
 } from "lucide-react";
 import { employeeApi } from "../../api/bookingApi";
+import { resolveUploadedFileUrl } from "../../api/userApi";
 import {
   Badge,
   bookingTypeText,
@@ -192,6 +195,7 @@ export default function EmployeeTimelinePage() {
   const [activityForms, setActivityForms] = useState({});
   const [loading, setLoading] = useState(true);
   const [savingActivityId, setSavingActivityId] = useState(null);
+  const [uploadingImageId, setUploadingImageId] = useState(null);
   const [completingTour, setCompletingTour] = useState(false);
   const [activeStepKey, setActiveStepKey] = useState("confirm");
   const [expandedActivities, setExpandedActivities] = useState({});
@@ -327,7 +331,7 @@ export default function EmployeeTimelinePage() {
       setActivityForms(buildActivityForms(nextDetail));
 
       const statusLabel = STATUS_OPTIONS.find((s) => s.value === status)?.label || status;
-      toast.success(`Đã lưu: ${activity.title} — ${statusLabel}`);
+      toast.success(`Đã lưu và báo về admin: ${activity.title} — ${statusLabel}`);
 
       setExpandedActivities((current) => ({ ...current, [activity.id]: false }));
       return true;
@@ -355,6 +359,42 @@ export default function EmployeeTimelinePage() {
     await submitActivityUpdate(activity, payload);
   };
 
+  const uploadReportImage = async (activity, file) => {
+    if (!detail || !file) return;
+
+    if (!file.type?.startsWith("image/")) {
+      toast.error("Vui lòng chọn file ảnh để báo cáo.");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Ảnh báo cáo không được vượt quá 10MB.");
+      return;
+    }
+
+    try {
+      setUploadingImageId(activity.id);
+      const response = await employeeApi.uploadScheduleActivityReportImage(
+        detail.id,
+        activity.id,
+        file,
+      );
+      const url = response?.data?.url || response?.url;
+
+      if (!url) {
+        throw new Error("Không nhận được đường dẫn ảnh báo cáo");
+      }
+
+      updateActivityForm(activity.id, { attachmentUrl: url });
+      toast.success("Đã tải ảnh báo cáo lên. Bấm Lưu tình trạng để gửi cho admin.");
+    } catch (error) {
+      console.error("Lỗi upload ảnh báo cáo:", error);
+      toast.error(error?.response?.data?.message || "Không thể tải ảnh báo cáo.");
+    } finally {
+      setUploadingImageId(null);
+    }
+  };
+
   const completeTour = async () => {
     if (!progress.isComplete) {
       toast.error("Còn hoạt động chưa cập nhật. Vui lòng hoàn tất trước.");
@@ -364,9 +404,11 @@ export default function EmployeeTimelinePage() {
 
     try {
       setCompletingTour(true);
-      await employeeApi.updateBookingStatus(detail.id, "COMPLETED");
-      await loadDetail();
-      toast.success("Tour đã được đánh dấu hoàn thành!");
+      const response = await employeeApi.completeBooking(detail.id);
+      const nextDetail = response.data || response;
+      setDetail(nextDetail);
+      setActivityForms(buildActivityForms(nextDetail));
+      toast.success("Đã báo admin: tour đã hoàn thành!");
       setActiveStepKey("finish");
     } catch (error) {
       toast.error(error?.response?.data?.message || "Không thể hoàn thành tour.");
@@ -656,9 +698,62 @@ export default function EmployeeTimelinePage() {
               onChange={(e) => updateActivityForm(activity.id, { actualNote: e.target.value })}
             />
           </label>
+          <label className="tl-field full">
+            <span>Link minh chứng / ảnh báo cáo</span>
+            <input
+              type="url"
+              value={form.attachmentUrl || ""}
+              disabled={isPending}
+              placeholder="Dán link ảnh, file hoặc bài báo cáo nếu có"
+              onChange={(e) => updateActivityForm(activity.id, { attachmentUrl: e.target.value })}
+            />
+          </label>
+          <div className="tl-field full">
+            <span>Upload ảnh báo cáo</span>
+            <div className="tl-report-upload-row">
+              <label className={`tl-report-upload-btn${isPending ? " is-disabled" : ""}`}>
+                {uploadingImageId === activity.id ? (
+                  <Loader2 className="spin-icon" />
+                ) : (
+                  <UploadCloud />
+                )}
+                {uploadingImageId === activity.id ? "Đang tải ảnh..." : "Chọn ảnh báo cáo"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={isPending || uploadingImageId === activity.id}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    uploadReportImage(activity, file);
+                  }}
+                />
+              </label>
+              <small>Ảnh JPG, PNG, WEBP hoặc GIF, tối đa 10MB.</small>
+            </div>
+            {String(form.attachmentUrl || "").startsWith("/uploads/") && (
+              <div className="tl-report-preview">
+                <Image />
+                <img
+                  src={resolveUploadedFileUrl(form.attachmentUrl)}
+                  alt="Ảnh báo cáo hoạt động"
+                />
+                <a
+                  href={resolveUploadedFileUrl(form.attachmentUrl)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Xem ảnh báo cáo
+                </a>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="tl-save-row">
+          <span className="tl-admin-report-hint">
+            Khi bấm lưu, nội dung này sẽ hiển thị ngay trong trang theo dõi của admin.
+          </span>
           <button
             type="button"
             className="tl-save-btn"

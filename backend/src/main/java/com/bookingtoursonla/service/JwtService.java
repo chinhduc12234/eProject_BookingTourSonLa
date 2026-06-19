@@ -1,9 +1,13 @@
 package com.bookingtoursonla.service;
 
 import java.util.Date;
+import java.nio.charset.StandardCharsets;
 
 import javax.crypto.SecretKey;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -15,12 +19,36 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JwtService {
 
-        private static final String SECRET_KEY = "bookingtoursonlasecretkeybookingtoursonlasecretkey123456";
+        private static final Logger log = LoggerFactory.getLogger(JwtService.class);
 
-        private static final long EXPIRATION = 1000 * 60 * 60 * 24;
+        private static final int MIN_HS256_SECRET_BYTES = 32;
 
-        private SecretKey getSignKey() {
-                return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+        private final SecretKey signKey;
+
+        private final long expirationMillis;
+
+        public JwtService(
+                        @Value("${jwt.secret:}") String secret,
+                        @Value("${jwt.expiration:86400000}") long expirationMillis) {
+
+                this.signKey = buildSignKey(secret);
+                this.expirationMillis = expirationMillis;
+        }
+
+        private SecretKey buildSignKey(String secret) {
+
+                if (secret == null || secret.isBlank()) {
+                        log.warn("JWT_SECRET chua duoc cau hinh; he thong dang dung khoa tam thoi cho moi lan khoi dong.");
+                        return Jwts.SIG.HS256.key().build();
+                }
+
+                byte[] secretBytes = secret.getBytes(StandardCharsets.UTF_8);
+
+                if (secretBytes.length < MIN_HS256_SECRET_BYTES) {
+                        throw new IllegalStateException("JWT_SECRET phai co it nhat 32 byte de ky HS256.");
+                }
+
+                return Keys.hmacShaKeyFor(secretBytes);
         }
 
         public String generateToken(String email) {
@@ -28,8 +56,8 @@ public class JwtService {
                 return Jwts.builder()
                                 .subject(email)
                                 .issuedAt(new Date())
-                                .expiration(new Date(System.currentTimeMillis() + EXPIRATION))
-                                .signWith(getSignKey(), SignatureAlgorithm.HS256)
+                                .expiration(new Date(System.currentTimeMillis() + expirationMillis))
+                                .signWith(signKey, SignatureAlgorithm.HS256)
                                 .compact();
         }
 
@@ -56,7 +84,7 @@ public class JwtService {
         private Claims extractAllClaims(String token) {
 
                 return Jwts.parser()
-                                .verifyWith(getSignKey())
+                                .verifyWith(signKey)
                                 .build()
                                 .parseSignedClaims(token)
                                 .getPayload();

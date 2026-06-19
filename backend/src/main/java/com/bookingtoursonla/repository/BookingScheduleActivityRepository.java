@@ -34,7 +34,9 @@ public interface BookingScheduleActivityRepository extends JpaRepository<Booking
     @Query("""
             SELECT a FROM BookingScheduleActivity a
             JOIN a.bookingScheduleDay d
+            LEFT JOIN FETCH a.updatedByEmployee
             WHERE d.booking.id = :bookingId
+            ORDER BY d.dayNumber ASC, a.startTime ASC, a.id ASC
             """)
     List<BookingScheduleActivity> findByBookingId(
             @Param("bookingId") Long bookingId);

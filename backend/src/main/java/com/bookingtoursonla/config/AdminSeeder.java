@@ -8,6 +8,9 @@ import com.bookingtoursonla.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -16,11 +19,28 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AdminSeeder implements CommandLineRunner {
 
+    private static final Logger log = LoggerFactory.getLogger(AdminSeeder.class);
+
     private final UserRepository userRepository;
 
     private final RoleRepository roleRepository;
 
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${app.seed-admin.enabled:true}")
+    private boolean seedAdminEnabled;
+
+    @Value("${app.seed-admin.email:admin@gmail.com}")
+    private String adminEmail;
+
+    @Value("${app.seed-admin.full-name:Administrator}")
+    private String adminFullName;
+
+    @Value("${app.seed-admin.phone:0123456789}")
+    private String adminPhone;
+
+    @Value("${app.seed-admin.password:123456}")
+    private String adminPassword;
 
     @Override
     public void run(String... args) {
@@ -31,7 +51,25 @@ public class AdminSeeder implements CommandLineRunner {
                     .orElseGet(() -> roleRepository.save(new Role(roleName)));
         }
 
-        if (userRepository.existsByEmail("admin@gmail.com")) {
+        if (!seedAdminEnabled) {
+            return;
+        }
+
+        if (adminPassword == null || adminPassword.isBlank()) {
+            log.warn("APP_ADMIN_PASSWORD chua duoc cau hinh; bo qua viec tao tai khoan admin mac dinh.");
+            return;
+        }
+
+        User existingAdmin = userRepository
+                .findByEmail(adminEmail)
+                .orElse(null);
+
+        if (existingAdmin != null) {
+            if (!passwordEncoder.matches(adminPassword, existingAdmin.getPassword())) {
+                existingAdmin.setPassword(passwordEncoder.encode(adminPassword));
+                userRepository.save(existingAdmin);
+                log.info("Da cap nhat mat khau admin mac dinh tu cau hinh.");
+            }
             return;
         }
 
@@ -41,19 +79,19 @@ public class AdminSeeder implements CommandLineRunner {
 
         User admin = new User();
 
-        admin.setFullName("Administrator");
+        admin.setFullName(adminFullName);
 
-        admin.setEmail("admin@gmail.com");
+        admin.setEmail(adminEmail);
 
-        admin.setPhone("0123456789");
+        admin.setPhone(adminPhone);
 
         admin.setPassword(
-                passwordEncoder.encode("123456"));
+                passwordEncoder.encode(adminPassword));
 
         admin.setRole(adminRole);
 
         userRepository.save(admin);
 
-        System.out.println("ADMIN CREATED");
+        log.info("Da tao tai khoan admin mac dinh tu cau hinh moi truong.");
     }
 }

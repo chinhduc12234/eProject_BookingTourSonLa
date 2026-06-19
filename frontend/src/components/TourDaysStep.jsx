@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {
   CalendarDays,
   MapPin,
@@ -6,26 +5,10 @@ import {
   Trash2,
 } from "lucide-react";
 
-import { getLocations } from "../api/locationApi";
-
 export default function TourDaysStep({
   data = [],
   onChange,
 }) {
-
-  const [locations, setLocations] = useState([]);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await getLocations({ page: 0, size: 500 });
-        const list = res?.data?.content ?? res?.data ?? [];
-        setLocations(Array.isArray(list) ? list : []);
-      } catch (err) {
-        console.error("LOAD LOCATIONS:", err);
-      }
-    })();
-  }, []);
 
   // ================= UPDATE ROOT =================
 
@@ -117,6 +100,8 @@ export default function TourDaysStep({
 
           locationId: null,
 
+          locationName: "",
+
           sortOrder:
             activities.length,
         },
@@ -145,6 +130,33 @@ export default function TourDaysStep({
     activities[activityIndex] = {
       ...activities[activityIndex],
       [field]: value,
+    };
+
+    updated[dayIndex] = {
+      ...updated[dayIndex],
+      activities,
+    };
+
+    setDays(updated);
+  };
+
+  const updateActivityLocationName = (
+    dayIndex,
+    activityIndex,
+    value
+  ) => {
+
+    const updated = [...data];
+
+    const activities = [
+      ...(updated[dayIndex]
+        .activities || []),
+    ];
+
+    activities[activityIndex] = {
+      ...activities[activityIndex],
+      locationId: null,
+      locationName: value,
     };
 
     updated[dayIndex] = {
@@ -548,27 +560,17 @@ export default function TourDaysStep({
                         Địa điểm
                       </label>
 
-                      <select
-                        value={activity.locationId ?? ""}
-                        onChange={(e) => {
-                          const raw = e.target.value;
-                          const id = raw === "" ? null : Number(raw);
-                          const loc = locations.find((l) => l.id === id);
-                          const updated = [...data];
-                          const activities = [
-                            ...(updated[dayIndex].activities || []),
-                          ];
-                          activities[activityIndex] = {
-                            ...activities[activityIndex],
-                            locationId: id,
-                            locationName: loc?.name ?? null,
-                          };
-                          updated[dayIndex] = {
-                            ...updated[dayIndex],
-                            activities,
-                          };
-                          setDays(updated);
-                        }}
+                      <input
+                        type="text"
+                        value={activity.locationName || ""}
+                        onChange={(e) =>
+                          updateActivityLocationName(
+                            dayIndex,
+                            activityIndex,
+                            e.target.value
+                          )
+                        }
+                        placeholder="Nhập địa điểm hoạt động..."
                         className="
                           w-full
                           h-11
@@ -583,14 +585,7 @@ export default function TourDaysStep({
                           duration-300
                           bg-white
                         "
-                      >
-                        <option value="">— Không chọn —</option>
-                        {locations.map((loc) => (
-                          <option key={loc.id} value={loc.id}>
-                            {loc.name}
-                          </option>
-                        ))}
-                      </select>
+                      />
 
                     </div>
 

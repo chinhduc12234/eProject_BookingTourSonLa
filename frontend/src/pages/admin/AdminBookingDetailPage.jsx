@@ -3,11 +3,13 @@ import { Link, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   Activity,
+  AlertTriangle,
   ArrowLeft,
   CalendarDays,
   CheckCircle2,
   ClipboardList,
   CreditCard,
+  ExternalLink,
   Loader2,
   Mail,
   MapPin,
@@ -343,9 +345,24 @@ export default function AdminBookingDetailPage() {
   const completedScheduleActivities = scheduleActivities.filter((activity) =>
     ["DONE", "CHANGED", "SKIPPED"].includes(activity.status),
   ).length;
+  const changedScheduleActivities =
+    detail.scheduleChangedActivities ??
+    scheduleActivities.filter((activity) => activity.status === "CHANGED").length;
+  const skippedScheduleActivities =
+    detail.scheduleSkippedActivities ??
+    scheduleActivities.filter((activity) => activity.status === "SKIPPED").length;
+  const pendingScheduleActivities =
+    detail.schedulePendingActivities ??
+    Math.max(0, scheduleActivities.length - completedScheduleActivities);
   const scheduleProgress = scheduleActivities.length
     ? Math.round((completedScheduleActivities / scheduleActivities.length) * 100)
     : 0;
+  const scheduleNeedsReview =
+    detail.scheduleNeedsReview ||
+    changedScheduleActivities > 0 ||
+    skippedScheduleActivities > 0;
+  const scheduleLastUpdatedAt = detail.scheduleLastUpdatedAt;
+  const scheduleLastUpdatedBy = detail.scheduleLastUpdatedBy;
 
   return (
     <div className="min-h-screen bg-[#f8fafc] p-4 text-slate-900 md:p-8">
@@ -390,6 +407,26 @@ export default function AdminBookingDetailPage() {
           <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-800">
             Đặt lịch đã hủy. Chính sách hoàn tiền bên dưới đang phản ánh theo
             ngày khởi hành của booking này.
+          </div>
+        )}
+
+        {scheduleNeedsReview && (
+          <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 shrink-0 text-amber-700" size={20} />
+              <div>
+                <div className="font-black">Có báo cáo lịch trình cần admin xem</div>
+                <div className="mt-1">
+                  Nhân viên đã ghi nhận {changedScheduleActivities} hoạt động thay đổi và {skippedScheduleActivities} hoạt động bỏ qua.
+                </div>
+              </div>
+            </div>
+            <a
+              href="#timeline"
+              className="inline-flex h-10 items-center justify-center rounded-xl bg-amber-700 px-4 text-xs font-black text-white transition hover:bg-slate-950"
+            >
+              Xem timeline
+            </a>
           </div>
         )}
 
@@ -538,7 +575,7 @@ export default function AdminBookingDetailPage() {
                   </div>
                 </div>
 
-                <div className="mt-5 grid gap-3 md:grid-cols-3">
+                <div className="mt-5 grid gap-3 md:grid-cols-4">
                   <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
                     <div className="text-xs font-black uppercase tracking-wide text-emerald-700">
                       Mốc xác nhận
@@ -581,6 +618,39 @@ export default function AdminBookingDetailPage() {
                       <Badge meta={getMeta(statusMeta, detail.status)} />
                     </div>
                   </div>
+                  <div
+                    className={[
+                      "rounded-2xl border p-4",
+                      scheduleNeedsReview
+                        ? "border-amber-200 bg-amber-50"
+                        : "border-emerald-100 bg-emerald-50",
+                    ].join(" ")}
+                  >
+                    <div
+                      className={[
+                        "text-xs font-black uppercase tracking-wide",
+                        scheduleNeedsReview ? "text-amber-700" : "text-emerald-700",
+                      ].join(" ")}
+                    >
+                      Báo cáo nhân viên
+                    </div>
+                    <div
+                      className={[
+                        "mt-2 font-black",
+                        scheduleNeedsReview ? "text-amber-950" : "text-emerald-950",
+                      ].join(" ")}
+                    >
+                      {scheduleNeedsReview ? "Cần admin xem lại" : "Chưa có vấn đề phát sinh"}
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-slate-700">
+                      Đổi: {changedScheduleActivities} · Bỏ qua: {skippedScheduleActivities} · Còn: {pendingScheduleActivities}
+                    </div>
+                    {scheduleLastUpdatedAt && (
+                      <div className="mt-2 text-xs font-bold text-slate-600">
+                        {scheduleLastUpdatedBy || "Nhân viên"} · {formatDateTime(scheduleLastUpdatedAt)}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="mt-6 space-y-5">
@@ -607,10 +677,11 @@ export default function AdminBookingDetailPage() {
                         {day.activities?.length > 0 ? (
                           day.activities.map((activity) => {
                             const hasActualInfo =
+                              activity.status !== "PENDING" ||
                               activity.actualStartTime ||
                               activity.actualEndTime ||
-                              activity.actualLocation ||
                               activity.actualNote ||
+                              activity.attachmentUrl ||
                               activity.updatedByEmployeeName;
 
                             return (
@@ -677,6 +748,16 @@ export default function AdminBookingDetailPage() {
                                         </div>
                                       </div>
                                     )}
+                                    {activity.updatedAt && (
+                                      <div>
+                                        <div className="text-xs font-black uppercase tracking-wide text-slate-400">
+                                          Cập nhật mới nhất
+                                        </div>
+                                        <div className="mt-1 font-bold text-slate-900">
+                                          {formatDateTime(activity.updatedAt)}
+                                        </div>
+                                      </div>
+                                    )}
                                     {activity.actualLocation && (
                                       <div>
                                         <div className="text-xs font-black uppercase tracking-wide text-slate-400">
@@ -705,6 +786,29 @@ export default function AdminBookingDetailPage() {
                                         <div className="mt-1 whitespace-pre-line font-semibold leading-6 text-slate-700">
                                           {activity.actualNote}
                                         </div>
+                                      </div>
+                                    )}
+                                    {activity.attachmentUrl && (
+                                      <div className="md:col-span-2">
+                                        <div className="text-xs font-black uppercase tracking-wide text-slate-400">
+                                          Minh chứng nhân viên gửi
+                                        </div>
+                                        {String(activity.attachmentUrl).startsWith("/uploads/") && (
+                                          <img
+                                            src={resolveUploadedFileUrl(activity.attachmentUrl)}
+                                            alt="Ảnh minh chứng nhân viên gửi"
+                                            className="mt-2 h-36 w-full max-w-sm rounded-2xl border border-slate-200 object-cover"
+                                          />
+                                        )}
+                                        <a
+                                          href={resolveUploadedFileUrl(activity.attachmentUrl)}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="mt-1 inline-flex items-center gap-2 break-all text-sm font-black text-emerald-700 hover:text-slate-950"
+                                        >
+                                          <ExternalLink size={15} />
+                                          {activity.attachmentUrl}
+                                        </a>
                                       </div>
                                     )}
                                   </div>

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   Activity,
+  AlertTriangle,
   CalendarDays,
   CreditCard,
   Eye,
@@ -19,11 +20,35 @@ import {
   bookingStatuses,
   formatCurrency,
   formatDate,
+  formatDateTime,
   getMeta,
   paymentMeta,
   paymentStatuses,
   statusMeta,
 } from "./bookingShared";
+
+const scheduleReportMeta = {
+  EMPTY: {
+    label: "Chưa có lịch trình",
+    className: "border-slate-200 bg-slate-50 text-slate-600",
+  },
+  WAITING: {
+    label: "Chưa báo cáo",
+    className: "border-slate-200 bg-slate-50 text-slate-600",
+  },
+  IN_PROGRESS: {
+    label: "Đang báo cáo",
+    className: "border-sky-200 bg-sky-50 text-sky-800",
+  },
+  NEEDS_REVIEW: {
+    label: "Cần admin xem",
+    className: "border-amber-200 bg-amber-50 text-amber-800",
+  },
+  COMPLETED: {
+    label: "Ổn, đã xong",
+    className: "border-emerald-200 bg-emerald-50 text-emerald-800",
+  },
+};
 
 export default function BookingPage() {
   const [bookings, setBookings] = useState([]);
@@ -101,12 +126,13 @@ export default function BookingPage() {
     const pendingPayment = bookings.filter(
       (booking) => booking.paymentStatus === "PENDING_REVIEW",
     ).length;
+    const needsReview = bookings.filter((booking) => booking.scheduleNeedsReview).length;
     const people = bookings.reduce(
       (sum, booking) => sum + Number(booking.totalPeople || 0),
       0,
     );
 
-    return { confirmed, paid, pendingPayment, people };
+    return { confirmed, paid, pendingPayment, needsReview, people };
   }, [bookings]);
 
   const submitSearch = (event) => {
@@ -144,10 +170,11 @@ export default function BookingPage() {
           </button>
         </div>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           {[
             { label: "Tổng booking", value: totalElements, Icon: TicketCheck },
             { label: "Chờ/Xác nhận", value: summary.confirmed, Icon: CalendarDays },
+            { label: "Báo cáo cần xem", value: summary.needsReview, Icon: AlertTriangle },
             { label: "Kiểm tra thanh toán", value: summary.pendingPayment, Icon: CreditCard },
             { label: "Khách trong trang", value: summary.people, Icon: Users },
           ].map(({ label, value, Icon }) => (
@@ -222,7 +249,7 @@ export default function BookingPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1180px] text-left text-sm">
+              <table className="w-full min-w-[1320px] text-left text-sm">
                 <thead className="bg-slate-50 text-xs font-black uppercase tracking-wider text-slate-500">
                   <tr>
                     <th className="px-5 py-4">Booking</th>
@@ -232,6 +259,7 @@ export default function BookingPage() {
                     <th className="px-5 py-4">Số khách</th>
                     <th className="px-5 py-4">Tổng tiền</th>
                     <th className="px-5 py-4">Trạng thái</th>
+                    <th className="px-5 py-4">Báo cáo NV</th>
                     <th className="px-5 py-4">Thanh toán</th>
                     <th className="px-5 py-4">Thao tác</th>
                   </tr>
@@ -272,6 +300,28 @@ export default function BookingPage() {
                       </td>
                       <td className="px-5 py-4">
                         <Badge meta={getMeta(statusMeta, booking.status)} />
+                      </td>
+                      <td className="px-5 py-4">
+                        <div
+                          className={[
+                            "inline-flex min-h-9 items-center rounded-full border px-3 text-xs font-black",
+                            getMeta(scheduleReportMeta, booking.scheduleReportStatus).className,
+                          ].join(" ")}
+                        >
+                          {getMeta(scheduleReportMeta, booking.scheduleReportStatus).label}
+                        </div>
+                        {Number(booking.scheduleTotalActivities || 0) > 0 && (
+                          <div className="mt-2 text-xs font-bold text-slate-500">
+                            {booking.scheduleCompletedActivities || 0}/{booking.scheduleTotalActivities || 0} mốc
+                            {" · "}
+                            {booking.scheduleProgressPercent || 0}%
+                          </div>
+                        )}
+                        {booking.scheduleLastUpdatedAt && (
+                          <div className="mt-1 max-w-[190px] text-xs font-semibold text-slate-500">
+                            {booking.scheduleLastUpdatedBy || "Nhân viên"} · {formatDateTime(booking.scheduleLastUpdatedAt)}
+                          </div>
+                        )}
                       </td>
                       <td className="px-5 py-4">
                         <Badge meta={getMeta(paymentMeta, booking.paymentStatus)} />

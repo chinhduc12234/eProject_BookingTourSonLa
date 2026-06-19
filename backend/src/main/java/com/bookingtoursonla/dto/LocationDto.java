@@ -12,8 +12,8 @@ public class LocationDto {
 
     private Long id;
 
-    @NotBlank(message = "Location name is required")
-    @Size(min = 2, max = 255)
+    @NotBlank(message = "T\u00ean \u0111\u1ecba \u0111i\u1ec3m kh\u00f4ng \u0111\u01b0\u1ee3c \u0111\u1ec3 tr\u1ed1ng")
+    @Size(min = 2, max = 255, message = "T\u00ean \u0111\u1ecba \u0111i\u1ec3m ph\u1ea3i t\u1eeb 2 \u0111\u1ebfn 255 k\u00fd t\u1ef1")
     private String name;
 
     private String description;
@@ -28,7 +28,7 @@ public class LocationDto {
 
     private Boolean active;
 
-    @NotNull(message = "District is required")
+    @NotNull(message = "Vui l\u00f2ng ch\u1ecdn huy\u1ec7n")
     private Long districtId;
 
     private String districtName;

@@ -1,7 +1,10 @@
 package com.bookingtoursonla.service;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -11,15 +14,19 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.bookingtoursonla.config.UploadPathUtils;
 import com.bookingtoursonla.dto.BookingCustomerRequest;
 import com.bookingtoursonla.dto.BookingCustomerResponse;
 import com.bookingtoursonla.dto.BookingDetailResponse;
@@ -72,6 +79,14 @@ public class BookingServiceImpl implements BookingService {
 
     private static final BigDecimal DEPOSIT_RATE = new BigDecimal("0.30");
 
+    private static final Set<String> ALLOWED_REPORT_IMAGE_TYPES = Set.of(
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif");
+
+    private static final long MAX_REPORT_IMAGE_SIZE = 10 * 1024 * 1024;
+
     private final BookingRepository bookingRepository;
 
     private final BookingCustomerRepository bookingCustomerRepository;
@@ -92,6 +107,8 @@ public class BookingServiceImpl implements BookingService {
 
     private final UserRepository userRepository;
 
+    private final String uploadDir;
+
     public BookingServiceImpl(
             BookingRepository bookingRepository,
             BookingCustomerRepository bookingCustomerRepository,
@@ -102,7 +119,8 @@ public class BookingServiceImpl implements BookingService {
             TourDayRepository tourDayRepository,
             TourActivityRepository tourActivityRepository,
             TourImageRepository tourImageRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            @Value("${upload.dir:uploads}") String uploadDir) {
 
         this.bookingRepository = bookingRepository;
         this.bookingCustomerRepository = bookingCustomerRepository;
@@ -114,6 +132,7 @@ public class BookingServiceImpl implements BookingService {
         this.tourActivityRepository = tourActivityRepository;
         this.tourImageRepository = tourImageRepository;
         this.userRepository = userRepository;
+        this.uploadDir = uploadDir;
     }
 
     @Override
@@ -471,6 +490,107 @@ public class BookingServiceImpl implements BookingService {
                 .findByBookingIdOrderByIdAsc(saved.getId());
 
         return mapToDetailResponse(saved, customers);
+    }
+
+    @Override
+    @Transactional
+    public BookingDetailResponse completeEmployeeBooking(
+            Long bookingId,
+            String employeeEmail) {
+
+        User employee = requireEmployee(employeeEmail);
+
+        Booking booking = bookingRepository
+                .findByIdAndDeletedAtIsNull(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
+
+        ensureEmployeeAssignedToBooking(booking.getId(), employee.getId());
+        ensureBookingCanReceiveScheduleUpdate(booking);
+
+        List<BookingScheduleActivity> activities = bookingScheduleActivityRepository
+                .findByBookingId(booking.getId());
+
+        if (activities.isEmpty()) {
+            throw new RuntimeException("Booking chưa có lịch trình để hoàn thành");
+        }
+
+        long pendingCount = activities
+                .stream()
+                .filter(activity -> !isFinishedScheduleStatus(activity.getStatus()))
+                .count();
+
+        if (pendingCount > 0) {
+            throw new RuntimeException("Còn " + pendingCount + " hoạt động chưa được nhân viên cập nhật");
+        }
+
+        if (booking.getStatus() != BookingStatus.COMPLETED) {
+            applyBookingStatusTransition(booking, BookingStatus.COMPLETED, null);
+        }
+
+        Booking saved = bookingRepository.save(booking);
+
+        List<BookingCustomer> customers = bookingCustomerRepository
+                .findByBookingIdOrderByIdAsc(saved.getId());
+
+        return mapToDetailResponse(saved, customers);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String uploadScheduleActivityReportImage(
+            Long bookingId,
+            Long activityId,
+            MultipartFile file,
+            String employeeEmail) {
+
+        User employee = requireEmployee(employeeEmail);
+
+        Booking booking = bookingRepository
+                .findByIdAndDeletedAtIsNull(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
+
+        ensureEmployeeAssignedToBooking(booking.getId(), employee.getId());
+        ensureBookingCanReceiveScheduleUpdate(booking);
+
+        bookingScheduleActivityRepository
+                .findByIdAndBookingId(activityId, booking.getId())
+                .orElseThrow(() -> new RuntimeException("Mốc lịch trình không tồn tại trong booking này"));
+
+        if (file == null || file.isEmpty()) {
+            throw new RuntimeException("Vui lòng chọn ảnh báo cáo");
+        }
+
+        if (file.getSize() > MAX_REPORT_IMAGE_SIZE) {
+            throw new RuntimeException("Ảnh báo cáo không được vượt quá 10MB");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null
+                || !ALLOWED_REPORT_IMAGE_TYPES.contains(contentType.toLowerCase())) {
+            throw new RuntimeException("Ảnh báo cáo chỉ hỗ trợ JPG, PNG, WEBP hoặc GIF");
+        }
+
+        try {
+            Path reportDir = UploadPathUtils.resolveUploadRoot(uploadDir)
+                    .resolve("reports");
+            Files.createDirectories(reportDir);
+
+            String filename = "report-booking-" + bookingId
+                    + "-activity-" + activityId
+                    + "-" + UUID.randomUUID()
+                    + getReportImageExtension(contentType);
+            Path target = reportDir.resolve(filename).normalize();
+
+            if (!target.startsWith(reportDir)) {
+                throw new RuntimeException("Tên file ảnh báo cáo không hợp lệ");
+            }
+
+            file.transferTo(target);
+
+            return "/uploads/reports/" + filename;
+        } catch (IOException ex) {
+            throw new RuntimeException("Không thể lưu ảnh báo cáo");
+        }
     }
 
     private void applySimulatedPayment(
@@ -886,8 +1006,17 @@ public class BookingServiceImpl implements BookingService {
         scheduleActivity.setEndTime(activity.getEndTime());
         scheduleActivity.setTitle(activity.getTitle());
         scheduleActivity.setDescription(activity.getDescription());
+        scheduleActivity.setActualLocation(resolveActivityLocationName(activity));
 
         return scheduleActivity;
+    }
+
+    private String resolveActivityLocationName(TourActivity activity) {
+        String customName = trimToNull(activity.getLocationName());
+        if (customName != null) {
+            return customName;
+        }
+        return activity.getLocation() != null ? activity.getLocation().getName() : null;
     }
 
     private void applyBookingStatusTransition(
@@ -1051,6 +1180,147 @@ public class BookingServiceImpl implements BookingService {
                 || status == BookingScheduleActivityStatus.SKIPPED;
     }
 
+    private ScheduleReportStats buildScheduleReportStats(Booking booking) {
+
+        List<BookingScheduleActivity> activities = bookingScheduleActivityRepository
+                .findByBookingId(booking.getId());
+
+        int total = activities.size();
+        int changed = 0;
+        int skipped = 0;
+        int completed = 0;
+        LocalDateTime lastUpdatedAt = null;
+        String lastUpdatedBy = null;
+
+        for (BookingScheduleActivity activity : activities) {
+            BookingScheduleActivityStatus status = activity.getStatus();
+
+            if (isFinishedScheduleStatus(status)) {
+                completed++;
+            }
+
+            if (status == BookingScheduleActivityStatus.CHANGED) {
+                changed++;
+            } else if (status == BookingScheduleActivityStatus.SKIPPED) {
+                skipped++;
+            }
+
+            LocalDateTime updatedAt = activity.getUpdatedAt();
+            boolean employeeReported = activity.getUpdatedByEmployee() != null
+                    || status != BookingScheduleActivityStatus.PENDING;
+
+            if (employeeReported
+                    && updatedAt != null
+                    && (lastUpdatedAt == null || updatedAt.isAfter(lastUpdatedAt))) {
+                lastUpdatedAt = updatedAt;
+                lastUpdatedBy = activity.getUpdatedByEmployee() != null
+                        ? activity.getUpdatedByEmployee().getFullName()
+                        : null;
+            }
+        }
+
+        int pending = Math.max(0, total - completed);
+        int progressPercent = total > 0
+                ? Math.round((completed * 100f) / total)
+                : 0;
+        boolean needsReview = changed > 0 || skipped > 0;
+
+        String reportStatus;
+        if (total == 0) {
+            reportStatus = "EMPTY";
+        } else if (needsReview) {
+            reportStatus = "NEEDS_REVIEW";
+        } else if (pending == 0) {
+            reportStatus = "COMPLETED";
+        } else if (completed > 0) {
+            reportStatus = "IN_PROGRESS";
+        } else {
+            reportStatus = "WAITING";
+        }
+
+        return new ScheduleReportStats(
+                total,
+                completed,
+                changed,
+                skipped,
+                pending,
+                progressPercent,
+                needsReview,
+                reportStatus,
+                lastUpdatedAt,
+                lastUpdatedBy);
+    }
+
+    private void applyScheduleReportStats(
+            BookingResponse response,
+            ScheduleReportStats stats) {
+
+        response.setScheduleTotalActivities(stats.totalActivities);
+        response.setScheduleCompletedActivities(stats.completedActivities);
+        response.setScheduleChangedActivities(stats.changedActivities);
+        response.setScheduleSkippedActivities(stats.skippedActivities);
+        response.setSchedulePendingActivities(stats.pendingActivities);
+        response.setScheduleProgressPercent(stats.progressPercent);
+        response.setScheduleNeedsReview(stats.needsReview);
+        response.setScheduleReportStatus(stats.reportStatus);
+        response.setScheduleLastUpdatedAt(stats.lastUpdatedAt);
+        response.setScheduleLastUpdatedBy(stats.lastUpdatedBy);
+    }
+
+    private void applyScheduleReportStats(
+            BookingDetailResponse response,
+            ScheduleReportStats stats) {
+
+        response.setScheduleTotalActivities(stats.totalActivities);
+        response.setScheduleCompletedActivities(stats.completedActivities);
+        response.setScheduleChangedActivities(stats.changedActivities);
+        response.setScheduleSkippedActivities(stats.skippedActivities);
+        response.setSchedulePendingActivities(stats.pendingActivities);
+        response.setScheduleProgressPercent(stats.progressPercent);
+        response.setScheduleNeedsReview(stats.needsReview);
+        response.setScheduleReportStatus(stats.reportStatus);
+        response.setScheduleLastUpdatedAt(stats.lastUpdatedAt);
+        response.setScheduleLastUpdatedBy(stats.lastUpdatedBy);
+    }
+
+    private static class ScheduleReportStats {
+
+        private final int totalActivities;
+        private final int completedActivities;
+        private final int changedActivities;
+        private final int skippedActivities;
+        private final int pendingActivities;
+        private final int progressPercent;
+        private final boolean needsReview;
+        private final String reportStatus;
+        private final LocalDateTime lastUpdatedAt;
+        private final String lastUpdatedBy;
+
+        private ScheduleReportStats(
+                int totalActivities,
+                int completedActivities,
+                int changedActivities,
+                int skippedActivities,
+                int pendingActivities,
+                int progressPercent,
+                boolean needsReview,
+                String reportStatus,
+                LocalDateTime lastUpdatedAt,
+                String lastUpdatedBy) {
+
+            this.totalActivities = totalActivities;
+            this.completedActivities = completedActivities;
+            this.changedActivities = changedActivities;
+            this.skippedActivities = skippedActivities;
+            this.pendingActivities = pendingActivities;
+            this.progressPercent = progressPercent;
+            this.needsReview = needsReview;
+            this.reportStatus = reportStatus;
+            this.lastUpdatedAt = lastUpdatedAt;
+            this.lastUpdatedBy = lastUpdatedBy;
+        }
+    }
+
     private BookingResponse mapToResponse(Booking booking) {
 
         ensurePaymentDefaults(booking);
@@ -1091,6 +1361,7 @@ public class BookingServiceImpl implements BookingService {
         response.setChildCount(booking.getChildCount());
         response.setTotalPeople(booking.getTotalPeople());
         response.setBookedAt(booking.getBookedAt());
+        applyScheduleReportStats(response, buildScheduleReportStats(booking));
 
         return response;
     }
@@ -1168,6 +1439,7 @@ public class BookingServiceImpl implements BookingService {
                 .map(customer -> mapCustomerResponse(customer, hasGroup))
                 .toList());
         response.setScheduleDays(loadBookingSchedule(booking));
+        applyScheduleReportStats(response, buildScheduleReportStats(booking));
 
         return response;
     }
@@ -1610,7 +1882,7 @@ public class BookingServiceImpl implements BookingService {
 
         return userRepository
                 .findByEmail(authenticatedEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Kh\u00f4ng t\u00ecm th\u1ea5y ng\u01b0\u1eddi d\u00f9ng"));
     }
 
     private void ensureCustomer(User user) {
@@ -1878,6 +2150,15 @@ public class BookingServiceImpl implements BookingService {
         }
 
         return value.trim();
+    }
+
+    private String getReportImageExtension(String contentType) {
+        return switch (contentType.toLowerCase()) {
+            case "image/png" -> ".png";
+            case "image/webp" -> ".webp";
+            case "image/gif" -> ".gif";
+            default -> ".jpg";
+        };
     }
 
     private boolean isBlank(String value) {

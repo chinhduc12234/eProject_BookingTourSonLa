@@ -50,7 +50,7 @@ public class TourDetailServiceImpl implements TourDetailService {
     public TourDetailResponse getDetail(Long tourId) {
 
         Tour tour = tourRepository.findByIdAndDeletedAtIsNull(tourId)
-                .orElseThrow(() -> new RuntimeException("Tour not found"));
+                .orElseThrow(() -> new RuntimeException("Kh\u00f4ng t\u00ecm th\u1ea5y tour"));
 
         List<TourImage> images = tourImageRepository.findByTourIdOrderBySortOrderAsc(tourId);
 
@@ -149,7 +149,7 @@ public class TourDetailServiceImpl implements TourDetailService {
 
         dto.setId(a.getId());
         dto.setLocationId(a.getLocation() != null ? a.getLocation().getId() : null);
-        dto.setLocationName(a.getLocation() != null ? a.getLocation().getName() : null);
+        dto.setLocationName(resolveActivityLocationName(a));
         dto.setLocationAddress(a.getLocation() != null ? a.getLocation().getAddress() : null);
 
         if (a.getLocation() != null && a.getLocation().getDistrict() != null) {
@@ -167,6 +167,22 @@ public class TourDetailServiceImpl implements TourDetailService {
         dto.setSortOrder(a.getSortOrder());
 
         return dto;
+    }
+
+    private String resolveActivityLocationName(TourActivity activity) {
+        String customName = trimToNull(activity.getLocationName());
+        if (customName != null) {
+            return customName;
+        }
+        return activity.getLocation() != null ? activity.getLocation().getName() : null;
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private List<TourDepartureDto> mapDepartures(List<TourDeparture> departures) {

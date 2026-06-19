@@ -86,9 +86,14 @@ function buildDeparturesPayload(list) {
 function buildTourUpdateBody(tour) {
 
   const t = tour || {};
-  const priceNum = t.price !== "" && t.price != null
-    ? Number(t.price)
-    : NaN;
+  const priceText = t.price !== "" && t.price != null
+    ? String(t.price).trim()
+    : "";
+  const priceNum = priceText ? Number(priceText) : NaN;
+
+  if (!Number.isFinite(priceNum) || priceNum <= 0) {
+    throw new Error("Giá tour phải lớn hơn 0");
+  }
 
   return {
     title: (t.title || "").trim(),
@@ -102,7 +107,7 @@ function buildTourUpdateBody(tour) {
     durationNights: Math.max(0, Number(t.durationNights) || 0),
     departureLocation: t.departureLocation || null,
     maxPeople: Math.max(1, Number(t.maxPeople) || 1),
-    price: Number.isFinite(priceNum) && priceNum > 0 ? priceNum : 1,
+    price: priceText,
     status: t.status || "DRAFT",
   };
 }
@@ -122,6 +127,7 @@ function activityToPayload(a, index) {
       : null,
 
     locationId: a.locationId ?? null,
+    locationName: (a.locationName || "").trim() || null,
     sortOrder: index + 1,
   };
 }
