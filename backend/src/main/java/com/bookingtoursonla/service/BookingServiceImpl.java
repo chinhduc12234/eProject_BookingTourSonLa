@@ -18,6 +18,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -61,6 +62,7 @@ import com.bookingtoursonla.entity.enums.Gender;
 import com.bookingtoursonla.entity.enums.PaymentStatus;
 import com.bookingtoursonla.entity.enums.RoleName;
 import com.bookingtoursonla.entity.enums.TourStatus;
+import com.bookingtoursonla.event.BookingCreatedEvent;
 import com.bookingtoursonla.repository.BookingCustomerRepository;
 import com.bookingtoursonla.repository.BookingEmployeeRepository;
 import com.bookingtoursonla.repository.BookingRepository;
@@ -107,6 +109,10 @@ public class BookingServiceImpl implements BookingService {
 
     private final UserRepository userRepository;
 
+    private final ApplicationEventPublisher eventPublisher;
+
+    private final BookingConfirmationEmailService confirmationEmailService;
+
     private final String uploadDir;
 
     public BookingServiceImpl(
@@ -120,6 +126,8 @@ public class BookingServiceImpl implements BookingService {
             TourActivityRepository tourActivityRepository,
             TourImageRepository tourImageRepository,
             UserRepository userRepository,
+            ApplicationEventPublisher eventPublisher,
+            BookingConfirmationEmailService confirmationEmailService,
             @Value("${upload.dir:uploads}") String uploadDir) {
 
         this.bookingRepository = bookingRepository;
@@ -132,6 +140,8 @@ public class BookingServiceImpl implements BookingService {
         this.tourActivityRepository = tourActivityRepository;
         this.tourImageRepository = tourImageRepository;
         this.userRepository = userRepository;
+        this.eventPublisher = eventPublisher;
+        this.confirmationEmailService = confirmationEmailService;
         this.uploadDir = uploadDir;
     }
 
@@ -190,7 +200,7 @@ public class BookingServiceImpl implements BookingService {
         booking.setOrganizationName(trimToNull(request.getOrganizationName()));
         booking.setContactPerson(trimToNull(request.getContactPerson()));
         booking.setFullName(request.getFullName().trim());
-        booking.setEmail(request.getEmail().trim());
+        booking.setEmail(user.getEmail().trim());
         booking.setPhone(request.getPhone().trim());
         booking.setPickupAddress(trimToNull(request.getPickupAddress()));
         booking.setAdultCount(adultCount);
@@ -209,6 +219,7 @@ public class BookingServiceImpl implements BookingService {
 
         saveBookingCustomers(saved, request);
         snapshotBookingSchedule(saved, tour);
+        eventPublisher.publishEvent(new BookingCreatedEvent(saved.getId()));
 
         return mapToResponse(saved);
     }
@@ -246,6 +257,35 @@ public class BookingServiceImpl implements BookingService {
                 .findByBookingIdOrderByIdAsc(booking.getId());
 
         return mapToDetailResponse(booking, customers);
+    }
+
+    @Override
+    @Transactional
+    public void resendBookingConfirmation(
+            Long id,
+            String authenticatedEmail) {
+
+        Booking booking = bookingRepository
+                .findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
+        User user = requireAuthenticatedUser(authenticatedEmail);
+
+        if (booking.getUser() == null || !booking.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Bạn không có quyền gửi email cho booking này");
+        }
+
+        String accountEmail = user.getEmail().trim();
+        booking.setEmail(accountEmail);
+        bookingRepository.save(booking);
+
+        List<BookingCustomer> customers = bookingCustomerRepository
+                .findByBookingIdOrderByIdAsc(booking.getId());
+        customers.stream()
+                .filter(customer -> Boolean.TRUE.equals(customer.getGroupLeader()))
+                .forEach(customer -> customer.setEmail(accountEmail));
+        bookingCustomerRepository.saveAll(customers);
+
+        confirmationEmailService.sendBookingConfirmation(booking.getId());
     }
 
     @Override

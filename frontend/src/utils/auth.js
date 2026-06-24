@@ -9,13 +9,24 @@ export const saveAuth = (data) => {
     window.dispatchEvent(new Event("auth-change"));
 };
 
-export const logout = () => {
+export const clearAuthSession = () => {
 
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("userId");
     localStorage.removeItem("fullName");
     localStorage.removeItem("email");
+
+    window.dispatchEvent(new Event("auth-change"));
+};
+
+export const logout = () => {
+
+    clearAuthSession();
+    localStorage.removeItem("booking_temp_form");
+    localStorage.removeItem("booking_temp_departure");
+    localStorage.removeItem("booking_temp_complete");
+    sessionStorage.removeItem("bookingTourPaymentDraft");
 
     window.location.href = "/login";
 };

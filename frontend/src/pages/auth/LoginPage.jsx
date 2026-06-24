@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axiosClient from "../../api/axiosClient";
 import { saveAuth } from "../../utils/auth";
 import { useNavigate, Link, useLocation } from "react-router-dom";
@@ -44,6 +44,22 @@ export default function LoginPage() {
 
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
+
+    useEffect(() => {
+        const authMessage = sessionStorage.getItem("auth_message");
+
+        if (!authMessage) return;
+
+        sessionStorage.removeItem("auth_message");
+        Swal.fire({
+            icon: "info",
+            title: "Cần đăng nhập lại",
+            text: authMessage,
+            background: "#0b1f17",
+            color: "#fff",
+            confirmButtonColor: "#7FB77E",
+        });
+    }, []);
 
     function handleMouseMove({ currentTarget, clientX, clientY }) {
         const { left, top } = currentTarget.getBoundingClientRect();

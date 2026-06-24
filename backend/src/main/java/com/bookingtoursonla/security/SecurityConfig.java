@@ -1,8 +1,12 @@
 package com.bookingtoursonla.security;
 
+import java.nio.charset.StandardCharsets;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -31,6 +35,24 @@ public class SecurityConfig {
 
                                 .sessionManagement(session -> session.sessionCreationPolicy(
                                                 SessionCreationPolicy.STATELESS))
+
+                                .exceptionHandling(exceptions -> exceptions
+                                                .authenticationEntryPoint((request, response, exception) -> {
+                                                        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                                                        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                                                        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                                                        response.getWriter().write(
+                                                                        "{\"status\":401,\"code\":\"AUTH_REQUIRED\","
+                                                                                        + "\"message\":\"Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Vui lòng đăng nhập lại.\"}");
+                                                })
+                                                .accessDeniedHandler((request, response, exception) -> {
+                                                        response.setStatus(HttpStatus.FORBIDDEN.value());
+                                                        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                                                        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                                                        response.getWriter().write(
+                                                                        "{\"status\":403,\"code\":\"ACCESS_DENIED\","
+                                                                                        + "\"message\":\"Bạn không có quyền thực hiện thao tác này.\"}");
+                                                }))
 
                                 .authenticationProvider(authenticationProvider)
 

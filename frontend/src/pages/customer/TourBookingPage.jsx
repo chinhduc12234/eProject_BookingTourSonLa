@@ -252,6 +252,7 @@ export default function TourBookingPage() {
             </aside>
 
             <BookingForm
+              key={`${userProfile?.id || userProfile?.email || "customer"}-${tour.id}`}
               tour={tour}
               tourId={id}
               selectedDeparture={selectedDeparture}

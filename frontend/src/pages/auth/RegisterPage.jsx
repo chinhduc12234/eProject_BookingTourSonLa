@@ -70,7 +70,12 @@ export default function RegisterPage() {
 
         try {
             setLoading(true);
-            await axiosClient.post("/auth/register", form);
+            await axiosClient.post("/auth/register", {
+                ...form,
+                fullName: form.fullName.trim(),
+                email: form.email.trim().toLowerCase(),
+                phone: form.phone.trim(),
+            });
             await Swal.fire({
                 icon: "success",
                 title: "Đăng ký thành công",
@@ -81,10 +86,18 @@ export default function RegisterPage() {
             });
             navigate("/login");
         } catch (err) {
+            const responseData = err?.response?.data;
+            const validationMessage = responseData?.errors
+                ? Object.values(responseData.errors).find(Boolean)
+                : null;
+
             Swal.fire({
                 icon: "error",
                 title: "Lỗi đăng ký",
-                text: err?.response?.data?.message || "Không thể tạo tài khoản",
+                text:
+                    validationMessage ||
+                    responseData?.message ||
+                    "Không thể tạo tài khoản. Vui lòng thử lại.",
                 background: "#0b1f17",
                 color: "#fff",
                 confirmButtonColor: "#A67C52",

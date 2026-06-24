@@ -1,6 +1,7 @@
 package com.bookingtoursonla.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -54,6 +55,20 @@ public class BookingController {
         return bookingService.getBookingDetail(
                 id,
                 authentication != null ? authentication.getName() : null);
+    }
+
+    @PostMapping("/{id}/resend-confirmation-email")
+    public Map<String, String> resendConfirmationEmail(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        bookingService.resendBookingConfirmation(
+                id,
+                authentication != null ? authentication.getName() : null);
+
+        return Map.of(
+                "message",
+                "Đã gửi lại email xác nhận đến địa chỉ email của tài khoản");
     }
 
     @PostMapping("/{id}/pay")

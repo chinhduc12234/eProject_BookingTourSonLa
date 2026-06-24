@@ -11,6 +11,9 @@ export const getMyBookings = () =>
 export const getBookingDetail = (id) =>
   axiosClient.get(`${BASE}/${id}`);
 
+export const resendBookingConfirmation = (id) =>
+  axiosClient.post(`${BASE}/${id}/resend-confirmation-email`);
+
 export const payBooking = (id, data = {}) =>
   axiosClient.post(`${BASE}/${id}/pay`, data);
 

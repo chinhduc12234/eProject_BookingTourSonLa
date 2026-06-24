@@ -21,6 +21,8 @@ public interface BookingService {
 
     BookingDetailResponse getBookingDetail(Long id, String authenticatedEmail);
 
+    void resendBookingConfirmation(Long id, String authenticatedEmail);
+
     BookingDetailResponse payBooking(
             Long id,
             PayBookingRequest request,

@@ -72,7 +72,12 @@ const formStepItems = [
   { label: "Xác nhận", description: "Ghi chú, tổng tiền và chuyển thanh toán" },
 ];
 
-const readStoredBookingState = (userProfile) => {
+const getBookingFormStorageKey = (userProfile, tourId) => {
+  const accountKey = userProfile?.id || userProfile?.email || "anonymous";
+  return `booking_temp_form:${accountKey}:${tourId || "tour"}`;
+};
+
+const readStoredBookingState = (userProfile, tourId) => {
   const defaultForm = {
     bookingType: "INDIVIDUAL",
     organizationName: "",
@@ -88,7 +93,8 @@ const readStoredBookingState = (userProfile) => {
   };
 
   try {
-    const savedForm = localStorage.getItem("booking_temp_form");
+    const storageKey = getBookingFormStorageKey(userProfile, tourId);
+    const savedForm = localStorage.getItem(storageKey);
     if (!savedForm) return { form: defaultForm, customerDrafts: {} };
 
     const tempForm = JSON.parse(savedForm);
@@ -109,7 +115,7 @@ const readStoredBookingState = (userProfile) => {
           tempForm.organizationName || defaultForm.organizationName,
         contactPerson: tempForm.contactPerson || defaultForm.contactPerson,
         fullName: tempForm.fullName || defaultForm.fullName,
-        email: tempForm.email || defaultForm.email,
+        email: defaultForm.email,
         phone: tempForm.phone || defaultForm.phone,
         pickupAddress: tempForm.pickupAddress || defaultForm.pickupAddress,
         adultCount: tempForm.adultCount || defaultForm.adultCount,
@@ -134,8 +140,9 @@ export default function BookingForm({
   onDraftReady,
 }) {
   const navigate = useNavigate();
+  const bookingFormStorageKey = getBookingFormStorageKey(userProfile, tourId);
   const [initialBookingState] = useState(() =>
-    readStoredBookingState(userProfile),
+    readStoredBookingState(userProfile, tourId),
   );
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
@@ -164,8 +171,9 @@ export default function BookingForm({
         slotKey,
       })),
     };
-    localStorage.setItem("booking_temp_form", JSON.stringify(tempForm));
-  }, [form, customerDrafts]);
+    localStorage.setItem(bookingFormStorageKey, JSON.stringify(tempForm));
+    localStorage.removeItem("booking_temp_form");
+  }, [bookingFormStorageKey, form, customerDrafts]);
 
   const adultCount = toNumber(form.adultCount);
   const childCount = toNumber(form.childCount);
@@ -584,10 +592,14 @@ export default function BookingForm({
             <input
               type="email"
               value={form.email}
-              onChange={(event) => updateField("email", event.target.value)}
-              className={inputClass}
+              readOnly
+              aria-readonly="true"
+              className={`${inputClass} cursor-not-allowed opacity-85`}
               placeholder="email@example.com"
             />
+            <p className="mt-2 text-xs leading-5 text-slate-300">
+              Email nhận xác nhận được lấy từ tài khoản đang đăng nhập.
+            </p>
             {errors.email && (
               <p className="mt-2 text-sm text-rose-200">{errors.email}</p>
             )}

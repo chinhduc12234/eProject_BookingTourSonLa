@@ -19,6 +19,15 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
   Optional<Booking> findByIdAndDeletedAtIsNull(Long id);
 
+  @Query("""
+      SELECT b FROM Booking b
+      JOIN FETCH b.tourDeparture d
+      JOIN FETCH d.tour
+      WHERE b.id = :id
+        AND b.deletedAt IS NULL
+      """)
+  Optional<Booking> findForConfirmationEmail(@Param("id") Long id);
+
   List<Booking> findByUserIdAndDeletedAtIsNullOrderByBookedAtDesc(Long userId);
 
   @Query("""

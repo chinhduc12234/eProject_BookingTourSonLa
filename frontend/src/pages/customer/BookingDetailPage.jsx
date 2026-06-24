@@ -25,7 +25,12 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
-import { cancelBooking, getBookingDetail, payBooking } from "../../api/bookingApi";
+import {
+  cancelBooking,
+  getBookingDetail,
+  payBooking,
+  resendBookingConfirmation,
+} from "../../api/bookingApi";
 import { resolveUploadedFileUrl } from "../../api/userApi";
 import AccountShell from "./AccountShell";
 import {
@@ -186,6 +191,7 @@ export default function BookingDetailPage() {
   const [booking, setBooking] = useState(null);
   const [paying, setPaying] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
   const [paymentChoice, setPaymentChoice] = useState("FULL");
   const [remainingMethod, setRemainingMethod] = useState("CASH_ON_DEPARTURE");
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -358,6 +364,30 @@ export default function BookingDetailPage() {
       toast.error(error?.response?.data?.message || "Không thể hủy đặt lịch");
     } finally {
       setCancelling(false);
+    }
+  };
+
+  const handleResendConfirmationEmail = async () => {
+    if (!booking) return;
+
+    try {
+      setSendingEmail(true);
+      const response = await resendBookingConfirmation(booking.id);
+      toast.success(
+        response?.data?.message ||
+          `Đã gửi email xác nhận đến ${booking.email}`,
+      );
+    } catch (error) {
+      const providerError = error?.response?.data?.code === "EMAIL_PROVIDER_ERROR";
+      toast.error(
+        error?.response?.data?.message ||
+          "Chưa thể gửi email xác nhận. Vui lòng thử lại.",
+        {
+          duration: providerError ? 9000 : 5000,
+        },
+      );
+    } finally {
+      setSendingEmail(false);
     }
   };
 
@@ -1172,6 +1202,23 @@ export default function BookingDetailPage() {
                   value={booking.pickupAddress || "Chưa có địa chỉ đón"}
                 />
               </div>
+
+              <button
+                type="button"
+                onClick={handleResendConfirmationEmail}
+                disabled={sendingEmail}
+                className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#7FB77E]/35 bg-[#7FB77E]/12 px-4 text-sm font-black text-[#c9f7c8] transition hover:border-[#7FB77E]/60 hover:bg-[#7FB77E]/20 disabled:cursor-wait disabled:opacity-65"
+              >
+                {sendingEmail ? (
+                  <Loader2 size={17} className="animate-spin" />
+                ) : (
+                  <Mail size={17} />
+                )}
+                {sendingEmail ? "Đang gửi email..." : "Gửi lại email xác nhận"}
+              </button>
+              <p className="mt-2 text-center text-xs font-semibold leading-5 text-slate-400">
+                Email được gửi đến địa chỉ của tài khoản đang đăng nhập.
+              </p>
             </div>
 
             {booking.assignedStaffName && (

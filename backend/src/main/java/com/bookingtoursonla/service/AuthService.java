@@ -1,5 +1,7 @@
 package com.bookingtoursonla.service;
 
+import java.util.Locale;
+
 import com.bookingtoursonla.dto.AuthResponse;
 import com.bookingtoursonla.dto.LoginRequest;
 import com.bookingtoursonla.dto.RegisterRequest;
@@ -33,11 +35,14 @@ public class AuthService {
     public AuthResponse register(
         RegisterRequest request) {
 
-        if (userRepository.existsByEmail(request.getEmail())) {
+        String email = normalizeEmail(request.getEmail());
+        String phone = request.getPhone().trim();
+
+        if (userRepository.existsByEmail(email)) {
             throw new RuntimeException("Email \u0111\u00e3 t\u1ed3n t\u1ea1i");
         }
 
-        if (userRepository.existsByPhone(request.getPhone())) {
+        if (userRepository.existsByPhone(phone)) {
             throw new RuntimeException("S\u1ed1 \u0111i\u1ec7n tho\u1ea1i \u0111\u00e3 t\u1ed3n t\u1ea1i");
         }
 
@@ -47,11 +52,11 @@ public class AuthService {
 
         User user = new User();
 
-        user.setFullName(request.getFullName());
+        user.setFullName(request.getFullName().trim());
 
-        user.setEmail(request.getEmail());
+        user.setEmail(email);
 
-        user.setPhone(request.getPhone());
+        user.setPhone(phone);
 
         user.setPassword(
                 passwordEncoder.encode(request.getPassword()));
@@ -73,13 +78,15 @@ public class AuthService {
     public AuthResponse login(
             LoginRequest request) {
 
+        String email = normalizeEmail(request.getEmail());
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
+                        email,
                         request.getPassword()));
 
         User user = userRepository
-                .findByEmail(request.getEmail())
+                .findByEmail(email)
                 .orElseThrow();
 
         String token = jwtService.generateToken(user.getEmail());
@@ -90,5 +97,9 @@ public class AuthService {
                 user.getFullName(),
                 user.getEmail(),
                 user.getRole().getName().name());
+    }
+
+    private String normalizeEmail(String email) {
+        return email.trim().toLowerCase(Locale.ROOT);
     }
 }

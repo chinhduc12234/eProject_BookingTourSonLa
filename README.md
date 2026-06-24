@@ -20,6 +20,8 @@ Biến quan trọng:
 - `CORS_ALLOWED_ORIGIN_PATTERNS`: danh sách origin frontend, phân tách bằng dấu phẩy
 - `APP_ADMIN_PASSWORD`: mật khẩu admin seed; mặc định local là `123456`
 - `UPLOAD_DIR`: thư mục lưu file upload
+- `EMAILJS_ENABLED`, `EMAILJS_SERVICE_ID`, `EMAILJS_TEMPLATE_ID`, `EMAILJS_PUBLIC_KEY`, `EMAILJS_PRIVATE_KEY`: gửi email xác nhận sau khi khách đặt tour thành công
+- `APP_PUBLIC_URL`: địa chỉ frontend dùng cho nút xem chi tiết trong email
 
 Chạy backend:
 
@@ -27,6 +29,8 @@ Chạy backend:
 cd backend
 .\mvnw.cmd spring-boot:run
 ```
+
+Hướng dẫn cấu hình template EmailJS: `backend/docs/EMAILJS_BOOKING_CONFIRMATION.md`.
 
 Kiểm tra health:
 
