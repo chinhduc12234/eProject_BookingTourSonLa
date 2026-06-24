@@ -78,6 +78,9 @@ export default function PublicLayout({ children }) {
 
     return (
         <div className="public-shell min-h-screen bg-[#020617] text-slate-100">
+            <a href="#noi-dung-chinh" className="public-skip-link">
+                Chuyển đến nội dung chính
+            </a>
             {/* HEADER */}
             <header
                 className={[
@@ -88,12 +91,20 @@ export default function PublicLayout({ children }) {
                 ].join(" ")}
             >
                 <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-                    <Link to="/" className="group flex items-center" aria-label={brand.displayName}>
+                    <Link to="/" className="group flex items-center gap-3" aria-label={brand.displayName}>
                         <img
                             src="/logo-main-tay-bac.png"
                             alt={brand.displayName}
                             className="h-14 w-40 object-contain drop-shadow-[0_10px_22px_rgba(127,183,126,0.45)] transition group-hover:drop-shadow-[0_14px_28px_rgba(127,183,126,0.65)]"
                         />
+                        <span className="hidden leading-none xl:block">
+                            <span className="block text-sm font-black tracking-[0.14em] text-white">
+                                TÂY BẮC
+                            </span>
+                            <span className="mt-1 block text-[10px] font-black tracking-[0.28em] text-[#9de09c]">
+                                TRAVEL
+                            </span>
+                        </span>
                     </Link>
 
                     <nav className="hidden items-center gap-1 md:flex">
@@ -110,7 +121,7 @@ export default function PublicLayout({ children }) {
                                 <Link
                                     to={accountPath}
                                     className="inline-flex h-11 max-w-[220px] items-center gap-2 rounded-xl border border-[#7FB77E]/35 bg-[#7FB77E]/10 px-4 text-sm font-black text-white transition hover:border-[#7FB77E]/70 hover:bg-[#7FB77E]/20"
-                                    title="Trang cá nhân"
+                                    title="Thông tin tài khoản"
                                 >
                                     <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#7FB77E] text-[#020617]">
                                         <UserRound size={15} />
@@ -139,6 +150,8 @@ export default function PublicLayout({ children }) {
                         onClick={() => setOpen((value) => !value)}
                         className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white transition hover:border-[#7FB77E]/60 hover:bg-[#7FB77E]/10 md:hidden"
                         aria-label="Mở menu"
+                        aria-expanded={open}
+                        aria-controls="public-mobile-menu"
                     >
                         {open ? <X size={22} /> : <Menu size={22} />}
                     </button>
@@ -149,6 +162,7 @@ export default function PublicLayout({ children }) {
                         initial={{ opacity: 0, y: -8 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.25 }}
+                        id="public-mobile-menu"
                         className="border-t border-white/10 bg-[#020617]/95 px-4 py-4 backdrop-blur-xl md:hidden"
                     >
                         <div className="flex flex-col gap-1">
@@ -201,7 +215,7 @@ export default function PublicLayout({ children }) {
                 )}
             </header>
 
-            <main>{children}</main>
+            <main id="noi-dung-chinh">{children}</main>
 
             {/* FOOTER */}
             <footer className="relative overflow-hidden border-t border-white/10 bg-gradient-to-b from-[#04120d] via-[#04120d] to-[#020617] pt-8 sm:pt-10">
@@ -238,11 +252,13 @@ export default function PublicLayout({ children }) {
                                 <img
                                     src="/logo-main-tay-bac.png"
                                     alt={brand.displayName}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="h-24 w-56 object-contain drop-shadow-[0_12px_28px_rgba(127,183,126,0.35)]"
                                 />
                             </div>
                             <p className="mt-5 max-w-md text-sm leading-7 text-slate-300">
-                                Nền tảng booking tour du lịch Tây Bắc tập trung vào lịch trình rõ ràng, trải nghiệm
+                                Nền tảng đặt tour du lịch Tây Bắc tập trung vào lịch trình rõ ràng, trải nghiệm
                                 địa phương và dịch vụ đồng hành an toàn cho mỗi hành trình.
                             </p>
                             <div className="mt-6 flex items-center gap-3">
@@ -323,18 +339,20 @@ export default function PublicLayout({ children }) {
 
                     <div className="flex flex-col items-center justify-between gap-3 border-t border-white/10 py-6 text-xs text-slate-400 md:flex-row">
                         <p>© {new Date().getFullYear()} {brand.displayName}. Tất cả các quyền được bảo lưu.</p>
-                        <div className="flex flex-wrap items-center justify-center gap-2">
-                            <span className="text-[#d4a878]">Ảnh:</span>
+                        <div className="flex max-w-3xl flex-wrap items-center justify-center gap-x-2 gap-y-1 md:justify-end">
+                            <span className="font-bold text-[#d4a878]">Nguồn ảnh:</span>
                             {photoCredits.map((item, index) => (
-                                <a
-                                    key={`${item.label}-${index}`}
-                                    href={item.url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="transition hover:text-[#9de09c]"
-                                >
-                                    {item.label}
-                                </a>
+                                <span key={`${item.label}-${index}`} className="inline-flex items-center gap-2">
+                                    {index > 0 && <span aria-hidden="true">·</span>}
+                                    <a
+                                        href={item.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="transition hover:text-[#9de09c]"
+                                    >
+                                        {item.label}
+                                    </a>
+                                </span>
                             ))}
                         </div>
                     </div>

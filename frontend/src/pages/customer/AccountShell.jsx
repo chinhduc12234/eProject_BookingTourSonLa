@@ -11,8 +11,8 @@ import PublicLayout from "../public/PublicLayout";
 
 const navItems = [
   { to: "/tai-khoan", label: "Tổng quan", Icon: LayoutDashboard },
-  { to: "/tai-khoan/thong-tin", label: "Thông tin cá nhân", Icon: UserRound },
-  { to: "/tai-khoan/booking", label: "Lịch sử booking", Icon: CalendarDays },
+  { to: "/tai-khoan/thong-tin", label: "Thông tin tài khoản", Icon: UserRound },
+  { to: "/tai-khoan/booking", label: "Lịch sử đặt tour", Icon: CalendarDays },
 ];
 
 export default function AccountShell({

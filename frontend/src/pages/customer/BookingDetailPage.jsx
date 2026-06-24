@@ -433,7 +433,7 @@ export default function BookingDetailPage() {
               <div className="rounded-2xl border border-sky-300/30 bg-sky-300/10 p-5 text-sky-50">
                 <div className="font-black text-white">Bước 2: Thanh toán booking</div>
                 <p className="mt-2 text-sm leading-7 text-sky-100/90">
-                  Booking đã được tạo thành công. Bạn hãy chọn thanh toán 100% hoặc đặt cọc 30%, sau đó gửi xác nhận để hệ thống ghi nhận yêu cầu của bạn.
+                  Đơn đặt tour đã được tạo thành công. Bạn hãy chọn thanh toán 100% hoặc đặt cọc 30%, sau đó gửi xác nhận để hệ thống ghi nhận yêu cầu của bạn.
                 </p>
               </div>
             )}
@@ -1110,7 +1110,7 @@ export default function BookingDetailPage() {
               {booking.paymentStatus === "PARTIAL" && canPay && (
                 <div className="mt-5 space-y-4">
                   <div className="rounded-2xl border border-sky-300/20 bg-sky-300/10 p-4 text-sm leading-7 text-sky-100">
-                    Booking đã giữ chỗ bằng tiền cọc. Phần còn lại là{" "}
+                    Đơn đặt tour đã giữ chỗ bằng tiền cọc. Phần còn lại là{" "}
                     <b>{formatCurrency(remainingAmount)}</b> và có thể thanh toán
                     tiền mặt khi khởi hành hoặc chuyển khoản bằng QR.
                   </div>
@@ -1121,7 +1121,7 @@ export default function BookingDetailPage() {
                 <div className="mt-5 rounded-2xl border border-white/10 bg-[#020617]/40 p-4 text-sm leading-7 text-slate-300">
                   <div className="font-black text-white">
                     {booking.paymentStatus === "PAID"
-                      ? "Booking đã thanh toán đủ"
+                      ? "Đơn đặt tour đã thanh toán đủ"
                       : "Trạng thái thanh toán đã được chốt"}
                   </div>
                   <p className="mt-1">

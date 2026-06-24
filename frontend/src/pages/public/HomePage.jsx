@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
     ArrowRight,
+    CalendarDays,
+    ChevronLeft,
+    ChevronRight,
     Compass,
     Loader2,
     MapPin,
-    PlayCircle,
     Search,
     Sparkles,
 } from "lucide-react";
@@ -15,10 +17,11 @@ import TourCard from "../../components/TourCard";
 import PublicLayout from "./PublicLayout";
 import {
     destinationGroups,
-    heroBackdrops,
+    heroSlides,
     heroStats,
     quickSearch,
     scenicGallery,
+    scenicImages,
     serviceHighlights,
     trustBadges,
     whyChooseUs,
@@ -48,14 +51,17 @@ export default function HomePage() {
     const [featuredTours, setFeaturedTours] = useState([]);
     const [featuredLoading, setFeaturedLoading] = useState(false);
     const [heroIndex, setHeroIndex] = useState(0);
+    const reduceMotion = useReducedMotion();
 
     useEffect(() => {
+        if (reduceMotion) return undefined;
+
         const interval = setInterval(
-            () => setHeroIndex((idx) => (idx + 1) % heroBackdrops.length),
+            () => setHeroIndex((idx) => (idx + 1) % heroSlides.length),
             6500,
         );
         return () => clearInterval(interval);
-    }, []);
+    }, [reduceMotion]);
 
     useEffect(() => {
         const loadFeaturedTours = async () => {
@@ -81,19 +87,26 @@ export default function HomePage() {
 
     return (
         <PublicLayout>
+            <div className="home-page">
             {/* HERO */}
-            <section className="relative overflow-hidden">
-                {heroBackdrops.map((src, idx) => (
-                    <motion.div
-                        key={src}
-                        className="absolute inset-0 bg-cover bg-center will-change-transform"
-                        style={{ backgroundImage: `url('${src}')` }}
+            <section className="home-hero relative overflow-hidden">
+                {heroSlides.map((slide, idx) => (
+                    <motion.img
+                        key={slide.image}
+                        src={slide.image}
+                        alt={idx === heroIndex ? slide.alt : ""}
+                        aria-hidden={idx !== heroIndex}
+                        onError={(event) => {
+                            event.currentTarget.onerror = null;
+                            event.currentTarget.src = scenicImages.mocChauTea;
+                        }}
+                        className="home-hero-image absolute inset-0 h-full w-full object-cover object-center will-change-transform"
                         initial={{ opacity: 0, scale: 1.12 }}
                         animate={{
                             opacity: idx === heroIndex ? 1 : 0,
                             scale: idx === heroIndex ? 1.04 : 1.12,
                         }}
-                        transition={{ duration: 1.6, ease: "easeOut" }}
+                        transition={{ duration: reduceMotion ? 0 : 1.6, ease: "easeOut" }}
                     />
                 ))}
                 <div className="hero-theme-overlay absolute inset-0" />
@@ -109,7 +122,7 @@ export default function HomePage() {
                             transition={{ duration: 0.6 }}
                         >
                             <Sparkles size={14} className="text-[#9de09c]" />
-                            Booking tour du lịch Tây Bắc
+                            Đặt tour du lịch Tây Bắc
                         </motion.span>
 
                         <motion.h1
@@ -145,12 +158,12 @@ export default function HomePage() {
                             className="mt-8 flex flex-col gap-3 sm:flex-row"
                         >
                             <Link to="/tours" className="btn-primary px-6 text-sm">
-                                Xem tour
+                                Khám phá tour
                                 <ArrowRight size={18} />
                             </Link>
-                            <Link to="/gioi-thieu" className="btn-outline px-6 text-sm">
-                                <PlayCircle size={18} />
-                                Về chúng tôi
+                            <Link to="/tours" className="btn-outline px-6 text-sm">
+                                <CalendarDays size={18} />
+                                Xem lịch khởi hành
                             </Link>
                         </motion.div>
 
@@ -159,13 +172,16 @@ export default function HomePage() {
                             initial="hidden"
                             animate="show"
                             variants={fadeUp}
-                            className="mt-8 grid max-w-2xl grid-cols-3 gap-3"
+                            className="mt-8 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-3"
                         >
                             {heroStats.map((item, idx) => (
                                 <motion.div
                                     key={item.label}
                                     whileHover={{ y: -4 }}
-                                    className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.07] p-4 backdrop-blur-md"
+                                    className={[
+                                        "group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.07] p-4 backdrop-blur-md",
+                                        idx === 2 ? "col-span-2 sm:col-span-1" : "",
+                                    ].join(" ")}
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-br from-[#7FB77E]/0 via-transparent to-[#A67C52]/0 opacity-0 transition-opacity duration-500 group-hover:from-[#7FB77E]/20 group-hover:to-[#A67C52]/15 group-hover:opacity-100" />
                                     <div className="relative text-3xl font-black text-white">
@@ -183,12 +199,14 @@ export default function HomePage() {
                         </motion.div>
 
                         {/* hero indicators */}
-                        <div className="mt-8 flex items-center gap-2">
-                            {heroBackdrops.map((_, idx) => (
+                        <div className="mt-8 flex flex-wrap items-center gap-3">
+                            <div className="flex items-center gap-2">
+                            {heroSlides.map((slide, idx) => (
                                 <button
-                                    key={idx}
+                                    key={slide.image}
                                     type="button"
-                                    aria-label={`Ảnh nền ${idx + 1}`}
+                                    aria-label={`Hiển thị ảnh: ${slide.alt}`}
+                                    aria-pressed={idx === heroIndex}
                                     onClick={() => setHeroIndex(idx)}
                                     className={[
                                         "h-1.5 rounded-full transition-all",
@@ -198,6 +216,35 @@ export default function HomePage() {
                                     ].join(" ")}
                                 />
                             ))}
+                            </div>
+                            <div className="h-4 w-px bg-white/20" />
+                            <span className="text-xs font-bold uppercase tracking-[0.16em] text-slate-200">
+                                {heroSlides[heroIndex]?.place}
+                            </span>
+                            <div className="ml-auto flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setHeroIndex((current) =>
+                                            (current - 1 + heroSlides.length) % heroSlides.length,
+                                        )
+                                    }
+                                    aria-label="Ảnh Tây Bắc trước"
+                                    className="hero-control"
+                                >
+                                    <ChevronLeft size={17} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setHeroIndex((current) => (current + 1) % heroSlides.length)
+                                    }
+                                    aria-label="Ảnh Tây Bắc tiếp theo"
+                                    className="hero-control"
+                                >
+                                    <ChevronRight size={17} />
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
 
@@ -252,11 +299,11 @@ export default function HomePage() {
                             </div>
 
                             <Link
-                                to="/lien-he"
+                                to="/tours"
                                 className="btn-gold mt-5 w-full text-sm"
                             >
-                                Gửi yêu cầu tư vấn
-                                <ArrowRight size={16} />
+                                Xem lịch khởi hành
+                                <CalendarDays size={16} />
                             </Link>
                         </div>
                     </motion.div>
@@ -331,6 +378,11 @@ export default function HomePage() {
                                         src={item.image}
                                         alt={item.title}
                                         loading={idx === 0 ? "eager" : "lazy"}
+                                        decoding="async"
+                                        onError={(event) => {
+                                            event.currentTarget.onerror = null;
+                                            event.currentTarget.src = scenicImages.mocChauTea;
+                                        }}
                                         className="h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-110"
                                     />
                                     <div className="photo-caption-scrim absolute inset-0" />
@@ -341,7 +393,7 @@ export default function HomePage() {
                                         <h3 className="mt-1 text-xl font-black text-white">
                                             {item.title}
                                         </h3>
-                                        <p className="mt-2 max-w-md text-sm leading-6 text-slate-200 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                                        <p className="mt-2 max-w-md text-sm leading-6 text-slate-200 opacity-100 transition-opacity duration-300 sm:opacity-0 sm:group-hover:opacity-100">
                                             {item.desc}
                                         </p>
                                     </div>
@@ -618,6 +670,7 @@ export default function HomePage() {
                     </motion.div>
                 </div>
             </section>
+            </div>
         </PublicLayout>
     );
 }

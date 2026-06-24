@@ -349,7 +349,7 @@ export default function AccountPage() {
             <div className="grid border-t border-white/10 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 {
-                  label: "Booking",
+                  label: "Đơn đặt tour",
                   value: summary.totalBookings,
                   Icon: CalendarDays,
                 },

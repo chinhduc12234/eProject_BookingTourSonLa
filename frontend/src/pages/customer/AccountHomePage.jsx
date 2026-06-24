@@ -101,7 +101,7 @@ export default function AccountHomePage() {
     >
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { label: "Booking", value: summary.totalBookings, Icon: CalendarDays },
+          { label: "Đơn đặt tour", value: summary.totalBookings, Icon: CalendarDays },
           { label: "Đang xử lý", value: summary.confirmedBookings, Icon: Clock3 },
           { label: "Đã thanh toán", value: summary.paidBookings, Icon: CreditCard },
           {
@@ -161,7 +161,7 @@ export default function AccountHomePage() {
                 <CalendarDays size={20} />
               </span>
               <div>
-                <h2 className="text-xl font-black text-white">Booking gần nhất</h2>
+                <h2 className="text-xl font-black text-white">Đơn đặt tour gần nhất</h2>
                 <p className="text-sm text-slate-400">
                   Xem nhanh trạng thái tour đã đặt.
                 </p>

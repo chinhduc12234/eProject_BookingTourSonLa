@@ -481,9 +481,10 @@ button, input, select, textarea {
 .public-shell {
     --public-text: #e5e7eb;
     --public-soft: #cbd5e1;
-    --public-muted: #94a3b8;
+    --public-muted: #aebbd0;
     --public-green: #9de09c;
     --public-gold: #f4c27a;
+    color-scheme: dark;
 }
 
 .public-shell [class*="from-[#f7faf6]"],
@@ -527,6 +528,35 @@ button, input, select, textarea {
     box-shadow: 0 24px 60px -20px rgba(2, 6, 23, 0.55) !important;
 }
 
+.public-shell :where(input, textarea, select)::placeholder {
+    color: #b8c4d6;
+    opacity: 1;
+}
+
+.public-shell :where(a, button, input, textarea, select):focus-visible {
+    outline: 2px solid #9de09c;
+    outline-offset: 3px;
+}
+
+.public-skip-link {
+    position: fixed;
+    left: 1rem;
+    top: 0.75rem;
+    z-index: 1000;
+    transform: translateY(-150%);
+    border-radius: 0.75rem;
+    background: #9de09c;
+    padding: 0.75rem 1rem;
+    color: #020617;
+    font-size: 0.875rem;
+    font-weight: 900;
+    transition: transform 0.2s ease;
+}
+
+.public-skip-link:focus {
+    transform: translateY(0);
+}
+
 
 .public-shell :where(.grid, .flex, article, section, footer, header, nav) {
     min-width: 0;
@@ -544,7 +574,7 @@ button, input, select, textarea {
 
 
 .home-marquee-track {
-    color: rgba(226, 232, 240, 0.2);
+    color: #ffffff;
 }
 
 
@@ -555,6 +585,8 @@ button, input, select, textarea {
     border-radius: 999px;
     padding: 0.2rem 0.75rem;
     letter-spacing: 0.16em;
+    color: #ffffff;
+    text-shadow: 0 2px 14px rgba(2, 6, 23, 0.85);
 }
 
 
@@ -575,6 +607,170 @@ button, input, select, textarea {
 .photo-eyebrow {
     color: #f7c987;
     text-shadow: 0 1px 8px rgba(2, 6, 23, 0.7);
+}
+
+.home-page {
+    isolation: isolate;
+    overflow: clip;
+}
+
+.home-page .home-hero::after {
+    position: absolute;
+    inset: auto 0 0;
+    height: 8rem;
+    content: "";
+    background: linear-gradient(to top, #020617, transparent);
+    pointer-events: none;
+}
+
+.home-page .home-hero-image {
+    filter: saturate(1.04) contrast(1.02);
+}
+
+.home-page .hero-control {
+    display: inline-flex;
+    height: 2.25rem;
+    width: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 0.75rem;
+    background: rgba(2, 6, 23, 0.48);
+    color: #fff;
+    backdrop-filter: blur(10px);
+    transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.home-page .hero-control:hover {
+    transform: translateY(-1px);
+    border-color: rgba(157, 224, 156, 0.72);
+    background: rgba(127, 183, 126, 0.18);
+}
+
+.home-page .on-photo {
+    min-height: 13.75rem;
+}
+
+.tour-list-page,
+.tour-detail-page {
+    background:
+        radial-gradient(circle at 85% 10%, rgba(127, 183, 126, 0.1), transparent 28rem),
+        #020617;
+}
+
+.tour-list-page .tour-list-hero {
+    border-bottom: 1px solid rgba(127, 183, 126, 0.12);
+}
+
+.tour-list-page .tour-filter-panel {
+    box-shadow:
+        0 30px 80px -42px rgba(127, 183, 126, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.tour-list-page .tour-filter-group {
+    display: grid;
+    min-width: 0;
+    gap: 0.5rem;
+}
+
+.tour-list-page .tour-filter-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: #e8c79f;
+    font-size: 0.7rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+.tour-list-page .tour-filter-field {
+    width: 100%;
+    min-width: 0;
+    height: 3rem;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 0.75rem;
+    outline: none;
+    background: rgba(255, 255, 255, 0.065);
+    padding: 0 0.85rem;
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 700;
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.tour-list-page .tour-filter-field:hover {
+    border-color: rgba(127, 183, 126, 0.48);
+}
+
+.tour-list-page .tour-filter-field:focus {
+    border-color: #9de09c;
+    background: rgba(127, 183, 126, 0.1);
+    box-shadow: 0 0 0 4px rgba(127, 183, 126, 0.12);
+}
+
+.tour-list-page .tour-filter-field:disabled {
+    cursor: not-allowed;
+    color: #94a3b8;
+    opacity: 0.65;
+}
+
+.tour-list-page .tour-filter-field option {
+    background: #07120f;
+    color: #f8fafc;
+}
+
+.tour-list-page input[type="number"].tour-filter-field {
+    appearance: textfield;
+}
+
+.tour-list-page input[type="number"].tour-filter-field::-webkit-inner-spin-button,
+.tour-list-page input[type="number"].tour-filter-field::-webkit-outer-spin-button {
+    margin: 0;
+    appearance: none;
+}
+
+.public-shell .tour-card::after {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    content: "";
+    pointer-events: none;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.tour-detail-page .tour-gallery {
+    background:
+        radial-gradient(circle at 90% 0%, rgba(127, 183, 126, 0.12), transparent 18rem),
+        rgba(255, 255, 255, 0.035);
+}
+
+.tour-detail-page .gallery-arrow {
+    position: absolute;
+    top: 50%;
+    display: inline-flex;
+    height: 2.75rem;
+    width: 2.75rem;
+    transform: translateY(-50%);
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 0.9rem;
+    background: rgba(2, 6, 23, 0.72);
+    color: #fff;
+    backdrop-filter: blur(12px);
+    transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.tour-detail-page .gallery-arrow:hover {
+    transform: translateY(-50%) scale(1.05);
+    border-color: rgba(157, 224, 156, 0.75);
+    background: rgba(7, 28, 20, 0.88);
 }
 
 
@@ -868,4 +1064,71 @@ button, input, select, textarea {
         linear-gradient(135deg, rgba(7, 18, 15, 0.96) 0%, rgba(2, 6, 23, 0.94) 100%) !important;
     border-color: rgba(255, 255, 255, 0.12) !important;
     color: #f8fafc !important;
+}
+
+.booking-flow .booking-form-surface {
+    background:
+        radial-gradient(circle at 100% 0%, rgba(127, 183, 126, 0.12), transparent 22rem),
+        linear-gradient(145deg, rgba(13, 30, 24, 0.98), rgba(5, 13, 22, 0.98)) !important;
+    box-shadow:
+        0 28px 80px -42px rgba(127, 183, 126, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.booking-flow .booking-form-step {
+    scroll-margin-top: 7rem;
+    transition:
+        border-color 0.25s ease,
+        background 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.booking-flow .booking-form-step:focus {
+    border-color: rgba(157, 224, 156, 0.7);
+    background: rgba(127, 183, 126, 0.07);
+    box-shadow: 0 0 0 4px rgba(127, 183, 126, 0.12);
+}
+
+.booking-flow :where(.field-input, input, textarea, select) {
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+.booking-flow :where(.field-input, input, textarea, select):focus {
+    border-color: #9de09c;
+}
+
+.booking-flow .departure-option:not(:disabled):hover {
+    transform: translateY(-2px);
+}
+
+.booking-flow :where(label) {
+    color: #e8c79f;
+}
+
+@media (max-width: 639px) {
+    .public-shell :where(input, textarea, select) {
+        font-size: 1rem;
+    }
+
+    .home-page .home-hero-image {
+        object-position: 62% center;
+    }
+
+    .tour-detail-page .gallery-arrow {
+        height: 2.5rem;
+        width: 2.5rem;
+    }
+
+    .tour-list-page .tour-filter-label {
+        font-size: 0.75rem;
+    }
+
+    .tour-list-page .tour-filter-field {
+        height: 3.1rem;
+        font-size: 1rem;
+    }
+
+    .booking-flow .booking-form-surface {
+        border-radius: 1.25rem;
+    }
 }

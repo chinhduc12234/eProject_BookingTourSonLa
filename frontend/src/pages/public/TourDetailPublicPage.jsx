@@ -6,11 +6,14 @@ import {
   BadgeInfo,
   CalendarDays,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Clock3,
   CreditCard,
   ListChecks,
   Loader2,
   LogIn,
+  Maximize2,
   MapPin,
   Route,
   ShieldCheck,
@@ -118,6 +121,7 @@ export default function TourDetailPublicPage() {
   const [loading, setLoading] = useState(true);
   const [selectedDepartureId, setSelectedDepartureId] = useState("");
   const [lightboxImage, setLightboxImage] = useState(null);
+  const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
 
   useEffect(() => {
     const loadDetail = async () => {
@@ -197,9 +201,17 @@ export default function TourDetailPublicPage() {
           imageUrl: image.image,
           title: image.title,
         }));
+  const normalizedGalleryIndex =
+    galleryImages.length > 0 ? activeGalleryIndex % galleryImages.length : 0;
+  const activeGalleryImage = galleryImages[normalizedGalleryIndex];
+  const handleImageError = (event) => {
+    event.currentTarget.onerror = null;
+    event.currentTarget.src = scenicImages.mocChauTea;
+  };
 
   return (
     <PublicLayout>
+      <div className="tour-detail-page">
       {/* HERO */}
       <section className="relative bg-[#020617]">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -217,6 +229,7 @@ export default function TourDetailPublicPage() {
             initial={{ scale: 1.15, opacity: 0 }}
             animate={{ scale: 1.05, opacity: 1 }}
             transition={{ duration: 1.4, ease: "easeOut" }}
+            onError={handleImageError}
             className="absolute inset-0 h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-br from-[#020617]/90 via-[#020617]/60 to-[#020617]/30" />
@@ -319,7 +332,7 @@ export default function TourDetailPublicPage() {
       {/* BODY */}
       <section className="bg-[#020617] py-12">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[1fr_420px] lg:px-8">
-          <div className="space-y-8">
+          <div className="min-w-0 space-y-8">
             {/* GALLERY */}
             {galleryImages.length > 0 && (
               <motion.div
@@ -336,31 +349,90 @@ export default function TourDetailPublicPage() {
                     {galleryImages.length} ảnh
                   </span>
                 </div>
-                <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                  {galleryImages.slice(0, 4).map((image, idx) => (
-                    <motion.button
-                      key={image.id}
+                <div className="tour-gallery mt-5 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] p-3 shadow-soft-dark sm:p-4">
+                  <div className="group relative overflow-hidden rounded-2xl bg-[#07120f]">
+                    <motion.img
+                      key={activeGalleryImage?.imageUrl}
+                      src={activeGalleryImage?.imageUrl}
+                      alt={activeGalleryImage?.title || tour.title}
+                      initial={{ opacity: 0, scale: 1.03 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.45 }}
+                      onError={handleImageError}
+                      className="aspect-[16/10] w-full object-cover sm:aspect-[16/9]"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/75 via-transparent to-[#020617]/10" />
+
+                    <button
                       type="button"
-                      onClick={() => setLightboxImage(image.imageUrl)}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={[
-                        "group relative overflow-hidden rounded-2xl",
-                        idx === 0 ? "sm:col-span-2 sm:row-span-2" : "",
-                      ].join(" ")}
+                      onClick={() => setLightboxImage(activeGalleryImage?.imageUrl)}
+                      className="absolute bottom-4 left-4 inline-flex h-10 items-center gap-2 rounded-xl border border-white/15 bg-[#020617]/75 px-4 text-sm font-black text-white backdrop-blur-md transition hover:border-[#7FB77E]/60 hover:bg-[#07120f]"
                     >
-                      <img
-                        src={image.imageUrl}
-                        alt={image.title}
-                        loading="lazy"
-                        className="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                      <div className="absolute bottom-3 left-3 rounded-lg bg-[#020617]/80 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                        Xem ảnh lớn
-                      </div>
-                    </motion.button>
-                  ))}
+                      <Maximize2 size={16} />
+                      Xem ảnh lớn
+                    </button>
+
+                    {galleryImages.length > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setActiveGalleryIndex(
+                              (current) =>
+                                (current - 1 + galleryImages.length) % galleryImages.length,
+                            )
+                          }
+                          aria-label="Ảnh trước"
+                          className="gallery-arrow left-3"
+                        >
+                          <ChevronLeft size={20} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setActiveGalleryIndex(
+                              (current) => (current + 1) % galleryImages.length,
+                            )
+                          }
+                          aria-label="Ảnh tiếp theo"
+                          className="gallery-arrow right-3"
+                        >
+                          <ChevronRight size={20} />
+                        </button>
+                      </>
+                    )}
+
+                    <span className="absolute bottom-4 right-4 rounded-xl border border-white/15 bg-[#020617]/75 px-3 py-2 text-xs font-black text-white backdrop-blur-md">
+                      {normalizedGalleryIndex + 1} / {galleryImages.length}
+                    </span>
+                  </div>
+
+                  <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
+                    {galleryImages.map((image, idx) => (
+                      <button
+                        key={image.id}
+                        type="button"
+                        onClick={() => setActiveGalleryIndex(idx)}
+                        aria-label={`Xem ảnh ${idx + 1}: ${image.title}`}
+                        aria-pressed={idx === normalizedGalleryIndex}
+                        className={[
+                          "relative h-20 w-28 shrink-0 overflow-hidden rounded-xl border-2 transition sm:h-24 sm:w-36",
+                          idx === normalizedGalleryIndex
+                            ? "border-[#9de09c] shadow-soft-green"
+                            : "border-transparent opacity-65 hover:opacity-100",
+                        ].join(" ")}
+                      >
+                        <img
+                          src={image.imageUrl}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          onError={handleImageError}
+                          className="h-full w-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -844,11 +916,13 @@ export default function TourDetailPublicPage() {
             transition={{ duration: 0.35 }}
             src={lightboxImage}
             alt={tour.title}
+            onError={handleImageError}
             onClick={(e) => e.stopPropagation()}
             className="max-h-[85vh] max-w-6xl rounded-2xl object-contain shadow-2xl"
           />
         </motion.div>
       )}
+      </div>
     </PublicLayout>
   );
 }

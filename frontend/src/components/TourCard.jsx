@@ -23,21 +23,27 @@ export default function TourCard({ tour }) {
   const statusLabel = tour.status === "OPEN" ? "Đang mở bán" : tour.status;
   const fallbackImages = [
     scenicImages.mocChauTea,
-    scenicImages.sonLaLandscape,
+    scenicImages.taXuaRidge,
     scenicImages.daiYemWaterfall,
-    scenicImages.mocChauTeaClose,
+    scenicImages.taXuaBlossom,
   ];
   const fallbackImage = fallbackImages[Number(tour.id || 0) % fallbackImages.length];
+  const handleImageError = (event) => {
+    event.currentTarget.onerror = null;
+    event.currentTarget.src = fallbackImage;
+  };
 
   return (
-    <article className="group relative h-full overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] transition-all duration-500 hover:-translate-y-2 hover:border-[#7FB77E]/50 shadow-soft-dark hover:shadow-soft-green">
+    <article className="tour-card group relative h-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.07] to-white/[0.025] shadow-soft-dark transition-all duration-500 hover:-translate-y-2 hover:border-[#7FB77E]/50 hover:shadow-soft-green">
       <Link to={`/tours/${tour.id}`} className="flex h-full flex-col">
-        <div className="relative aspect-[4/3] overflow-hidden bg-slate-800">
+        <div className="relative aspect-[16/11] overflow-hidden bg-slate-800">
           {tour.thumbnail ? (
             <img
               src={resolveUploadedFileUrl(tour.thumbnail)}
               alt={tour.title}
               loading="lazy"
+              decoding="async"
+              onError={handleImageError}
               className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110"
             />
           ) : (
@@ -45,6 +51,8 @@ export default function TourCard({ tour }) {
               src={fallbackImage}
               alt={tour.title || "Sơn La"}
               loading="lazy"
+              decoding="async"
+              onError={handleImageError}
               className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110"
             />
           )}
@@ -124,14 +132,15 @@ export default function TourCard({ tour }) {
 
           <div className="mt-auto flex items-end justify-between gap-3 border-t border-white/10 pt-5">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-300">
                 Giá từ
               </p>
               <p className="mt-1 text-2xl font-black text-gradient-gold">
                 {formatCurrency(price)}
               </p>
             </div>
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#9de09c] to-[#4f8f4d] text-[#020617] transition-all duration-300 group-hover:scale-110 group-hover:shadow-soft-green">
+            <span className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-[#9de09c] to-[#4f8f4d] px-4 text-sm font-black text-[#020617] transition-all duration-300 group-hover:shadow-soft-green">
+              Xem chi tiết
               <ArrowRight size={18} />
             </span>
           </div>

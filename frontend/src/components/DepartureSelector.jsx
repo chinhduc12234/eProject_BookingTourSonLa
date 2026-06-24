@@ -1,5 +1,4 @@
 import { CalendarDays, CheckCircle2, Clock3, Users } from "lucide-react";
-import toast from "react-hot-toast";
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return null;
@@ -37,7 +36,7 @@ export default function DepartureSelector({
   }
 
   return (
-    <div className="grid gap-3">
+    <div className="departure-selector grid gap-3">
       {departures.map((departure) => {
         const availableSeats = Number(departure.availableSeats || 0);
         const deadlineExpired =
@@ -63,6 +62,7 @@ export default function DepartureSelector({
             key={departure.id}
             type="button"
             disabled={disabled}
+            aria-pressed={selected}
             onClick={() => {
               onSelect(departure.id);
               const tempDeparture = {
@@ -77,7 +77,7 @@ export default function DepartureSelector({
               localStorage.setItem('booking_temp_departure', JSON.stringify(tempDeparture));
             }}
             className={[
-              "group relative overflow-hidden rounded-xl border p-4 text-left transition-all",
+              "departure-option group relative overflow-hidden rounded-2xl border p-4 text-left transition-all",
               selected
                 ? "border-[#7FB77E] bg-gradient-to-br from-[#7FB77E]/25 to-[#4f8f4d]/10 shadow-soft-green"
                 : "border-white/10 bg-white/[0.04] hover:border-[#7FB77E]/50 hover:bg-[#7FB77E]/[0.07]",
@@ -121,7 +121,7 @@ export default function DepartureSelector({
 
             <div
               className={[
-                "mt-3 inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest",
+                "mt-3 inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider",
                 disabled ? "text-rose-300/80" : "text-[#d4a878]",
               ].join(" ")}
             >

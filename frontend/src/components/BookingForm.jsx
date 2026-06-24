@@ -66,26 +66,14 @@ const toNumber = (value) => {
 };
 
 const formStepItems = [
-  { label: "Loại booking", description: "Cá nhân, nhóm hoặc tour riêng" },
+  { label: "Hình thức đặt", description: "Cá nhân, nhóm hoặc tour riêng" },
   { label: "Liên hệ", description: "Thông tin trưởng đoàn và điểm đón" },
   { label: "Hành khách", description: "Số lượng và hồ sơ người đi cùng" },
   { label: "Xác nhận", description: "Ghi chú, tổng tiền và chuyển thanh toán" },
 ];
 
-export default function BookingForm({
-  tour,
-  tourId,
-  selectedDeparture,
-  selectedDepartureId,
-  userProfile,
-  onDraftReady,
-}) {
-  const navigate = useNavigate();
-  const [submitting, setSubmitting] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [customerDrafts, setCustomerDrafts] = useState({});
-  const [currentFormStep, setCurrentFormStep] = useState(0);
-  const [form, setForm] = useState({
+const readStoredBookingState = (userProfile) => {
+  const defaultForm = {
     bookingType: "INDIVIDUAL",
     organizationName: "",
     contactPerson: "",
@@ -97,41 +85,65 @@ export default function BookingForm({
     childCount: 0,
     note: "",
     specialRequest: "",
-  });
+  };
 
-  // Restore form data from localStorage on mount
-  useEffect(() => {
-    const savedForm = localStorage.getItem('booking_temp_form');
-    if (savedForm) {
-      try {
-        const tempForm = JSON.parse(savedForm);
-        setForm(prev => ({
-          ...prev,
-          bookingType: tempForm.bookingType || prev.bookingType,
-          organizationName: tempForm.organizationName || prev.organizationName,
-          contactPerson: tempForm.contactPerson || prev.contactPerson,
-          fullName: tempForm.fullName || prev.fullName,
-          email: tempForm.email || prev.email,
-          phone: tempForm.phone || prev.phone,
-          pickupAddress: tempForm.pickupAddress || prev.pickupAddress,
-          adultCount: tempForm.adultCount || prev.adultCount,
-          childCount: tempForm.childCount || prev.childCount,
-          note: tempForm.note || prev.note,
-          specialRequest: tempForm.specialRequest || prev.specialRequest,
-        }));
-        if (tempForm.customers && Array.isArray(tempForm.customers)) {
-          const drafts = {};
-          tempForm.customers.forEach((customer, index) => {
-            const slotKey = customer.slotKey || `customer-${index}`;
-            drafts[slotKey] = customer;
-          });
-          setCustomerDrafts(drafts);
-        }
-      } catch (error) {
-        console.error('Error restoring form data:', error);
-      }
+  try {
+    const savedForm = localStorage.getItem("booking_temp_form");
+    if (!savedForm) return { form: defaultForm, customerDrafts: {} };
+
+    const tempForm = JSON.parse(savedForm);
+    const customerDrafts = {};
+
+    if (Array.isArray(tempForm.customers)) {
+      tempForm.customers.forEach((customer, index) => {
+        const slotKey = customer.slotKey || `customer-${index}`;
+        customerDrafts[slotKey] = customer;
+      });
     }
-  }, [userProfile]);
+
+    return {
+      form: {
+        ...defaultForm,
+        bookingType: tempForm.bookingType || defaultForm.bookingType,
+        organizationName:
+          tempForm.organizationName || defaultForm.organizationName,
+        contactPerson: tempForm.contactPerson || defaultForm.contactPerson,
+        fullName: tempForm.fullName || defaultForm.fullName,
+        email: tempForm.email || defaultForm.email,
+        phone: tempForm.phone || defaultForm.phone,
+        pickupAddress: tempForm.pickupAddress || defaultForm.pickupAddress,
+        adultCount: tempForm.adultCount || defaultForm.adultCount,
+        childCount: tempForm.childCount || defaultForm.childCount,
+        note: tempForm.note || defaultForm.note,
+        specialRequest: tempForm.specialRequest || defaultForm.specialRequest,
+      },
+      customerDrafts,
+    };
+  } catch (error) {
+    console.error("Không thể khôi phục biểu mẫu đặt tour:", error);
+    return { form: defaultForm, customerDrafts: {} };
+  }
+};
+
+export default function BookingForm({
+  tour,
+  tourId,
+  selectedDeparture,
+  selectedDepartureId,
+  userProfile,
+  onDraftReady,
+}) {
+  const navigate = useNavigate();
+  const [initialBookingState] = useState(() =>
+    readStoredBookingState(userProfile),
+  );
+  const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [customerDrafts, setCustomerDrafts] = useState(
+    initialBookingState.customerDrafts,
+  );
+  const [currentFormStep, setCurrentFormStep] = useState(0);
+  const [form, setForm] = useState(initialBookingState.form);
 
   // Auto-save form data to localStorage whenever it changes
   useEffect(() => {
@@ -147,9 +159,12 @@ export default function BookingForm({
       childCount: form.childCount,
       note: form.note,
       specialRequest: form.specialRequest,
-      customers: Object.values(customerDrafts),
+      customers: Object.entries(customerDrafts).map(([slotKey, customer]) => ({
+        ...customer,
+        slotKey,
+      })),
     };
-    localStorage.setItem('booking_temp_form', JSON.stringify(tempForm));
+    localStorage.setItem("booking_temp_form", JSON.stringify(tempForm));
   }, [form, customerDrafts]);
 
   const adultCount = toNumber(form.adultCount);
@@ -226,10 +241,28 @@ export default function BookingForm({
 
   const jumpToFormStep = (index) => {
     setCurrentFormStep(index);
+
     window.requestAnimationFrame(() => {
-      document
-        .getElementById(`booking-form-step-${index}`)
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const target = document.getElementById(`booking-form-step-${index}`);
+      if (!target) return;
+
+      const stickyHeaderOffset = window.innerWidth < 768 ? 92 : 108;
+      const viewportRoom = window.innerHeight - stickyHeaderOffset - 24;
+      const targetOffset =
+        target.offsetHeight < viewportRoom
+          ? stickyHeaderOffset + (viewportRoom - target.offsetHeight) / 2
+          : stickyHeaderOffset + 16;
+      const targetTop =
+        target.getBoundingClientRect().top + window.scrollY - targetOffset;
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+
+      window.scrollTo({
+        top: Math.max(0, targetTop),
+        behavior: reduceMotion ? "auto" : "smooth",
+      });
+      target.focus({ preventScroll: true });
     });
   };
 
@@ -256,7 +289,7 @@ export default function BookingForm({
     }
 
     if (adultCount < 1) {
-      nextErrors.people = "Booking phải có ít nhất 1 người lớn";
+      nextErrors.people = "Đơn đặt tour phải có ít nhất 1 người lớn";
     } else if (childCount < 0) {
       nextErrors.people = "Số trẻ em không hợp lệ";
     } else if (selectedDeparture && priceInfo.totalPeople > availableSeats) {
@@ -365,12 +398,12 @@ export default function BookingForm({
     }
   };
 
-  const inputClass = "field-input";
+  const inputClass = "field-input booking-field";
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="booking-dark-panel rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-5"
+      className="booking-dark-panel booking-form-surface rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-5 sm:p-6"
     >
       <div className="flex items-center gap-3 border-b border-white/10 pb-4">
         <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#9de09c] to-[#4f8f4d] text-[#020617] shadow-soft-green">
@@ -378,14 +411,14 @@ export default function BookingForm({
         </span>
         <div>
           <h2 className="text-lg font-black text-white">Thông tin đặt tour</h2>
-          <p className="text-xs text-slate-400">
-            Thông tin liên hệ được lưu vào booking và trưởng đoàn trong danh sách khách.
+          <p className="text-sm leading-6 text-slate-300">
+            Thông tin liên hệ được lưu vào đơn đặt tour và hồ sơ trưởng đoàn.
           </p>
         </div>
       </div>
 
       {errors.departureId && (
-        <div className="mt-4 rounded-xl border border-rose-300/30 bg-rose-300/10 p-3 text-sm font-bold text-rose-100">
+        <div role="alert" className="mt-4 rounded-xl border border-rose-300/40 bg-rose-300/12 p-3 text-sm font-bold text-rose-100">
           {errors.departureId}
         </div>
       )}
@@ -448,10 +481,11 @@ export default function BookingForm({
       <div className="mt-5 grid gap-4">
         <div
           id="booking-form-step-0"
-          className="scroll-mt-28 rounded-2xl border border-white/10 bg-white/[0.025] p-4"
+          tabIndex="-1"
+          className="booking-form-step rounded-2xl border border-white/10 bg-white/[0.035] p-4 outline-none"
         >
           <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
-            Loại booking
+            Hình thức đặt tour
           </label>
           <div className="grid gap-2 sm:grid-cols-3">
             {bookingTypes.map((item) => {
@@ -526,7 +560,8 @@ export default function BookingForm({
 
         <div
           id="booking-form-step-1"
-          className="scroll-mt-28 rounded-2xl border border-white/10 bg-white/[0.025] p-4"
+          tabIndex="-1"
+          className="booking-form-step rounded-2xl border border-white/10 bg-white/[0.035] p-4 outline-none"
         >
           <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
             Họ tên trưởng đoàn
@@ -589,7 +624,8 @@ export default function BookingForm({
 
         <div
           id="booking-form-step-2"
-          className="scroll-mt-28 rounded-2xl border border-white/10 bg-white/[0.025] p-4"
+          tabIndex="-1"
+          className="booking-form-step rounded-2xl border border-white/10 bg-white/[0.035] p-4 outline-none"
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -620,7 +656,7 @@ export default function BookingForm({
           </div>
 
         {errors.people && (
-          <div className="mt-4 rounded-xl border border-rose-300/30 bg-rose-300/10 p-3 text-sm font-bold text-rose-100">
+          <div role="alert" className="mt-4 rounded-xl border border-rose-300/40 bg-rose-300/12 p-3 text-sm font-bold text-rose-100">
             {errors.people}
           </div>
         )}
@@ -829,7 +865,8 @@ export default function BookingForm({
 
         <div
           id="booking-form-step-3"
-          className="scroll-mt-28 rounded-2xl border border-white/10 bg-white/[0.025] p-4"
+          tabIndex="-1"
+          className="booking-form-step rounded-2xl border border-white/10 bg-white/[0.035] p-4 outline-none"
         >
           <div className="relative overflow-hidden rounded-2xl border border-[#7FB77E]/30 bg-gradient-to-br from-[#7FB77E]/15 via-[#020617]/40 to-[#A67C52]/15 p-5">
             <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#7FB77E]/20 blur-2xl" />

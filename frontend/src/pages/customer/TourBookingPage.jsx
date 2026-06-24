@@ -17,6 +17,7 @@ import BookingStepBar from "../../components/BookingStepBar";
 import DepartureSelector from "../../components/DepartureSelector";
 import { getBookingDraft, saveBookingDraft } from "../../utils/bookingDraft";
 import PublicLayout from "../public/PublicLayout";
+import { scenicImages } from "../public/publicContent";
 
 const formatCurrency = (value) =>
   Number(value || 0).toLocaleString("vi-VN") + " đ";
@@ -117,7 +118,9 @@ export default function TourBookingPage() {
   }
 
   const { tour, images = [], departures = [] } = detail;
-  const coverImage = resolveUploadedFileUrl(tour.thumbnail || images[0]?.imageUrl);
+  const coverImage =
+    resolveUploadedFileUrl(tour.thumbnail || images[0]?.imageUrl) ||
+    scenicImages.taXuaRidge;
   const storedDraft = getBookingDraft();
   const hasPaymentDraft = Number(storedDraft?.tour?.id) === Number(tour.id);
   const bookingFlowSteps = [
@@ -129,7 +132,7 @@ export default function TourBookingPage() {
     },
     {
       key: "booking",
-      label: "Thông tin booking",
+      label: "Thông tin đặt tour",
       description: "Chọn lịch, số khách và thông tin liên hệ",
       href: `/booking/${tour.id}`,
     },
@@ -143,14 +146,14 @@ export default function TourBookingPage() {
     {
       key: "done",
       label: "Thanh toán thành công",
-      description: "Booking đã được ghi nhận và chuyển sang lịch sử",
+      description: "Đơn đặt tour đã được ghi nhận trong lịch sử",
       disabled: true,
     },
   ];
 
   return (
     <PublicLayout>
-      <section className="booking-flow bg-[#020617] py-10 sm:py-14">
+      <section className="booking-flow booking-page bg-[#020617] py-10 sm:py-14">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Link to={`/tours/${tour.id}`} className="btn-outline text-sm">
             <ArrowLeft size={17} />
@@ -191,6 +194,11 @@ export default function TourBookingPage() {
                   <img
                     src={coverImage}
                     alt={tour.title}
+                    decoding="async"
+                    onError={(event) => {
+                      event.currentTarget.onerror = null;
+                      event.currentTarget.src = scenicImages.mocChauTea;
+                    }}
                     className="aspect-[16/10] w-full object-cover"
                   />
                 ) : (

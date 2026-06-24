@@ -145,7 +145,7 @@ export default function BookingPaymentPage() {
     {
       key: "done",
       label: "Thanh toán thành công",
-      description: "Booking đã được ghi nhận và chuyển sang lịch sử",
+      description: "Đơn đặt tour đã được ghi nhận trong lịch sử",
       disabled: true,
     },
   ];

@@ -27,7 +27,7 @@ export const brand = {
 
 export const navLinks = [
     { label: "Trang chủ", to: "/" },
-    { label: "Tour", to: "/tours" },
+    { label: "Tour du lịch", to: "/tours" },
     { label: "Giới thiệu", to: "/gioi-thieu" },
     { label: "FAQ", to: "/faq" },
     { label: "Liên hệ", to: "/lien-he" },
@@ -35,21 +35,43 @@ export const navLinks = [
 
 export const scenicImages = {
     mocChauTea:
-        "https://cdn.pixabay.com/photo/2017/02/24/13/17/tea-plantation-2094890_1280.jpg",
+        "https://upload.wikimedia.org/wikipedia/commons/7/71/Moc-chau-tea-doi-2094890_960_720.jpg",
     mocChauTeaClose:
         "https://c.pxhere.com/photos/b2/ea/moc_chau_son_la_vietnam_plantation_tea_field_agriculture-569124.jpg!d",
     daiYemWaterfall:
         "https://upload.wikimedia.org/wikipedia/commons/e/e9/Thacdaiyem.jpg",
     sonLaLandscape:
         "https://upload.wikimedia.org/wikipedia/commons/d/d2/S%C6%A1n_La_Province.JPG",
+    taXuaRidge:
+        "https://commons.wikimedia.org/wiki/Special:Redirect/file/S%E1%BB%91ng_l%C6%B0ng_kh%E1%BB%A7ng_long_T%C3%A0_X%C3%B9a.jpg?width=1600",
+    taXuaBlossom:
+        "https://commons.wikimedia.org/wiki/Special:Redirect/file/Prunus_campanulata_01.jpg?width=1400",
 };
 
-export const heroBackdrops = [
-    scenicImages.mocChauTea,
-    scenicImages.sonLaLandscape,
-    scenicImages.daiYemWaterfall,
-    scenicImages.mocChauTeaClose,
+export const heroSlides = [
+    {
+        image: scenicImages.mocChauTea,
+        alt: "Đồi chè Mộc Châu trong sương sớm",
+        place: "Mộc Châu · Sơn La",
+    },
+    {
+        image: scenicImages.taXuaRidge,
+        alt: "Sống lưng khủng long Tà Xùa giữa núi rừng",
+        place: "Tà Xùa · Bắc Yên",
+    },
+    {
+        image: scenicImages.daiYemWaterfall,
+        alt: "Thác Dải Yếm giữa màu xanh Mộc Châu",
+        place: "Mường Sang · Mộc Châu",
+    },
+    {
+        image: scenicImages.taXuaBlossom,
+        alt: "Anh đào hoa chuông nở tại Tà Xùa",
+        place: "Tà Xùa · Sơn La",
+    },
 ];
+
+export const heroBackdrops = heroSlides.map((slide) => slide.image);
 
 export const scenicGallery = [
     {
@@ -65,10 +87,10 @@ export const scenicGallery = [
         image: scenicImages.daiYemWaterfall,
     },
     {
-        title: "Cảnh quan Mường La",
-        eyebrow: "Sơn La",
-        desc: "Không gian núi và thung lũng mở rộng cho các hành trình khám phá dài ngày.",
-        image: scenicImages.sonLaLandscape,
+        title: "Sống lưng Tà Xùa",
+        eyebrow: "Bắc Yên",
+        desc: "Cung núi nổi tiếng giữa biển mây, dành cho hành trình săn bình minh và khám phá thiên nhiên.",
+        image: scenicImages.taXuaRidge,
     },
     {
         title: "Nếp sống cao nguyên",
@@ -76,13 +98,27 @@ export const scenicGallery = [
         desc: "Nhịp sống xanh giữa vườn chè, bản làng và những cung đường chậm.",
         image: scenicImages.mocChauTeaClose,
     },
+    {
+        title: "Mùa hoa trên núi",
+        eyebrow: "Tà Xùa",
+        desc: "Sắc hoa chuông dịu nhẹ làm mềm những triền núi cao trong mùa xuân Tây Bắc.",
+        image: scenicImages.taXuaBlossom,
+    },
+    {
+        title: "Núi rừng Sơn La",
+        eyebrow: "Tây Bắc",
+        desc: "Những lớp núi nối nhau mở ra nhịp hành trình khoáng đạt và nhiều điểm dừng giàu bản sắc.",
+        image: scenicImages.sonLaLandscape,
+    },
 ];
 
 export const photoCredits = [
-    { label: "Pixabay", url: "https://pixabay.com/photos/tea-plantation-moc-chau-son-la-2094890/" },
+    { label: "Mộc Châu · ToanNguyen (CC0)", url: "https://commons.wikimedia.org/wiki/File:Moc-chau-tea-doi-2094890_960_720.jpg" },
     { label: "PxHere", url: "https://pxhere.com/en/photo/569124" },
-    { label: "Wikimedia Commons", url: "https://commons.wikimedia.org/wiki/File:Thacdaiyem.jpg" },
-    { label: "Wikimedia Commons", url: "https://commons.wikimedia.org/wiki/File:S%C6%A1n_La_Province.JPG" },
+    { label: "Thác Dải Yếm · Wikimedia Commons", url: "https://commons.wikimedia.org/wiki/File:Thacdaiyem.jpg" },
+    { label: "Sơn La · Wikimedia Commons", url: "https://commons.wikimedia.org/wiki/File:S%C6%A1n_La_Province.JPG" },
+    { label: "Tà Xùa · NKSTTSSHNVN (CC BY-SA 4.0)", url: "https://commons.wikimedia.org/wiki/File:S%E1%BB%91ng_l%C6%B0ng_kh%E1%BB%A7ng_long_T%C3%A0_X%C3%B9a.jpg" },
+    { label: "Hoa chuông Tà Xùa · Gió Đông (Public domain)", url: "https://commons.wikimedia.org/wiki/File:Prunus_campanulata_01.jpg" },
 ];
 
 export const heroStats = [
@@ -129,7 +165,7 @@ export const featuredTours = [
         place: "Bắc Yên",
         duration: "2 ngày 1 đêm",
         price: "1.890.000đ",
-        image: scenicImages.sonLaLandscape,
+        image: scenicImages.taXuaRidge,
         tags: ["Săn mây", "Trekking", "Bình minh"],
     },
     {
@@ -182,7 +218,7 @@ export const companyValues = [
     {
         icon: Award,
         title: "Tầm nhìn",
-        desc: "Trở thành nền tảng booking tour Tây Bắc đáng tin cậy cho du khách cá nhân, nhóm và doanh nghiệp.",
+        desc: "Trở thành nền tảng đặt tour Tây Bắc đáng tin cậy cho du khách cá nhân, nhóm và doanh nghiệp.",
     },
     {
         icon: CheckCircle2,

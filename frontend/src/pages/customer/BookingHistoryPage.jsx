@@ -66,7 +66,7 @@ export default function BookingHistoryPage() {
               <CalendarDays size={20} />
             </span>
             <div>
-              <h2 className="text-xl font-black text-white">Booking của tôi</h2>
+              <h2 className="text-xl font-black text-white">Lịch sử đặt tour</h2>
               <p className="text-sm text-slate-400">
                 Theo dõi các tour đã đặt.
               </p>
