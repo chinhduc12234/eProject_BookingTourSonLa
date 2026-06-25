@@ -242,7 +242,7 @@ export default function LoginPage() {
                         <div className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#020617]/65 p-10 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-2xl sm:p-12">
                             <motion.div variants={fadeInUp}>
                                 <span className="section-tag">
-                                    <Sparkles size={12} /> Welcome back
+                                    <Sparkles size={12} /> Chào mừng trở lại
                                 </span>
                                 <h2 className="mt-4 text-4xl font-black text-white">
                                     Đăng nhập

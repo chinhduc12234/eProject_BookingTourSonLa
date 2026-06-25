@@ -699,7 +699,7 @@ export default function EmployeeTimelinePage() {
             />
           </label>
           <label className="tl-field full">
-            <span>Link minh chứng / ảnh báo cáo</span>
+            <span>Đường dẫn minh chứng / ảnh báo cáo</span>
             <input
               type="url"
               value={form.attachmentUrl || ""}
@@ -937,7 +937,7 @@ export default function EmployeeTimelinePage() {
     const headings = {
       confirm: {
         eyebrow: "Bước 1 · Xác nhận",
-        title: "Thông tin booking",
+        title: "Thông tin đơn đặt tour",
         desc: "Kiểm tra đầy đủ thông tin trước khi bắt đầu lịch trình thực tế.",
       },
       day: {

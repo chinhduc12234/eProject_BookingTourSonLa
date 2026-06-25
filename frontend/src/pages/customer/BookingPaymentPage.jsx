@@ -132,7 +132,7 @@ export default function BookingPaymentPage() {
     },
     {
       key: "booking",
-      label: "Thông tin booking",
+      label: "Thông tin đặt tour",
       description: "Quay lại sửa khách, điểm đón, ghi chú",
       href: `/booking/${id}`,
     },
@@ -169,7 +169,7 @@ export default function BookingPaymentPage() {
                 <div className="grid gap-5 p-5 sm:p-7 md:grid-cols-[1fr_260px]">
                   <div>
                     <span className="section-tag">
-                      <CreditCard size={12} /> Thanh toán booking
+                      <CreditCard size={12} /> Thanh toán đơn đặt tour
                     </span>
                     <h1 className="mt-3 text-3xl font-black leading-tight text-white sm:text-5xl">
                       {draft.tour?.title}
@@ -216,7 +216,7 @@ export default function BookingPaymentPage() {
                       Chọn hình thức thanh toán
                     </h2>
                     <p className="text-sm text-slate-400">
-                      Chọn thanh toán cọc hoặc thanh toán toàn bộ để hoàn tất booking.
+                      Chọn đặt cọc hoặc thanh toán toàn bộ để hoàn tất đơn đặt tour.
                     </p>
                   </div>
                 </div>
@@ -227,7 +227,7 @@ export default function BookingPaymentPage() {
                       key: "FULL",
                       title: "Thanh toán full",
                       amount: paymentSummary.totalAmount,
-                      description: "Thanh toán toàn bộ giá trị booking ngay ở bước này.",
+                      description: "Thanh toán toàn bộ giá trị đơn đặt tour ngay ở bước này.",
                     },
                     {
                       key: "DEPOSIT",

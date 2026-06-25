@@ -508,7 +508,7 @@ export default function TourPage() {
                         <div>
 
                             <h2 className="text-3xl font-black text-slate-800">
-                                Quản Lý Tour
+                                Quản lý tour
                             </h2>
 
                             <p className="text-slate-500 mt-1">

@@ -1132,3 +1132,461 @@ button, input, select, textarea {
         border-radius: 1.25rem;
     }
 }
+
+/* ==========================================================================
+   FINAL UI SYSTEM REFINEMENT
+   ========================================================================== */
+
+:root {
+    --focus-ring: rgba(127, 183, 126, 0.2);
+}
+
+body {
+    min-width: 320px;
+    overflow-x: hidden;
+}
+
+:where(a, button, input, select, textarea) {
+    -webkit-tap-highlight-color: transparent;
+}
+
+:where(a, button, input, select, textarea):focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+}
+
+button:not(:disabled) {
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: not-allowed;
+}
+
+.admin-shell {
+    color-scheme: light;
+    font-size: 15px;
+}
+
+.admin-sidebar {
+    width: 276px !important;
+    padding: 1.15rem !important;
+}
+
+.admin-brand-card {
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.025)) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 20px 42px -34px rgba(127, 183, 126, 0.7);
+}
+
+.admin-nav a {
+    min-height: 48px;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    padding-inline: 0.9rem;
+    font-size: 0.9rem;
+}
+
+.admin-nav a[aria-current="page"] {
+    border-color: rgba(255, 255, 255, 0.16);
+    box-shadow:
+        0 18px 35px -24px rgba(127, 183, 126, 0.85),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.admin-main {
+    min-width: 0;
+}
+
+.admin-main > div {
+    background: transparent !important;
+}
+
+.admin-main .max-w-7xl {
+    max-width: 96rem;
+}
+
+.admin-main .max-w-6xl {
+    max-width: 88rem;
+}
+
+.admin-main :where(h1, h2) {
+    text-wrap: balance;
+}
+
+.admin-main :where(h1) {
+    line-height: 1.14;
+}
+
+.admin-main :where(p) {
+    text-wrap: pretty;
+}
+
+.admin-main :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+    min-height: 48px;
+    border-radius: 14px !important;
+    font-size: 0.94rem;
+    line-height: 1.5;
+}
+
+.admin-main :where(button, a) {
+    line-height: 1.35;
+}
+
+.admin-main :where(table) {
+    line-height: 1.55;
+}
+
+.admin-main :where(th) {
+    color: #536158 !important;
+    font-size: 0.76rem !important;
+    letter-spacing: 0.06em;
+}
+
+.admin-main :where(td) {
+    color: #26342b;
+    font-size: 0.9rem;
+}
+
+.admin-main :where(.rounded-2xl, .rounded-3xl, [class*="rounded-[32px]"]) {
+    border-color: rgba(42, 72, 55, 0.13);
+}
+
+.admin-main :where(.overflow-x-auto) {
+    scrollbar-width: thin;
+    scrollbar-color: #7fb77e #edf3eb;
+}
+
+.admin-main .admin-responsive-table :where(th:last-child, td:last-child) {
+    position: sticky;
+    right: 0;
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow: -12px 0 24px -24px rgba(15, 23, 42, 0.65);
+}
+
+.admin-main .admin-responsive-table.admin-medium-table {
+    min-width: 760px;
+}
+
+.admin-main .admin-responsive-table.admin-wide-table {
+    min-width: 1080px;
+}
+
+.admin-main .admin-responsive-table th:last-child {
+    background: #f1f6f0;
+}
+
+.admin-modal-panel {
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #7fb77e #edf3eb;
+}
+
+.admin-modal-panel :where(h2, h3) {
+    padding-right: 3.25rem;
+    text-wrap: balance;
+}
+
+.admin-modal-panel :where(label) {
+    color: #405047 !important;
+    line-height: 1.45;
+}
+
+.admin-modal-panel :where(input, select, textarea) {
+    font-size: 1rem;
+}
+
+.thank-you-page .thank-you-hero {
+    isolation: isolate;
+}
+
+.thank-you-page article,
+.thank-you-page .thank-you-hero {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055);
+}
+
+.public-shell :where(button, a) {
+    touch-action: manipulation;
+}
+
+.public-shell :where(h1) {
+    text-wrap: balance;
+}
+
+.public-shell :where(p) {
+    text-wrap: pretty;
+}
+
+@media (hover: none), (pointer: coarse) {
+    .admin-main [class*="opacity-0"][class*="group-hover:opacity-100"] {
+        opacity: 1 !important;
+    }
+
+    .hover-lift:hover,
+    .admin-main :where(a, button):hover {
+        transform: none;
+    }
+}
+
+@media (max-width: 1100px) {
+    .admin-sidebar {
+        width: 238px !important;
+    }
+
+    .admin-main :where([class*="p-8"]) {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 900px) {
+    .admin-shell {
+        min-height: 100dvh;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    .admin-sidebar {
+        position: sticky;
+        top: 0;
+        z-index: 45;
+        display: grid;
+        width: 100% !important;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.65rem !important;
+        border-right: 0 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 18px 42px -34px rgba(4, 16, 12, 0.95);
+    }
+
+    .admin-brand-card {
+        width: 68px;
+        height: 52px;
+        margin: 0 !important;
+        padding: 0.25rem !important;
+        border-radius: 14px !important;
+    }
+
+    .admin-brand-card img {
+        width: 100%;
+        height: 100%;
+    }
+
+    .admin-brand-caption,
+    .admin-sidebar > div.mb-3 {
+        display: none;
+    }
+
+    .admin-nav {
+        min-width: 0;
+        overflow-x: auto;
+        flex-direction: row !important;
+        gap: 0.4rem !important;
+        padding-bottom: 0.1rem;
+        scrollbar-width: none;
+    }
+
+    .admin-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .admin-nav a {
+        min-width: max-content;
+        min-height: 46px;
+        padding-inline: 0.8rem;
+    }
+
+    .admin-sidebar-footer {
+        display: flex;
+        margin: 0 !important;
+        gap: 0.35rem;
+        border-top: 0 !important;
+        padding: 0 !important;
+    }
+
+    .admin-sidebar-footer a,
+    .admin-sidebar-footer button {
+        width: 46px !important;
+        height: 46px !important;
+        min-height: 46px;
+        justify-content: center;
+        padding: 0 !important;
+    }
+
+    .admin-sidebar-footer span {
+        display: none;
+    }
+
+    .admin-main {
+        overflow: visible !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .admin-sidebar {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .admin-brand-card {
+        display: none;
+    }
+
+    .admin-nav a {
+        min-height: 44px;
+        padding-inline: 0.7rem;
+        font-size: 0.8rem;
+    }
+
+    .admin-main :where([class*="p-8"], [class*="p-5"], [class*="p-4"]) {
+        padding-left: 0.875rem;
+        padding-right: 0.875rem;
+    }
+
+    .admin-main :where(h1, h2.text-3xl) {
+        font-size: clamp(1.65rem, 8vw, 2.1rem) !important;
+    }
+
+    .admin-main :where(.flex.justify-between.items-center, .flex.items-center.justify-between) {
+        min-width: 0;
+    }
+
+    .admin-main .admin-responsive-table,
+    .admin-main .admin-responsive-table tbody,
+    .admin-main .admin-responsive-table tr,
+    .admin-main .admin-responsive-table td {
+        display: block;
+        width: 100%;
+        min-width: 0 !important;
+    }
+
+    .admin-main .admin-responsive-table thead {
+        display: none;
+    }
+
+    .admin-main .admin-responsive-table tbody {
+        display: grid;
+        gap: 0.8rem;
+        padding: 0.8rem;
+    }
+
+    .admin-main .admin-responsive-table tr {
+        overflow: hidden;
+        border: 1px solid rgba(42, 72, 55, 0.14);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 20px 46px -36px rgba(15, 23, 42, 0.5);
+    }
+
+    .admin-main .admin-responsive-table td {
+        position: static !important;
+        display: grid;
+        grid-template-columns: minmax(105px, 0.75fr) minmax(0, 1.25fr);
+        gap: 0.8rem;
+        align-items: center;
+        padding: 0.8rem 0.9rem !important;
+        border-bottom: 1px solid rgba(42, 72, 55, 0.09);
+        background: transparent !important;
+        box-shadow: none !important;
+        text-align: right;
+    }
+
+    .admin-main .admin-responsive-table td::before {
+        content: attr(data-label);
+        color: #64746a;
+        font-size: 0.68rem;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        text-align: left;
+        text-transform: uppercase;
+    }
+
+    .admin-main .admin-responsive-table td:last-child {
+        border-bottom: 0;
+    }
+
+    .admin-main .admin-responsive-table td[colspan] {
+        display: block;
+        padding-block: 2rem !important;
+        text-align: center;
+    }
+
+    .admin-main .admin-responsive-table td[colspan]::before {
+        content: none;
+    }
+
+    .admin-main .admin-responsive-table td > :where(div, span, p, h4) {
+        min-width: 0;
+        justify-self: end;
+        text-align: right;
+    }
+
+    .admin-main .admin-responsive-table td[data-label="Nhân viên"] > div,
+    .admin-main .admin-responsive-table td[data-label="Địa điểm"] > div {
+        justify-self: stretch;
+        text-align: left;
+    }
+
+    .admin-main .admin-responsive-table td[data-label="Hình ảnh"] img,
+    .admin-main .admin-responsive-table td[data-label="Hình ảnh"] > div {
+        width: 5.5rem;
+        height: 3.75rem;
+    }
+
+    .admin-modal-overlay {
+        align-items: flex-end !important;
+        padding: 0 !important;
+    }
+
+    .admin-modal-panel {
+        width: 100% !important;
+        max-width: none !important;
+        max-height: 94dvh;
+        border-radius: 24px 24px 0 0 !important;
+        padding: 1.25rem !important;
+        padding-top: 1.5rem !important;
+    }
+
+    .admin-modal-close {
+        position: sticky !important;
+        top: 0 !important;
+        float: right;
+        margin-top: -0.25rem;
+        margin-right: -0.15rem;
+    }
+
+    .admin-modal-panel :where(h2, h3) {
+        padding-right: 0;
+        font-size: 1.65rem !important;
+    }
+
+    .admin-modal-panel :where([class*="grid-cols-2"]) {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-modal-panel :where([class*="justify-end"][class*="gap-4"]) {
+        align-items: stretch;
+        flex-direction: column-reverse;
+    }
+
+    .admin-modal-panel :where([class*="min-w-[200px]"]) {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .thank-you-page .thank-you-hero {
+        border-radius: 22px;
+    }
+
+    .thank-you-page .section-tag {
+        letter-spacing: 0.11em;
+    }
+
+    .public-shell footer :where(input, button) {
+        width: 100%;
+    }
+}

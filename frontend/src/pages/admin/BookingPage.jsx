@@ -78,7 +78,7 @@ export default function BookingPage() {
       setTotalPages(response.data.totalPages || 0);
       setTotalElements(response.data.totalElements || 0);
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Không thể tải booking");
+      toast.error(error?.response?.data?.message || "Không thể tải danh sách đơn đặt tour");
     } finally {
       setLoading(false);
     }
@@ -105,7 +105,7 @@ export default function BookingPage() {
         setTotalElements(response.data.totalElements || 0);
       } catch (error) {
         if (mounted) {
-          toast.error(error?.response?.data?.message || "Không thể tải booking");
+          toast.error(error?.response?.data?.message || "Không thể tải danh sách đơn đặt tour");
         }
       } finally {
         if (mounted) setLoading(false);
@@ -151,10 +151,10 @@ export default function BookingPage() {
             </span>
             <div>
               <h1 className="text-3xl font-black tracking-tight">
-                Quản lý booking
+                Quản lý đơn đặt tour
               </h1>
               <p className="mt-1 text-sm font-semibold text-slate-500">
-                Theo dõi booking, kiểm tra thanh toán, phân công nhân viên và xác nhận tour.
+                Theo dõi đơn đặt tour, kiểm tra thanh toán, phân công nhân viên và xác nhận hành trình.
               </p>
             </div>
           </div>
@@ -172,7 +172,7 @@ export default function BookingPage() {
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           {[
-            { label: "Tổng booking", value: totalElements, Icon: TicketCheck },
+            { label: "Tổng đơn đặt tour", value: totalElements, Icon: TicketCheck },
             { label: "Chờ/Xác nhận", value: summary.confirmed, Icon: CalendarDays },
             { label: "Báo cáo cần xem", value: summary.needsReview, Icon: AlertTriangle },
             { label: "Kiểm tra thanh toán", value: summary.pendingPayment, Icon: CreditCard },
@@ -193,7 +193,7 @@ export default function BookingPage() {
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Tìm mã booking, tên khách, email, SĐT, tour..."
+                placeholder="Tìm mã đơn, tên khách, email, số điện thoại, tour..."
                 className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 font-semibold outline-none transition focus:border-emerald-500 focus:bg-white"
               />
             </div>
@@ -245,14 +245,14 @@ export default function BookingPage() {
             </div>
           ) : bookings.length === 0 ? (
             <div className="py-20 text-center font-semibold text-slate-500">
-              Chưa có booking phù hợp.
+              Chưa có đơn đặt tour phù hợp.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1320px] text-left text-sm">
                 <thead className="bg-slate-50 text-xs font-black uppercase tracking-wider text-slate-500">
                   <tr>
-                    <th className="px-5 py-4">Booking</th>
+                    <th className="px-5 py-4">Đơn đặt tour</th>
                     <th className="px-5 py-4">Khách hàng</th>
                     <th className="px-5 py-4">Tour</th>
                     <th className="px-5 py-4">Ngày đi</th>
@@ -330,10 +330,16 @@ export default function BookingPage() {
                         <div className="flex flex-wrap gap-2">
                           <Link
                             to={`/admin/bookings/${booking.id}`}
-                            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700"
+                            aria-label={`Xem chi tiết đơn ${booking.bookingCode || booking.id}`}
+                            className="inline-flex min-h-11 min-w-[112px] shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border-2 border-emerald-300 bg-white px-5 py-2.5 text-[15px] font-extrabold leading-none tracking-normal text-emerald-950 shadow-sm transition hover:border-emerald-600 hover:bg-emerald-50 hover:text-emerald-950 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-200"
                           >
-                            <Eye size={16} />
-                            Chi tiết
+                            <Eye
+                              size={18}
+                              strokeWidth={2.5}
+                              className="shrink-0"
+                              aria-hidden="true"
+                            />
+                            <span className="block">Chi Tiết</span>
                           </Link>
                           {["CONFIRMED", "IN_PROGRESS", "COMPLETED"].includes(
                             booking.status,
@@ -358,7 +364,7 @@ export default function BookingPage() {
 
         <div className="mt-6 flex items-center justify-between gap-3">
           <div className="text-sm font-bold text-slate-500">
-            Booking đã thanh toán trong trang: {summary.paid}
+            Đơn đã thanh toán trong trang: {summary.paid}
           </div>
           <div className="flex items-center gap-3">
             <button

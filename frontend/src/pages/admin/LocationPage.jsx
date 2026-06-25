@@ -386,7 +386,7 @@ export default function LocationPage() {
             <div>
 
               <h2 className="text-3xl font-extrabold text-slate-900">
-                Địa Điểm
+                Địa điểm
               </h2>
 
               <p className="text-slate-500 italic font-medium">
@@ -408,7 +408,7 @@ export default function LocationPage() {
             <Plus size={20} />
 
             <span className="font-bold">
-              Thêm Địa Điểm
+              Thêm địa điểm
             </span>
           </button>
         </div>
@@ -499,9 +499,9 @@ export default function LocationPage() {
                   onChange={(e) => setSortBy(e.target.value)}
                   className="w-full h-12 pl-11 pr-4 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500 appearance-none cursor-pointer"
                 >
-                  <option value="name">Sort địa điểm</option>
-                  <option value="district">Sort quận huyện</option>
-                  <option value="province">Sort tỉnh thành</option>
+                  <option value="name">Sắp xếp theo địa điểm</option>
+                  <option value="district">Sắp xếp theo quận huyện</option>
+                  <option value="province">Sắp xếp theo tỉnh thành</option>
                 </select>
               </div>
 
@@ -519,7 +519,7 @@ export default function LocationPage() {
                 <button
                   onClick={handleResetFilter}
                   className="w-14 h-12 flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all bg-slate-50 shrink-0"
-                  title="Reset"
+                  title="Đặt lại bộ lọc"
                 >
                   <RefreshCcw size={20} />
                 </button>
@@ -535,7 +535,7 @@ export default function LocationPage() {
 
           <div className="overflow-x-auto">
 
-            <table className="w-full text-left">
+            <table className="admin-responsive-table admin-wide-table w-full text-left">
 
               <thead>
 
@@ -607,7 +607,7 @@ export default function LocationPage() {
 
                       {/* STT */}
 
-                      <td className="px-6 py-5 font-bold text-slate-400">
+                      <td data-label="Số thứ tự" className="px-6 py-5 font-bold text-slate-400">
 
                         #
                         {(
@@ -622,7 +622,7 @@ export default function LocationPage() {
 
                       {/* IMAGE */}
 
-                      <td className="px-6 py-5">
+                      <td data-label="Hình ảnh" className="px-6 py-5">
 
                         {l.image ? (
 
@@ -645,7 +645,7 @@ export default function LocationPage() {
 
                       {/* LOCATION */}
 
-                      <td className="px-6 py-5 min-w-[260px]">
+                      <td data-label="Địa điểm" className="px-6 py-5 min-w-[260px]">
 
                         <div>
 
@@ -661,7 +661,7 @@ export default function LocationPage() {
 
                       {/* DISTRICT */}
 
-                      <td className="px-6 py-5">
+                      <td data-label="Quận huyện" className="px-6 py-5">
 
                         <span className="inline-flex px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold whitespace-nowrap">
 
@@ -671,7 +671,7 @@ export default function LocationPage() {
 
                       {/* PROVINCE */}
 
-                      <td className="px-6 py-5">
+                      <td data-label="Tỉnh thành" className="px-6 py-5">
 
                         <span className="inline-flex px-3 py-1 rounded-full bg-sky-50 text-sky-700 text-xs font-bold whitespace-nowrap">
 
@@ -681,9 +681,9 @@ export default function LocationPage() {
 
                       {/* ACTION */}
 
-                      <td className="px-6 py-5">
+                      <td data-label="Thao tác" className="px-6 py-5">
 
-                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                        <div className="flex justify-end gap-2 transition-all">
 
                           <button
                             onClick={() => {
@@ -719,6 +719,8 @@ export default function LocationPage() {
                                 true
                               );
                             }}
+                            aria-label={`Chỉnh sửa ${l.name}`}
+                            title="Chỉnh sửa địa điểm"
                             className="p-2.5 rounded-xl bg-white border border-slate-100 text-amber-500 hover:bg-amber-500 hover:text-white transition-all"
                           >
 
@@ -731,6 +733,8 @@ export default function LocationPage() {
                                 l.id
                               )
                             }
+                            aria-label={`Xóa ${l.name}`}
+                            title="Xóa địa điểm"
                             className="p-2.5 rounded-xl bg-white border border-slate-100 text-rose-500 hover:bg-rose-500 hover:text-white transition-all"
                           >
 
@@ -854,7 +858,7 @@ export default function LocationPage() {
               {/* CỘT PHẢI: HÌNH ẢNH & MÔ TẢ */}
               <div className="space-y-5">
                 <div>
-                  <label className="text-sm font-bold text-slate-700 mb-2 block ml-1">Link hình ảnh</label>
+                  <label className="text-sm font-bold text-slate-700 mb-2 block ml-1">Đường dẫn hình ảnh</label>
                   <input
                     value={image}
                     onChange={(e) => setImage(e.target.value)}
@@ -863,7 +867,7 @@ export default function LocationPage() {
                   />
                   {image && (
                     <div className="mt-4 rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 shadow-inner h-[140px]">
-                      <img src={resolveUploadedFileUrl(image)} alt="preview" className="w-full h-full object-cover" />
+                      <img src={resolveUploadedFileUrl(image)} alt="Xem trước hình ảnh" className="w-full h-full object-cover" />
                     </div>
                   )}
                 </div>

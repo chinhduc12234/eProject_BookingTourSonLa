@@ -5,6 +5,7 @@ import {
   createStaff,
   updateStaff,
   deleteStaff,
+  uploadStaffAvatar,
 } from "../../api/staffApi";
 
 import Modal from "../../components/Modal";
@@ -25,11 +26,16 @@ import {
   Mail,
   Phone,
   User,
-  Calendar,
   Image as ImageIcon,
   CheckCircle,
   XCircle,
+  UploadCloud,
 } from "lucide-react";
+
+const formatDate = (value) =>
+  value
+    ? new Intl.DateTimeFormat("vi-VN").format(new Date(`${value}T00:00:00`))
+    : "Chưa cập nhật";
 
 export default function StaffPage() {
 
@@ -41,6 +47,9 @@ export default function StaffPage() {
     useState(false);
 
   const [tableLoading, setTableLoading] =
+    useState(false);
+
+  const [uploadingAvatar, setUploadingAvatar] =
     useState(false);
 
   const [errors, setErrors] = useState({});
@@ -272,6 +281,51 @@ export default function StaffPage() {
     );
   };
 
+  const handleAvatarUpload = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Ảnh đại diện chỉ hỗ trợ JPG, PNG, WEBP hoặc GIF");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Ảnh đại diện không được vượt quá 5MB");
+      return;
+    }
+
+    try {
+      setUploadingAvatar(true);
+
+      const response = await uploadStaffAvatar(file);
+
+      setAvatar(response.data.url);
+      setErrors((current) => ({
+        ...current,
+        avatar: "",
+      }));
+
+      toast.success("Đã tải ảnh nhân viên từ máy tính");
+    } catch (err) {
+      toast.error(
+        err?.response?.data?.message ||
+        "Không thể tải ảnh nhân viên"
+      );
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   // ================= SAVE =================
 
   const handleSave = async () => {
@@ -433,7 +487,7 @@ export default function StaffPage() {
             <div>
 
               <h2 className="text-3xl font-extrabold text-slate-900">
-                Nhân Viên
+                Nhân viên
               </h2>
 
               <p className="text-slate-500 italic font-medium">
@@ -454,7 +508,7 @@ export default function StaffPage() {
             <Plus size={20} />
 
             <span className="font-bold">
-              Thêm Nhân Viên
+              Thêm nhân viên
             </span>
           </button>
         </div>
@@ -503,7 +557,7 @@ export default function StaffPage() {
 
                 <input
                   type="text"
-                  placeholder="Tìm kiếm nhân viên..."
+                  placeholder="Tìm nhân viên..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full h-12 pl-11 pr-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-blue-500 outline-none transition-all"
@@ -583,23 +637,23 @@ export default function StaffPage() {
                 >
 
                   <option value="fullName">
-                    Sort tên
+                    Sắp xếp theo tên
                   </option>
 
                   <option value="email">
-                    Sort email
+                    Sắp xếp theo email
                   </option>
 
                   <option value="phone">
-                    Sort phone
+                    Sắp xếp theo số điện thoại
                   </option>
 
                   <option value="dateOfBirth">
-                    Sort ngày sinh
+                    Sắp xếp theo ngày sinh
                   </option>
 
                   <option value="createdAt">
-                    Sort ngày tạo
+                    Sắp xếp theo ngày tạo
                   </option>
                 </select>
               </div>
@@ -657,7 +711,7 @@ export default function StaffPage() {
 
           <div className="overflow-x-auto">
 
-            <table className="w-full text-left">
+            <table className="admin-responsive-table admin-wide-table w-full text-left">
 
               <thead>
 
@@ -735,7 +789,7 @@ export default function StaffPage() {
 
                       {/* STAFF */}
 
-                      <td className="px-6 py-5 min-w-[280px]">
+                      <td data-label="Nhân viên" className="px-6 py-5 min-w-[280px]">
 
                         <div className="flex items-center gap-3">
 
@@ -770,7 +824,7 @@ export default function StaffPage() {
 
                       {/* EMAIL */}
 
-                      <td className="px-6 py-5">
+                      <td data-label="Email" className="px-6 py-5">
 
                         <div className="flex items-center gap-2 text-slate-600">
 
@@ -784,7 +838,7 @@ export default function StaffPage() {
 
                       {/* PHONE */}
 
-                      <td className="px-6 py-5">
+                      <td data-label="Số điện thoại" className="px-6 py-5">
 
                         <div className="flex items-center gap-2 text-slate-600">
 
@@ -798,7 +852,7 @@ export default function StaffPage() {
 
                       {/* GENDER */}
 
-                      <td className="px-6 py-5">
+                      <td data-label="Giới tính" className="px-6 py-5">
 
                         <span className="inline-flex px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold whitespace-nowrap">
 
@@ -812,14 +866,14 @@ export default function StaffPage() {
 
                       {/* DOB */}
 
-                      <td className="px-6 py-5 text-sm text-slate-500">
+                      <td data-label="Ngày sinh" className="px-6 py-5 text-sm text-slate-500">
 
-                        {staff.dateOfBirth || "-"}
+                        {formatDate(staff.dateOfBirth)}
                       </td>
 
                       {/* STATUS */}
 
-                      <td className="px-6 py-5">
+                      <td data-label="Trạng thái" className="px-6 py-5">
 
                         {staff.isActive ? (
 
@@ -843,14 +897,16 @@ export default function StaffPage() {
 
                       {/* ACTION */}
 
-                      <td className="px-6 py-5">
+                      <td data-label="Thao tác" className="px-6 py-5">
 
-                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                        <div className="flex justify-end gap-2 transition-all">
 
                           <button
                             onClick={() =>
                               handleEdit(staff)
                             }
+                            aria-label={`Chỉnh sửa ${staff.fullName}`}
+                            title="Chỉnh sửa nhân viên"
                             className="p-2.5 rounded-xl bg-white border border-slate-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all"
                           >
 
@@ -861,6 +917,8 @@ export default function StaffPage() {
                             onClick={() =>
                               handleDelete(staff)
                             }
+                            aria-label={`Xóa ${staff.fullName}`}
+                            title="Xóa nhân viên"
                             className="p-2.5 rounded-xl bg-white border border-slate-100 text-rose-500 hover:bg-rose-500 hover:text-white transition-all"
                           >
 
@@ -1071,31 +1129,80 @@ export default function StaffPage() {
                 <div>
 
                   <label className="text-sm font-bold text-slate-700 mb-2 block ml-1">
-                    Link Avatar
+                    Ảnh đại diện nhân viên
                   </label>
 
-                  <input
-                    value={avatar}
-                    onChange={(e) =>
-                      setAvatar(
-                        e.target.value
-                      )
-                    }
-                    placeholder="Dán URL avatar..."
-                    className="w-full h-[56px] px-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white outline-none transition-all shadow-sm"
-                  />
-
-                  {avatar && (
-
-                    <div className="mt-4 w-36 h-36 rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
-
-                      <img
-                        src={resolveUploadedFileUrl(avatar)}
-                        alt="preview"
-                        className="w-full h-full object-cover"
-                      />
+                  <div className="grid gap-4 sm:grid-cols-[160px_minmax(0,1fr)]">
+                    <div className="relative h-40 w-40 overflow-hidden rounded-3xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-emerald-50 shadow-sm">
+                      {avatar ? (
+                        <img
+                          src={resolveUploadedFileUrl(avatar)}
+                          alt="Xem trước ảnh đại diện nhân viên"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
+                          <ImageIcon size={38} />
+                          <span className="text-xs font-bold">Chưa chọn ảnh</span>
+                        </div>
+                      )}
                     </div>
-                  )}
+
+                    <div className="min-w-0 space-y-3">
+                      <label
+                        className={[
+                          "flex min-h-[88px] w-full items-center gap-3 rounded-2xl border-2 border-dashed px-4 py-3 transition",
+                          uploadingAvatar
+                            ? "cursor-wait border-emerald-300 bg-emerald-50"
+                            : "cursor-pointer border-slate-300 bg-slate-50 hover:border-emerald-500 hover:bg-emerald-50",
+                        ].join(" ")}
+                      >
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/gif"
+                          disabled={uploadingAvatar}
+                          hidden
+                          onChange={handleAvatarUpload}
+                        />
+
+                        {uploadingAvatar ? (
+                          <Loader2
+                            size={26}
+                            className="shrink-0 animate-spin text-emerald-700"
+                          />
+                        ) : (
+                          <UploadCloud
+                            size={28}
+                            className="shrink-0 text-emerald-700"
+                          />
+                        )}
+
+                        <span className="min-w-0">
+                          <span className="block text-sm font-black text-slate-800">
+                            {uploadingAvatar
+                              ? "Đang tải ảnh lên..."
+                              : "Chọn ảnh từ máy tính"}
+                          </span>
+                          <span className="mt-1 block text-xs leading-5 text-slate-500">
+                            JPG, PNG, WEBP hoặc GIF · tối đa 5MB
+                          </span>
+                        </span>
+                      </label>
+
+                      <input
+                        value={avatar}
+                        onChange={(e) => setAvatar(e.target.value)}
+                        placeholder="Hoặc dán đường dẫn ảnh..."
+                        className="w-full h-[50px] px-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white outline-none transition-all shadow-sm"
+                      />
+
+                      {errors.avatar && (
+                        <p className="text-xs font-bold text-rose-500">
+                          {errors.avatar}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -1190,11 +1297,11 @@ export default function StaffPage() {
 
                 <button
                   onClick={handleSave}
-                  disabled={loading}
+                  disabled={loading || uploadingAvatar}
                   className="min-w-[200px] h-[54px] px-8 rounded-xl bg-slate-900 hover:bg-blue-600 text-white font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200 disabled:opacity-50"
                 >
 
-                  {loading && (
+                  {(loading || uploadingAvatar) && (
                     <Loader2
                       className="animate-spin"
                       size={18}
@@ -1203,7 +1310,9 @@ export default function StaffPage() {
 
                   {editId
                     ? "Lưu thay đổi"
-                    : "Khởi tạo ngay"}
+                    : uploadingAvatar
+                      ? "Đang tải ảnh..."
+                      : "Khởi tạo ngay"}
                 </button>
               </div>
             </div>

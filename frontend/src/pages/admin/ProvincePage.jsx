@@ -150,7 +150,7 @@ export default function ProvincePage() {
             </div>
             <div>
               <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">
-                Tỉnh Thành
+                Tỉnh thành
               </h2>
               <p className="text-slate-500 font-medium italic">Hệ thống quản lý địa lý vùng cao</p>
             </div>
@@ -208,11 +208,11 @@ export default function ProvincePage() {
 
         <div className="bg-white rounded-[32px] shadow-sm border border-slate-100 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="admin-responsive-table w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/50">
                   <th className="px-8 py-5 text-[13px] font-bold text-slate-400 uppercase tracking-widest">STT</th>
-                  <th className="px-8 py-5 text-[13px] font-bold text-slate-400 uppercase tracking-widest">Tên Tỉnh Thành</th>
+                  <th className="px-8 py-5 text-[13px] font-bold text-slate-400 uppercase tracking-widest">Tên tỉnh thành</th>
                   <th className="px-8 py-5 text-right text-[13px] font-bold text-slate-400 uppercase tracking-widest">Thao tác</th>
                 </tr>
               </thead>
@@ -233,24 +233,28 @@ export default function ProvincePage() {
                 ) : (
                   filteredData.map((p, index) => (
                     <tr key={p.id} className="group hover:bg-slate-50/80 transition-all duration-300">
-                      <td className="px-8 py-5 font-bold text-slate-400 text-sm">
+                      <td data-label="Số thứ tự" className="px-8 py-5 font-bold text-slate-400 text-sm">
                         #{(page * pageSize + index + 1).toString().padStart(2, '0')}
                       </td>
-                      <td className="px-8 py-5">
+                      <td data-label="Tỉnh thành" className="px-8 py-5">
                         <span className="font-semibold text-slate-700 group-hover:text-amber-600 transition-colors">
                           {p.name}
                         </span>
                       </td>
-                      <td className="px-8 py-5">
-                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <td data-label="Thao tác" className="px-8 py-5">
+                        <div className="flex justify-end gap-2 transition-opacity duration-300">
                           <button
                             onClick={() => { setEditId(p.id); setName(p.name); setOpen(true); }}
+                            aria-label={`Chỉnh sửa ${p.name}`}
+                            title="Chỉnh sửa tỉnh thành"
                             className="p-2.5 bg-white text-amber-500 hover:bg-amber-500 hover:text-white rounded-xl shadow-sm border border-slate-100 transition-all"
                           >
                             <Edit3 size={18} />
                           </button>
                           <button
                             onClick={() => handleDelete(p.id)}
+                            aria-label={`Xóa ${p.name}`}
+                            title="Xóa tỉnh thành"
                             className="p-2.5 bg-white text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl shadow-sm border border-slate-100 transition-all"
                           >
                             <Trash2 size={18} />

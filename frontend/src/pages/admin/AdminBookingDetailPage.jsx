@@ -216,7 +216,7 @@ export default function AdminBookingDetailPage() {
       await loadStaffOptions("", nextAssignments);
     } catch (error) {
       toast.error(
-        error?.response?.data?.message || "Không thể tải chi tiết booking",
+        error?.response?.data?.message || "Không thể tải chi tiết đơn đặt tour",
       );
     } finally {
       setLoading(false);
@@ -298,7 +298,7 @@ export default function AdminBookingDetailPage() {
       );
     } catch (error) {
       toast.error(
-        error?.response?.data?.message || "Không thể cập nhật booking",
+        error?.response?.data?.message || "Không thể cập nhật đơn đặt tour",
       );
     } finally {
       setActionLoading(false);
@@ -318,7 +318,7 @@ export default function AdminBookingDetailPage() {
       <div className="min-h-screen bg-[#f8fafc] p-4 text-slate-900 md:p-8">
         <div className="mx-auto max-w-4xl rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
           <TicketCheck className="mx-auto h-12 w-12 text-slate-300" />
-          <h1 className="mt-4 text-2xl font-black">Không tìm thấy booking</h1>
+          <h1 className="mt-4 text-2xl font-black">Không tìm thấy đơn đặt tour</h1>
           <Link
             to="/admin/bookings"
             className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-black text-white transition hover:bg-emerald-700"
@@ -374,13 +374,13 @@ export default function AdminBookingDetailPage() {
               className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700"
             >
               <ArrowLeft size={17} />
-              Danh sách booking
+              Danh sách đơn đặt tour
             </Link>
             <div className="mt-5 text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
               {detail.bookingCode}
             </div>
             <h1 className="mt-2 text-3xl font-black tracking-tight">
-              Chi tiết booking
+              Chi tiết đơn đặt tour
             </h1>
             <p className="mt-1 text-sm font-semibold text-slate-500">
               Xem thông tin tour, khách đi tour, thanh toán và phân công nhân
@@ -406,7 +406,7 @@ export default function AdminBookingDetailPage() {
         {isCancelled && (
           <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-800">
             Đặt lịch đã hủy. Chính sách hoàn tiền bên dưới đang phản ánh theo
-            ngày khởi hành của booking này.
+            ngày khởi hành của đơn đặt tour này.
           </div>
         )}
 
@@ -516,7 +516,7 @@ export default function AdminBookingDetailPage() {
               />
               <InfoCard
                 icon={ShieldCheck}
-                label="Loại booking"
+                label="Loại đơn"
                 value={bookingTypeText[detail.bookingType] || detail.bookingType}
               />
               <InfoCard
@@ -554,7 +554,7 @@ export default function AdminBookingDetailPage() {
                         Timeline tình trạng tour
                       </h2>
                       <p className="text-sm font-semibold text-slate-500">
-                        Admin theo dõi xác nhận, từng hoạt động thực tế và mốc hoàn thành.
+                        Quản trị viên theo dõi xác nhận, từng hoạt động thực tế và mốc hoàn thành.
                       </p>
                     </div>
                   </div>
@@ -937,7 +937,7 @@ export default function AdminBookingDetailPage() {
                 </div>
               ) : (
                 <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 text-sm font-semibold text-slate-500">
-                  Chưa có nhân viên nào được gán cho booking này.
+                  Chưa có nhân viên nào được gán cho đơn này.
                 </div>
               )}
 
@@ -1131,7 +1131,7 @@ export default function AdminBookingDetailPage() {
                   Gán nhân viên phụ trách
                 </h2>
                 <p className="text-sm font-semibold text-slate-500">
-                  Tìm theo tên rồi thêm vào danh sách phân công của booking này.
+                  Tìm theo tên rồi thêm vào danh sách phân công của đơn này.
                 </p>
               </div>
               <button

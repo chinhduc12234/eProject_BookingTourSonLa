@@ -40,7 +40,7 @@ export default function BookingHistoryPage() {
         if (mounted) setBookings(response.data || []);
       } catch (error) {
         toast.error(
-          error?.response?.data?.message || "Không thể tải lịch sử booking",
+          error?.response?.data?.message || "Không thể tải lịch sử đặt tour",
         );
       } finally {
         if (mounted) setLoading(false);
@@ -56,8 +56,8 @@ export default function BookingHistoryPage() {
 
   return (
     <AccountShell
-      title="Lịch sử booking"
-      description="Danh sách các tour bạn đã đặt. Bấm vào từng booking để xem trạng thái chi tiết."
+      title="Lịch sử đặt tour"
+      description="Danh sách các tour bạn đã đặt. Chọn từng đơn để xem trạng thái chi tiết."
     >
       <section className="rounded-xl border border-white/10 bg-white/[0.04] p-5 sm:p-6">
         <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-4">
@@ -87,7 +87,7 @@ export default function BookingHistoryPage() {
               <CalendarDays size={24} />
             </div>
             <p className="mt-4 text-sm font-bold text-slate-300">
-              Bạn chưa có booking nào.
+              Bạn chưa có đơn đặt tour nào.
             </p>
             <Link to="/tours" className="btn-primary mt-5 text-sm">
               Xem tour

@@ -11,6 +11,17 @@ export const getStaffById = (id) =>
 export const createStaff = (data) =>
   axiosClient.post(BASE, data);
 
+export const uploadStaffAvatar = (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return axiosClient.post(`${BASE}/avatar`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
 export const updateStaff = (id, data) =>
   axiosClient.put(`${BASE}/${id}`, data);
 

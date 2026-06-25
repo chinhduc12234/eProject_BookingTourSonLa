@@ -1,13 +1,36 @@
+import { useEffect } from "react";
+import { X } from "lucide-react";
+
 export default function Modal({ open, onClose, children, className = "" }) {
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open, onClose]);
+
   if (!open) return null;
 
   return (
     <div
       onClick={onClose}
-      className="admin-modal-overlay fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-[6px] flex items-center justify-center p-4 md:p-6 overflow-y-auto"
+      className="admin-modal-overlay fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/50 p-3 backdrop-blur-[8px] sm:p-5 md:p-6"
+      role="presentation"
     >
       <div
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
         className={`admin-modal-panel
           relative 
           w-full 
@@ -24,30 +47,14 @@ export default function Modal({ open, onClose, children, className = "" }) {
           ${className ? className : "max-w-xl"}
         `}
       >
-        {/* Nút đóng (X) */}
         <button
+          type="button"
           onClick={onClose}
-          className="
-            absolute
-            top-5
-            right-5
-            w-10
-            h-10
-            rounded-xl
-            bg-white
-            hover:bg-rose-100
-            text-slate-500
-            hover:text-rose-500
-            transition-all
-            flex
-            items-center
-            justify-center
-            text-2xl
-            font-bold
-            z-[60]
-            shadow-sm
-          "        >
-          ×
+          className="admin-modal-close absolute right-4 top-4 z-[60] flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 sm:right-5 sm:top-5"
+          aria-label="Đóng hộp thoại"
+          title="Đóng"
+        >
+          <X size={20} strokeWidth={2.5} />
         </button>
 
         {children}

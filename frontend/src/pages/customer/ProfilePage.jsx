@@ -126,7 +126,7 @@ export default function ProfilePage() {
           <div>
             <h2 className="text-xl font-black text-white">Thông tin cá nhân</h2>
             <p className="text-sm text-slate-400">
-              Email và số điện thoại dùng để xác nhận booking.
+              Email và số điện thoại được dùng để xác nhận đơn đặt tour.
             </p>
           </div>
         </div>

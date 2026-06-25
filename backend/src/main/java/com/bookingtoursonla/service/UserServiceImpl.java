@@ -177,6 +177,11 @@ public class UserServiceImpl implements UserService {
         }
 
         if (request.getAvatar() != null) {
+            if (!request.getAvatar().equals(staff.getAvatar())) {
+                deleteOldLocalAvatar(
+                        staff.getAvatar(),
+                        resolveAvatarDirectory());
+            }
             staff.setAvatar(request.getAvatar());
         }
 
@@ -304,47 +309,28 @@ public class UserServiceImpl implements UserService {
             String email,
             MultipartFile file) {
 
-        if (file == null || file.isEmpty()) {
-            throw new RuntimeException("Vui lòng chọn ảnh avatar");
-        }
-
-        if (file.getSize() > MAX_AVATAR_SIZE) {
-            throw new RuntimeException("Ảnh avatar không được vượt quá 5MB");
-        }
-
-        String contentType = file.getContentType();
-        if (contentType == null || !ALLOWED_AVATAR_TYPES.contains(contentType.toLowerCase())) {
-            throw new RuntimeException("Avatar chỉ hỗ trợ JPG, PNG, WEBP hoặc GIF");
-        }
-
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Kh\u00f4ng t\u00ecm th\u1ea5y ng\u01b0\u1eddi d\u00f9ng"));
 
-        try {
-            Path avatarDir = UploadPathUtils.resolveUploadRoot(uploadDir)
-                    .resolve("avatars");
-            Files.createDirectories(avatarDir);
+        Path avatarDir = resolveAvatarDirectory();
+        String avatarPath = storeAvatarFile(
+                file,
+                "avatar-" + user.getId(),
+                avatarDir);
 
-            String filename = "avatar-" + user.getId() + "-" + UUID.randomUUID()
-                    + getExtension(contentType);
-            Path target = avatarDir.resolve(filename).normalize();
+        deleteOldLocalAvatar(user.getAvatar(), avatarDir);
+        user.setAvatar(avatarPath);
 
-            if (!target.startsWith(avatarDir)) {
-                throw new RuntimeException("Tên file avatar không hợp lệ");
-            }
+        User saved = userRepository.save(user);
+        return new UserProfileResponse(saved);
+    }
 
-            file.transferTo(target);
-
-            deleteOldLocalAvatar(user.getAvatar(), avatarDir);
-
-            String avatarPath = "/uploads/avatars/" + filename;
-            user.setAvatar(avatarPath);
-
-            User saved = userRepository.save(user);
-            return new UserProfileResponse(saved);
-        } catch (IOException ex) {
-            throw new RuntimeException("Không thể lưu avatar");
-        }
+    @Override
+    public String uploadStaffAvatar(MultipartFile file) {
+        return storeAvatarFile(
+                file,
+                "staff-avatar",
+                resolveAvatarDirectory());
     }
 
     private String trimToNull(String value) {
@@ -362,6 +348,50 @@ public class UserServiceImpl implements UserService {
             case "image/gif" -> ".gif";
             default -> ".jpg";
         };
+    }
+
+    private Path resolveAvatarDirectory() {
+        return UploadPathUtils.resolveUploadRoot(uploadDir)
+                .resolve("avatars");
+    }
+
+    private String storeAvatarFile(
+            MultipartFile file,
+            String filenamePrefix,
+            Path avatarDir) {
+
+        if (file == null || file.isEmpty()) {
+            throw new RuntimeException("Vui lòng chọn ảnh đại diện");
+        }
+
+        if (file.getSize() > MAX_AVATAR_SIZE) {
+            throw new RuntimeException("Ảnh đại diện không được vượt quá 5MB");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null
+                || !ALLOWED_AVATAR_TYPES.contains(contentType.toLowerCase())) {
+            throw new RuntimeException(
+                    "Ảnh đại diện chỉ hỗ trợ JPG, PNG, WEBP hoặc GIF");
+        }
+
+        try {
+            Files.createDirectories(avatarDir);
+
+            String filename = filenamePrefix + "-" + UUID.randomUUID()
+                    + getExtension(contentType);
+            Path target = avatarDir.resolve(filename).normalize();
+
+            if (!target.startsWith(avatarDir)) {
+                throw new RuntimeException("Tên file ảnh đại diện không hợp lệ");
+            }
+
+            file.transferTo(target);
+
+            return "/uploads/avatars/" + filename;
+        } catch (IOException ex) {
+            throw new RuntimeException("Không thể lưu ảnh đại diện");
+        }
     }
 
     private void deleteOldLocalAvatar(String avatar, Path avatarDir) {

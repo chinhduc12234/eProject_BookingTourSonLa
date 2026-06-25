@@ -211,7 +211,7 @@ export default function BookingDetailPage() {
         }
       } catch (error) {
         toast.error(
-          error?.response?.data?.message || "Không thể tải chi tiết booking",
+          error?.response?.data?.message || "Không thể tải chi tiết đơn đặt tour",
         );
       } finally {
         if (mounted) {
@@ -448,7 +448,7 @@ export default function BookingDetailPage() {
           className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-5 text-sm font-black text-white transition hover:border-[#7FB77E]/40 hover:bg-[#7FB77E]/10"
         >
           <ChevronLeft size={18} />
-          Lịch sử booking
+          Lịch sử đặt tour
         </Link>
       }
     >
@@ -461,7 +461,7 @@ export default function BookingDetailPage() {
           <section className="space-y-6">
             {stage === "payment" && (
               <div className="rounded-2xl border border-sky-300/30 bg-sky-300/10 p-5 text-sky-50">
-                <div className="font-black text-white">Bước 2: Thanh toán booking</div>
+                <div className="font-black text-white">Bước 2: Thanh toán đơn đặt tour</div>
                 <p className="mt-2 text-sm leading-7 text-sky-100/90">
                   Đơn đặt tour đã được tạo thành công. Bạn hãy chọn thanh toán 100% hoặc đặt cọc 30%, sau đó gửi xác nhận để hệ thống ghi nhận yêu cầu của bạn.
                 </p>
@@ -510,7 +510,7 @@ export default function BookingDetailPage() {
                       <ImageIcon size={28} />
                     </span>
                     <p className="max-w-xs text-sm leading-7">
-                      Chưa có hình ảnh tour. Hệ thống vẫn hiển thị đầy đủ lịch trình, dịch vụ và thông tin booking cho bạn.
+                      Chưa có hình ảnh tour. Hệ thống vẫn hiển thị đầy đủ lịch trình, dịch vụ và thông tin đơn đặt tour cho bạn.
                     </p>
                   </div>
                 )}
@@ -596,7 +596,7 @@ export default function BookingDetailPage() {
 
                 <div className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-3 border-t border-white/5 pt-6">
                   <AmountTile
-                    label="Tổng booking"
+                    label="Tổng giá trị đơn"
                     value={formatCurrency(totalAmount)}
                   />
                   <AmountTile
@@ -694,24 +694,24 @@ export default function BookingDetailPage() {
                       Tổng quan chuyến đi
                     </h2>
                     <p className="text-sm text-slate-400">
-                      Toàn bộ mốc thời gian và thông tin chính của booking này.
+                      Toàn bộ mốc thời gian và thông tin chính của đơn đặt tour này.
                     </p>
                   </div>
                 </div>
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   <DetailMetric
-                    label="Mã booking"
+                    label="Mã đơn đặt tour"
                     value={booking.bookingCode}
                     hint="Mã tra cứu giao dịch"
                   />
                   <DetailMetric
                     label="Ngày đặt"
                     value={formatDateTime(booking.bookedAt)}
-                    hint="Thời điểm tạo booking"
+                    hint="Thời điểm tạo đơn"
                   />
                   <DetailMetric
-                    label="Loại booking"
+                    label="Loại đơn"
                     value={bookingTypeText[booking.bookingType] || "Cá nhân"}
                     hint="Hình thức đặt tour"
                   />
@@ -746,10 +746,10 @@ export default function BookingDetailPage() {
                   </span>
                   <div>
                     <h2 className="text-xl font-black text-white">
-                      Chi phí booking
+                      Chi phí đơn đặt tour
                     </h2>
                     <p className="text-sm text-slate-400">
-                      Breakdown giá tour theo booking hiện tại.
+                      Chi tiết giá theo số lượng hành khách trong đơn hiện tại.
                     </p>
                   </div>
                 </div>
@@ -867,7 +867,7 @@ export default function BookingDetailPage() {
                     Lịch trình đã chốt
                   </h2>
                   <p className="text-sm text-slate-400">
-                    Lịch trình được lưu riêng cho booking này để bạn dễ theo dõi.
+                    Lịch trình được lưu riêng cho đơn này để bạn dễ theo dõi.
                   </p>
                 </div>
               </div>
@@ -941,7 +941,7 @@ export default function BookingDetailPage() {
                 </div>
               ) : (
                 <div className="mt-5 rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-5 text-sm leading-7 text-slate-400">
-                  Lịch trình đang được cập nhật. Bộ phận điều hành sẽ hoàn thiện lịch chi tiết cho booking này sớm nhất.
+                  Lịch trình đang được cập nhật. Bộ phận điều hành sẽ hoàn thiện lịch chi tiết cho đơn này sớm nhất.
                 </div>
               )}
             </div>
@@ -1098,7 +1098,7 @@ export default function BookingDetailPage() {
                         : "QR thanh toán toàn bộ tour",
                     description:
                       paymentChoice === "DEPOSIT"
-                        ? "Sau khi gửi xác nhận cọc, booking sẽ chuyển sang trạng thái kiểm tra thanh toán."
+                        ? "Sau khi gửi xác nhận cọc, đơn sẽ chuyển sang trạng thái kiểm tra thanh toán."
                         : "Sau khi gửi xác nhận, admin sẽ kiểm tra trước khi chuyển sang Đã thanh toán.",
                   })}
 
@@ -1129,7 +1129,7 @@ export default function BookingDetailPage() {
                   </div>
                   <p className="mt-1">
                     Hệ thống đã ghi nhận xác nhận chuyển khoản{" "}
-                    <b>{formatCurrency(paidAmount)}</b>. Admin sẽ kiểm tra giao dịch
+                    <b>{formatCurrency(paidAmount)}</b>. Quản trị viên sẽ kiểm tra giao dịch
                     trước khi cập nhật trạng thái thành{" "}
                     <b>{remainingAmount > 0 ? "Đã cọc" : "Đã thanh toán"}</b>.
                     Bạn có thể hủy đặt lịch sau khi admin xử lý yêu cầu thanh toán này.
@@ -1172,7 +1172,7 @@ export default function BookingDetailPage() {
                     Thông tin khách đặt
                   </h2>
                   <p className="text-sm text-slate-400">
-                    Thông tin liên hệ và địa chỉ đón khách cho booking này.
+                    Thông tin liên hệ và địa chỉ đón khách cho đơn đặt tour này.
                   </p>
                 </div>
               </div>
@@ -1232,7 +1232,7 @@ export default function BookingDetailPage() {
                       Nhân viên phụ trách
                     </h2>
                     <p className="text-sm text-slate-400">
-                      Người đang theo dõi và xử lý booking của bạn.
+                      Người đang theo dõi và xử lý đơn đặt tour của bạn.
                     </p>
                   </div>
                 </div>
@@ -1265,7 +1265,7 @@ export default function BookingDetailPage() {
                       Danh sách hành khách
                     </h2>
                     <p className="text-sm text-slate-400">
-                      Hồ sơ khách đi tour đã gửi kèm theo booking.
+                      Hồ sơ hành khách đã gửi kèm theo đơn đặt tour.
                     </p>
                   </div>
                 </div>
@@ -1348,7 +1348,7 @@ export default function BookingDetailPage() {
         <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-10 text-center">
           <ShieldCheck className="mx-auto h-10 w-10 text-slate-400" />
           <p className="mt-4 text-sm font-bold text-slate-300">
-            Không tìm thấy booking.
+            Không tìm thấy đơn đặt tour.
           </p>
         </div>
       )}
@@ -1368,7 +1368,7 @@ export default function BookingDetailPage() {
           </button>
           <img
             src={lightboxImage}
-            alt={booking?.tourName || "Tour image"}
+            alt={booking?.tourName || "Hình ảnh tour"}
             onClick={(event) => event.stopPropagation()}
             className="max-h-[86vh] max-w-6xl rounded-3xl object-contain shadow-2xl"
           />

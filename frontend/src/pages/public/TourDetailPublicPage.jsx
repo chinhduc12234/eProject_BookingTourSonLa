@@ -652,7 +652,7 @@ export default function TourDetailPublicPage() {
                       Quy trình đặt tour
                     </h2>
                     <p className="text-sm text-slate-400">
-                      Các bước được giữ rõ ràng trong suốt quá trình booking.
+                      Các bước được trình bày rõ ràng trong suốt quá trình đặt tour.
                     </p>
                   </div>
                 </div>
@@ -661,7 +661,7 @@ export default function TourDetailPublicPage() {
                     "Chọn lịch khởi hành còn chỗ và nhập thông tin liên hệ.",
                     "Kiểm tra danh sách hành khách, điểm đón và yêu cầu đặc biệt.",
                     "Chọn thanh toán cọc 30% hoặc thanh toán toàn bộ.",
-                    "Nhận mã booking và theo dõi trong lịch sử tài khoản.",
+                    "Nhận mã đơn và theo dõi trong lịch sử tài khoản.",
                   ].map((item, index) => (
                     <div key={item} className="flex gap-3 rounded-xl border border-white/10 bg-[#020617]/30 p-3">
                       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#9de09c] text-xs font-black text-[#020617]">

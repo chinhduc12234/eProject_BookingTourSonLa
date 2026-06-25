@@ -25,7 +25,7 @@ import { getTours } from "../../api/tourApi";
 const statConfig = [
   {
     key: "bookings",
-    label: "Booking",
+    label: "Đơn đặt tour",
     desc: "Yêu cầu đặt tour",
     Icon: TicketCheck,
     to: "/admin/bookings",
@@ -75,7 +75,7 @@ const statConfig = [
 
 const quickActions = [
   {
-    title: "Quản lý booking",
+    title: "Quản lý đơn đặt tour",
     desc: "Xác nhận đặt chỗ, cập nhật thanh toán và theo dõi số khách đã giữ chỗ.",
     to: "/admin/bookings",
     Icon: TicketCheck,
@@ -193,7 +193,7 @@ export default function AdminDashboard() {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
               <ShieldCheck size={14} />
-              Admin
+              Quản trị viên
             </div>
             <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950 md:text-4xl">
               Bảng điều khiển quản trị
@@ -251,7 +251,7 @@ export default function AdminDashboard() {
 
             <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.05] p-4 text-sm leading-6 text-slate-300">
               {failedCount > 0
-                ? `${failedCount} nhóm dữ liệu chưa tải được. Kiểm tra backend hoặc quyền admin nếu số liệu hiển thị "Lỗi".`
+                ? `${failedCount} nhóm dữ liệu chưa tải được. Kiểm tra máy chủ hoặc quyền quản trị nếu số liệu hiển thị "Lỗi".`
                 : "Các nhóm dữ liệu quản trị đã sẵn sàng. Chọn menu bên trái hoặc lối tắt bên dưới để thao tác."}
             </div>
           </div>

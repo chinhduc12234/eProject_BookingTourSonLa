@@ -1,6 +1,18 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { CheckCircle2, Home, Loader2, Mail, Info, ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDays,
+  CheckCircle2,
+  Headphones,
+  Home,
+  Info,
+  Loader2,
+  Mail,
+  ReceiptText,
+  ShieldCheck,
+  UsersRound,
+} from "lucide-react";
 import toast from "react-hot-toast";
 
 import { getBookingDetail } from "../../api/bookingApi";
@@ -29,9 +41,9 @@ export default function ThankYouPage() {
       } catch (error) {
         toast.error(
           error?.response?.data?.message ||
-            "Không thể tải thông tin booking"
+            "Không thể tải thông tin đơn đặt tour"
         );
-        console.error("Error loading booking:", error);
+        console.error("Lỗi tải thông tin đơn đặt tour:", error);
       } finally {
         setLoading(false);
       }
@@ -55,112 +67,178 @@ export default function ThankYouPage() {
     );
   }
 
-  // Khai báo an toàn sau khi đã kết thúc trạng thái loading
   const isDeposit = booking?.paymentPlan === "DEPOSIT";
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+      maximumFractionDigits: 0,
+    }).format(Number(value || 0));
+
+  const formatDate = (value) =>
+    value
+      ? new Intl.DateTimeFormat("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }).format(new Date(`${value}T00:00:00`))
+      : "Đang cập nhật";
+
+  const bookingStatus =
+    booking?.status === "CONFIRMED"
+      ? "Đã được xác nhận"
+      : booking?.status === "CANCELLED"
+        ? "Đã hủy"
+        : "Đang chờ xác nhận";
   
   return (
     <PublicLayout>
-      <section className="bg-[#020617] py-16 sm:py-24 min-h-screen text-slate-100 selection:bg-[#7FB77E]/30">
-        <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
-          
-          {/* Success Icon Section */}
-          <div className="flex justify-center mb-8">
-            <div className="relative">
-              <div className="absolute inset-0 bg-[#7FB77E]/20 blur-3xl rounded-full scale-150 animate-pulse" />
-              <div className="relative w-24 h-24 bg-gradient-to-br from-[#7FB77E] to-[#4f8f4d] rounded-full flex items-center justify-center shadow-lg shadow-[#7FB77E]/20">
-                <CheckCircle2 size={52} className="text-[#020617] stroke-[2.5]" />
-              </div>
-            </div>
-          </div>
+      <section className="thank-you-page relative min-h-[calc(100vh-80px)] overflow-hidden bg-[#020617] py-10 text-slate-100 selection:bg-[#7FB77E]/30 sm:py-14 lg:py-16">
+        <div className="pointer-events-none absolute inset-0 bg-grid-fade opacity-35" />
+        <div className="pointer-events-none absolute -left-32 top-10 h-80 w-80 rounded-full bg-[#7FB77E]/15 blur-[110px]" />
+        <div className="pointer-events-none absolute -right-32 bottom-10 h-80 w-80 rounded-full bg-[#A67C52]/15 blur-[110px]" />
 
-          {/* Title Headers */}
-          <div className="text-center mb-10">
-            <h1 className="text-4xl sm:text-5xl font-black text-white mb-3 tracking-tight bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400">
-              Cảm ơn quý khách!
-            </h1>
-            <p className="text-lg text-slate-400 max-w-md mx-auto">
-              Yêu cầu đặt tour của bạn đã thành công, chúng tôi sẽ liên hệ với bạn sớm.
-            </p>
-          </div>
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="thank-you-hero overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-white/[0.08] via-white/[0.035] to-[#7FB77E]/10 shadow-[0_32px_100px_-45px_rgba(127,183,126,0.6)] backdrop-blur-xl">
+            <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:p-10">
+              <div>
+                <div className="mb-6 flex items-center gap-4">
+                  <div className="relative shrink-0">
+                    <div className="absolute inset-0 scale-125 rounded-full bg-[#7FB77E]/30 blur-2xl" />
+                    <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-[#9de09c] via-[#7FB77E] to-[#4f8f4d] shadow-lg shadow-[#7FB77E]/25 sm:h-24 sm:w-24">
+                      <CheckCircle2 size={50} className="text-[#020617] stroke-[2.5]" />
+                    </div>
+                  </div>
+                  <div>
+                    <span className="section-tag">
+                      <ShieldCheck size={12} /> Gửi yêu cầu thành công
+                    </span>
+                    <p className="mt-2 text-sm font-bold text-[#d4a878]">
+                      {booking?.bookingCode
+                        ? `Mã đơn ${booking.bookingCode}`
+                        : "Tây Bắc Travel đã tiếp nhận thông tin"}
+                    </p>
+                  </div>
+                </div>
 
-          {/* Styled Information Cards */}
-          <div className="grid gap-4 mb-8 sm:grid-cols-2">
-            <div className="rounded-xl border border-[#7FB77E]/20 bg-gradient-to-br from-[#7FB77E]/10 to-transparent p-5 group transition-all duration-300 hover:border-[#7FB77E]/40">
-              <h3 className="font-bold text-white mb-2 flex items-center gap-2 text-sm uppercase tracking-wider text-[#9de09c]">
-                <Mail size={16} /> Hộp thư xác nhận
-              </h3>
-              <p className="text-sm text-slate-300 leading-relaxed">
-                Hóa đơn tạm tính và chi tiết đặt chỗ đã được hệ thống gửi tự động vào email đăng ký của bạn. Vui lòng kiểm tra kỹ cả mục thư rác (Spam).
-              </p>
-            </div>
-
-            <div className="rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/10 to-transparent p-5 group transition-all duration-300 hover:border-amber-500/40">
-              <h3 className="font-bold text-white mb-2 flex items-center gap-2 text-sm uppercase tracking-wider text-amber-400">
-                <Info size={16} /> Quy trình xét duyệt
-              </h3>
-              <p className="text-sm text-slate-300 leading-relaxed">
-                Đơn hàng hiện tại giữ trạng thái chờ duyệt. Quản trị viên sẽ kiểm tra giao dịch chuyển khoản ngân hàng và gán nhân viên phụ trách chăm sóc đoàn sớm nhất.
-              </p>
-            </div>
-          </div>
-
-          {/* Action Button Links */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-10">
-            <button
-              onClick={() => navigate("/tai-khoan/booking")}
-              className="flex-1 text-center py-3.5 px-6 text-sm font-bold text-[#020617] bg-gradient-to-r from-[#7FB77E] to-[#6da36c] rounded-xl shadow-lg transition-all duration-300 hover:opacity-90 active:scale-[0.98] flex items-center justify-center gap-2"
-            >
-              Xem lịch sử đặt tour
-              <ArrowRight size={16} />
-            </button>
-
-            <button
-              onClick={() => navigate("/")}
-              className="flex-1 text-center py-3.5 px-6 text-sm font-bold text-slate-300 bg-white/[0.04] border border-white/10 rounded-xl transition-all duration-300 hover:bg-white/[0.08] active:scale-[0.98] flex items-center justify-center gap-2"
-            >
-              <Home size={16} />
-              Quay về trang chủ
-            </button>
-          </div>
-
-          {/* Stepper Timeline */}
-          <div className="p-6 rounded-xl border border-white/[0.08] bg-slate-900/20 relative">
-            <h3 className="font-bold text-white mb-4 text-base tracking-wide flex items-center gap-2">
-              <span className="w-1 h-4 bg-[#7FB77E] rounded-full" />
-              Các bước tiếp theo cần lưu ý
-            </h3>
-            
-            <div className="relative border-l border-white/10 pl-5 ml-2.5 space-y-5 text-sm text-slate-300">
-              <div className="relative">
-                <span className="absolute -left-[27px] top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#7FB77E] text-[10px] font-bold text-[#020617]">
-                  1
-                </span>
-                <p className="font-semibold text-white mb-0.5">Xác minh dòng tiền & Điều phối nhân sự</p>
-                <p className="text-xs text-slate-400">Nhân viên tổng đài kiểm tra tài khoản và gọi điện thoại trực tiếp khớp thông tin lộ trình đón trả cho bạn.</p>
-              </div>
-
-              <div className="relative">
-                <span className="absolute -left-[27px] top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-slate-700 text-[10px] font-bold text-slate-300">
-                  2
-                </span>
-                <p className="font-semibold text-white mb-0.5">Thanh toán khoản đối ứng còn lại</p>
-                <p className="text-xs text-slate-400">
-                  {isDeposit 
-                    ? "Chuẩn bị nốt số tiền còn lại để gửi trực tiếp cho Hướng dẫn viên phụ trách vào ngày khởi hành đi tour."
-                    : "Bạn đã tất toán toàn bộ chi phí đặt, không cần đóng thêm bất kỳ khoản phụ phí bắt buộc nào khác."}
+                <h1 className="text-4xl font-black leading-tight text-white sm:text-5xl lg:text-6xl">
+                  Cảm ơn quý khách!
+                </h1>
+                <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
+                  Yêu cầu đặt tour đã được ghi nhận. Đội ngũ điều hành sẽ kiểm tra
+                  thông tin và liên hệ với bạn trong thời gian sớm nhất.
                 </p>
+
+                <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+                  <button
+                    onClick={() => navigate("/tai-khoan/booking")}
+                    className="btn-primary min-h-12 flex-1 text-sm"
+                  >
+                    Xem lịch sử đặt tour
+                    <ArrowRight size={17} />
+                  </button>
+
+                  <button
+                    onClick={() => navigate("/")}
+                    className="btn-outline min-h-12 flex-1 text-sm"
+                  >
+                    <Home size={17} />
+                    Quay về trang chủ
+                  </button>
+                </div>
               </div>
 
-              <div className="relative">
-                <span className="absolute -left-[27px] top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-slate-700 text-[10px] font-bold text-slate-300">
-                  3
-                </span>
-                <p className="font-semibold text-white mb-0.5">Nhận thông tin xe & Trưởng đoàn</p>
-                <p className="text-xs text-slate-400">Trước ngày khởi hành 3 ngày, hệ thống gửi biển số xe, tên và số điện thoại Hướng dẫn viên qua SMS/Zalo của bạn.</p>
+              <div className="rounded-3xl border border-white/10 bg-[#020617]/45 p-5 shadow-inner sm:p-6">
+                <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-4">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.18em] text-[#d4a878]">
+                      Tóm tắt đơn đặt tour
+                    </p>
+                    <h2 className="mt-1 text-xl font-black text-white">
+                      {booking?.tourName || "Hành trình Tây Bắc của bạn"}
+                    </h2>
+                  </div>
+                  <span className="rounded-full border border-[#7FB77E]/30 bg-[#7FB77E]/10 px-3 py-1.5 text-xs font-black text-[#9de09c]">
+                    {bookingStatus}
+                  </span>
+                </div>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                  {[
+                    {
+                      Icon: CalendarDays,
+                      label: "Ngày khởi hành",
+                      value: formatDate(booking?.departureDate),
+                    },
+                    {
+                      Icon: UsersRound,
+                      label: "Số hành khách",
+                      value: `${booking?.totalPeople || 0} khách`,
+                    },
+                    {
+                      Icon: ReceiptText,
+                      label: isDeposit ? "Hình thức thanh toán" : "Tổng giá trị",
+                      value: isDeposit
+                        ? "Đặt cọc 30%"
+                        : formatCurrency(booking?.totalPrice),
+                    },
+                    {
+                      Icon: Mail,
+                      label: "Email xác nhận",
+                      value: booking?.email || "Email tài khoản của bạn",
+                    },
+                  ].map(({ Icon, label, value }) => (
+                    <div
+                      key={label}
+                      className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.045] p-4"
+                    >
+                      <Icon size={18} className="text-[#9de09c]" />
+                      <p className="mt-3 text-xs font-bold text-slate-400">{label}</p>
+                      <p className="mt-1 break-words text-sm font-black text-white">{value}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {[
+              {
+                Icon: Mail,
+                title: "Kiểm tra hộp thư",
+                text: "Chi tiết đơn và thông tin xác nhận được gửi tới email đăng ký. Vui lòng kiểm tra cả thư rác.",
+              },
+              {
+                Icon: Info,
+                title: "Bộ phận điều hành xác minh",
+                text: "Quản trị viên kiểm tra thông tin thanh toán, lịch khởi hành và phân công nhân viên phụ trách.",
+              },
+              {
+                Icon: Headphones,
+                title: "Chúng tôi sẽ liên hệ",
+                text: "Nhân viên sẽ gọi điện xác nhận điểm đón, yêu cầu đặc biệt và hướng dẫn các bước tiếp theo.",
+              },
+            ].map(({ Icon, title, text }, index) => (
+              <article
+                key={title}
+                className="group rounded-2xl border border-white/10 bg-white/[0.035] p-5 transition hover:-translate-y-1 hover:border-[#7FB77E]/35 hover:bg-[#7FB77E]/[0.07]"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
+                    <Icon size={18} />
+                  </span>
+                  <span className="text-xs font-black text-[#d4a878]">BƯỚC {index + 1}</span>
+                </div>
+                <h3 className="mt-4 text-base font-black text-white">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-400">{text}</p>
+              </article>
+            ))}
+          </div>
+
+          <p className="mt-6 text-center text-xs leading-6 text-slate-500">
+            Cần hỗ trợ gấp? Vui lòng mở trang Liên hệ hoặc gọi số hotline hiển thị ở cuối trang.
+          </p>
         </div>
       </section>
     </PublicLayout>

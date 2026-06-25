@@ -58,7 +58,7 @@ export default function AboutPage() {
                         variants={fadeUp}
                         className="mt-6 max-w-3xl text-lg leading-8 text-slate-200"
                     >
-                        Chúng tôi xây dựng nền tảng booking tour dựa trên kinh nghiệm điều hành
+                        Chúng tôi xây dựng nền tảng đặt tour dựa trên kinh nghiệm điều hành
                         thực địa, mạng lưới đối tác địa phương và cách tư vấn gần với nhu cầu
                         thật của khách hàng.
                     </motion.p>

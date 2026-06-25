@@ -13,13 +13,13 @@ import {
 import { logout } from "../utils/auth";
 
 const navItems = [
-  { to: "/admin", label: "Dashboard", Icon: BarChart3, end: true },
+  { to: "/admin", label: "Tổng quan", Icon: BarChart3, end: true },
   { to: "/admin/staff", label: "Nhân viên", Icon: UsersRound },
   { to: "/admin/provinces", label: "Tỉnh thành", Icon: Map },
   { to: "/admin/districts", label: "Quận huyện", Icon: Compass },
   { to: "/admin/locations", label: "Địa điểm", Icon: MapPinned },
   { to: "/admin/tours", label: "Tour", Icon: Mountain },
-  { to: "/admin/bookings", label: "Booking", Icon: TicketCheck },
+  { to: "/admin/bookings", label: "Đơn đặt tour", Icon: TicketCheck },
 ];
 
 const navClass = ({ isActive }) =>
@@ -36,20 +36,23 @@ export default function AdminLayout() {
       <aside className="admin-sidebar flex w-[260px] shrink-0 flex-col border-r border-slate-800 bg-[#0f172a] px-4 py-5 text-[#f8fafc]">
         <Link
           to="/admin"
-          className="mb-6 block rounded-2xl border border-white/10 bg-white/[0.04] p-3"
+          className="admin-brand-card mb-6 block rounded-2xl border border-white/10 bg-white/[0.04] p-3"
         >
           <img
             src="/logo-main-tay-bac.png"
             alt="Tây Bắc Travel"
             className="h-20 w-full object-contain drop-shadow-[0_10px_22px_rgba(127,183,126,0.35)]"
           />
+          <span className="admin-brand-caption mt-1 block text-center text-[10px] font-black uppercase tracking-[0.22em] text-[#d4a878]">
+            Trung tâm điều hành
+          </span>
         </Link>
 
         <div className="mb-3 px-3 text-xs font-black uppercase tracking-[0.22em] text-[#d4a878]">
           Quản trị
         </div>
 
-        <nav className="flex flex-1 flex-col gap-2">
+        <nav className="admin-nav flex flex-1 flex-col gap-2" aria-label="Điều hướng quản trị">
           {navItems.map(({ to, label, Icon, end }) => (
             <NavLink key={to} to={to} end={end} className={navClass}>
               <Icon size={18} />
@@ -58,7 +61,7 @@ export default function AdminLayout() {
           ))}
         </nav>
 
-        <div className="mt-6 space-y-2 border-t border-white/10 pt-4">
+        <div className="admin-sidebar-footer mt-6 space-y-2 border-t border-white/10 pt-4">
           <Link
             to="/"
             className="flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-bold text-slate-300 transition hover:bg-white/10 hover:text-[#f8fafc]"

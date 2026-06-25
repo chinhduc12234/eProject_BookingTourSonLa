@@ -266,7 +266,7 @@ export default function AccountPage() {
       setSelectedBooking(response.data);
     } catch (error) {
       toast.error(
-        error?.response?.data?.message || "Không thể tải chi tiết booking",
+        error?.response?.data?.message || "Không thể tải chi tiết đơn đặt tour",
       );
     } finally {
       setDetailLoading(false);
@@ -534,7 +534,7 @@ export default function AccountPage() {
                     </span>
                     <div>
                       <h2 className="text-xl font-black text-white">
-                        Lịch sử booking
+                        Lịch sử đặt tour
                       </h2>
                       <p className="text-sm text-slate-400">
                         Theo dõi các tour đã đặt.
@@ -552,7 +552,7 @@ export default function AccountPage() {
                       <CalendarDays size={24} />
                     </div>
                     <p className="mt-4 text-sm font-bold text-slate-300">
-                      Bạn chưa có booking nào.
+                      Bạn chưa có đơn đặt tour nào.
                     </p>
                     <Link to="/tours" className="btn-primary mt-5 text-sm">
                       Xem tour
@@ -875,7 +875,7 @@ export default function AccountPage() {
                       <Eye size={24} />
                     </div>
                     <p className="mt-4 text-sm font-bold text-slate-300">
-                      Chọn một booking để xem chi tiết.
+                      Chọn một đơn đặt tour để xem chi tiết.
                     </p>
                   </div>
                 )}

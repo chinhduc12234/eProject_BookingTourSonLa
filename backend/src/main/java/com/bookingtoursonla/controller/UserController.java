@@ -1,5 +1,7 @@
 package com.bookingtoursonla.controller;
 
+import java.util.Map;
+
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -91,6 +93,15 @@ public class UserController {
         StaffResponse staff = userService.createStaff(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(staff);
+    }
+
+    @PostMapping("/admin/staff/avatar")
+    public ResponseEntity<Map<String, String>> uploadStaffAvatar(
+            @RequestParam("file") MultipartFile file) {
+
+        String avatarUrl = userService.uploadStaffAvatar(file);
+
+        return ResponseEntity.ok(Map.of("url", avatarUrl));
     }
 
     @PutMapping("/admin/staff/{id}")

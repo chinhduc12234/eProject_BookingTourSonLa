@@ -403,7 +403,7 @@ export default function TourImagesStep({
                   <div>
 
                     <label className="font-semibold text-sm block mb-2 text-slate-700">
-                      Link hình ảnh
+                      Đường dẫn hình ảnh
                     </label>
 
                     <input

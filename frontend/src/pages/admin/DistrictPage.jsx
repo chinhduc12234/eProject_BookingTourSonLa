@@ -326,7 +326,7 @@ export default function DistrictPage() {
             <div>
 
               <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">
-                Quận Huyện
+                Quận huyện
               </h2>
 
               <p className="text-slate-500 font-medium italic">
@@ -354,7 +354,7 @@ export default function DistrictPage() {
             <Plus size={20} />
 
             <span className="font-bold">
-              Thêm Quận Huyện
+              Thêm quận huyện
             </span>
           </button>
         </div>
@@ -452,11 +452,11 @@ export default function DistrictPage() {
               >
 
                 <option value="name">
-                  Sort quận huyện
+                  Sắp xếp theo quận huyện
                 </option>
 
                 <option value="province">
-                  Sort tỉnh thành
+                  Sắp xếp theo tỉnh thành
                 </option>
               </select>
             </div>
@@ -498,7 +498,7 @@ export default function DistrictPage() {
 
           <div className="overflow-x-auto">
 
-            <table className="w-full text-left border-collapse">
+            <table className="admin-responsive-table admin-medium-table w-full text-left border-collapse">
 
               <thead>
 
@@ -509,11 +509,11 @@ export default function DistrictPage() {
                   </th>
 
                   <th className="px-8 py-5 text-[13px] font-bold text-slate-400 uppercase tracking-widest">
-                    Quận Huyện
+                    Quận huyện
                   </th>
 
                   <th className="px-8 py-5 text-[13px] font-bold text-slate-400 uppercase tracking-widest">
-                    Tỉnh Thành
+                    Tỉnh thành
                   </th>
 
                   <th className="px-8 py-5 text-right text-[13px] font-bold text-slate-400 uppercase tracking-widest">
@@ -560,7 +560,7 @@ export default function DistrictPage() {
                       className="group hover:bg-slate-50/80 transition-all duration-300"
                     >
 
-                      <td className="px-8 py-5 font-bold text-slate-400 text-sm">
+                      <td data-label="Số thứ tự" className="px-8 py-5 font-bold text-slate-400 text-sm">
 
                         #
                         {(
@@ -572,23 +572,23 @@ export default function DistrictPage() {
                           .padStart(2, "0")}
                       </td>
 
-                      <td className="px-8 py-5">
+                      <td data-label="Quận huyện" className="px-8 py-5">
 
                         <span className="font-semibold text-slate-700 group-hover:text-amber-600 transition-colors">
                           {d.name}
                         </span>
                       </td>
 
-                      <td className="px-8 py-5">
+                      <td data-label="Tỉnh thành" className="px-8 py-5">
 
                         <span className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">
                           {d.provinceName}
                         </span>
                       </td>
 
-                      <td className="px-8 py-5">
+                      <td data-label="Thao tác" className="px-8 py-5">
 
-                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="flex justify-end gap-2 transition-opacity duration-300">
 
                           <button
                             onClick={() => {
@@ -603,6 +603,8 @@ export default function DistrictPage() {
 
                               setOpen(true);
                             }}
+                            aria-label={`Chỉnh sửa ${d.name}`}
+                            title="Chỉnh sửa quận huyện"
                             className="p-2.5 bg-white text-amber-500 hover:bg-amber-500 hover:text-white rounded-xl shadow-sm border border-slate-100 transition-all"
                           >
 
@@ -613,6 +615,8 @@ export default function DistrictPage() {
                             onClick={() =>
                               handleDelete(d.id)
                             }
+                            aria-label={`Xóa ${d.name}`}
+                            title="Xóa quận huyện"
                             className="p-2.5 bg-white text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl shadow-sm border border-slate-100 transition-all"
                           >
 

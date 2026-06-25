@@ -43,4 +43,7 @@ public interface UserService {
         UserProfileResponse updateCurrentUserAvatar(
                         String email,
                         MultipartFile file);
+
+        String uploadStaffAvatar(
+                        MultipartFile file);
 }

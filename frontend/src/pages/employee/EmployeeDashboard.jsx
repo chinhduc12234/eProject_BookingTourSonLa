@@ -141,14 +141,14 @@ export default function EmployeeDashboard() {
   }
 
   return (
-    <div className="admin-shell">
-      <aside className="admin-sidebar">
+    <div className="employee-shell">
+      <aside className="employee-sidebar">
         <div className="sidebar-top">
           <div className="brand-logo-area">
             <div className="logo-box">TB</div>
             <div>
               <h1 className="brand-title">Tây Bắc Travel</h1>
-              <span className="brand-sub">WORKPLACE</span>
+              <span className="brand-sub">KHU ĐIỀU HÀNH</span>
             </div>
           </div>
 
@@ -191,7 +191,7 @@ export default function EmployeeDashboard() {
             <h2 className="header-title">
               {activeTab === "overview"
                 ? "Bảng thống kê tổng quan"
-                : "Danh sách quản lý điều hành đặt chỗ"}
+                : "Danh sách điều hành đơn đặt tour"}
             </h2>
           </div>
           <div className="header-right-user">
@@ -284,28 +284,28 @@ export default function EmployeeDashboard() {
                     {filteredBookings.length > 0 ? (
                       filteredBookings.map((booking) => (
                         <tr key={booking.id}>
-                          <td className="font-mono-code">{booking.bookingCode}</td>
-                          <td>
+                          <td data-label="Mã đơn" className="font-mono-code">{booking.bookingCode}</td>
+                          <td data-label="Khách hàng">
                             <div className="customer-main-name">{booking.customer}</div>
                             <div className="customer-sub-phone">{booking.phone}</div>
                           </td>
-                          <td className="max-width-cell">
+                          <td data-label="Thông tin tour" className="max-width-cell">
                             <div className="truncate-text" title={booking.tourName}>
                               {booking.tourName}
                             </div>
                           </td>
-                          <td className="whitespace-nowrap-text">
+                          <td data-label="Ngày đặt" className="whitespace-nowrap-text">
                             {booking.date
                               ? new Date(booking.date).toLocaleDateString("vi-VN")
                               : "Chưa cập nhật"}
                           </td>
-                          <td className="text-center">
+                          <td data-label="Số chỗ" className="text-center">
                             <span className="badge-slots">{booking.slots} vé</span>
                           </td>
-                          <td className="price-text-highlight">
+                          <td data-label="Tổng tiền" className="price-text-highlight">
                             {formatVND(booking.totalPrice)}
                           </td>
-                          <td className="text-center">
+                          <td data-label="Trạng thái" className="text-center">
                             <span
                               className={`status-badge ${getBookingStatusClass(
                                 booking.status,
@@ -314,7 +314,7 @@ export default function EmployeeDashboard() {
                               {getBookingStatusLabel(booking.status)}
                             </span>
                           </td>
-                          <td className="text-center">
+                          <td data-label="Thao tác" className="text-center">
                             <div className="actions-buttons-flex">
                               <button
                                 type="button"

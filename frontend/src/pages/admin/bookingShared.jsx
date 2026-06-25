@@ -1,5 +1,5 @@
 export const bookingStatuses = [
-  { value: "", label: "Tất cả booking" },
+  { value: "", label: "Tất cả đơn đặt tour" },
   { value: "PENDING", label: "Chờ xác nhận" },
   { value: "CONFIRMED", label: "Đã xác nhận" },
   { value: "IN_PROGRESS", label: "Đang đi tour" },

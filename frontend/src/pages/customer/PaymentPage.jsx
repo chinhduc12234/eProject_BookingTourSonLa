@@ -369,7 +369,7 @@ export default function PaymentPage() {
                     <div className="bg-white p-2 rounded-lg">
                       <img
                         src={vietQrImageUrl}
-                        alt="VietQR Payment Code"
+                        alt="Mã QR thanh toán VietQR"
                         className="w-44 h-44 object-contain transition-all duration-300"
                         loading="lazy"
                       />

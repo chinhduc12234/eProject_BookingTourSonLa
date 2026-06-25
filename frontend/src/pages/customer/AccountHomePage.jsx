@@ -97,7 +97,7 @@ export default function AccountHomePage() {
   return (
     <AccountShell
       title={profile?.fullName || "Tổng quan tài khoản"}
-      description="Quản lý nhanh hồ sơ, lịch sử booking và trạng thái các tour đã đặt."
+      description="Quản lý nhanh hồ sơ, lịch sử đặt tour và trạng thái các hành trình đã đăng ký."
     >
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {[
@@ -216,7 +216,7 @@ export default function AccountHomePage() {
             <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.03] p-8 text-center">
               <CalendarDays className="mx-auto h-10 w-10 text-slate-400" />
               <p className="mt-4 text-sm font-bold text-slate-300">
-                Bạn chưa có booking nào.
+                Bạn chưa có đơn đặt tour nào.
               </p>
               <Link to="/tours" className="btn-primary mt-5 text-sm">
                 Xem tour
