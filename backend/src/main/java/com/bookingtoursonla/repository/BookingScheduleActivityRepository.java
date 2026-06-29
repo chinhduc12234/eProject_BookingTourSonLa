@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -40,4 +41,13 @@ public interface BookingScheduleActivityRepository extends JpaRepository<Booking
             """)
     List<BookingScheduleActivity> findByBookingId(
             @Param("bookingId") Long bookingId);
+
+    @Modifying
+    @Query("""
+            UPDATE BookingScheduleActivity a
+            SET a.originalActivity = NULL
+            WHERE a.originalActivity.id IN :activityIds
+            """)
+    int clearOriginalActivityReferences(
+            @Param("activityIds") List<Long> activityIds);
 }

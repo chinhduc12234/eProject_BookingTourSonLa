@@ -1,7 +1,11 @@
 package com.bookingtoursonla.service;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +15,7 @@ import com.bookingtoursonla.dto.TourActivityRequest;
 import com.bookingtoursonla.entity.Location;
 import com.bookingtoursonla.entity.TourActivity;
 import com.bookingtoursonla.entity.TourDay;
+import com.bookingtoursonla.repository.BookingScheduleActivityRepository;
 import com.bookingtoursonla.repository.LocationRepository;
 import com.bookingtoursonla.repository.TourActivityRepository;
 import com.bookingtoursonla.repository.TourDayRepository;
@@ -22,15 +27,18 @@ public class TourActivityServiceImpl implements TourActivityService {
     private final TourActivityRepository activityRepository;
     private final TourDayRepository tourDayRepository;
     private final LocationRepository locationRepository;
+    private final BookingScheduleActivityRepository bookingScheduleActivityRepository;
 
     public TourActivityServiceImpl(
             TourActivityRepository activityRepository,
             TourDayRepository tourDayRepository,
-            LocationRepository locationRepository) {
+            LocationRepository locationRepository,
+            BookingScheduleActivityRepository bookingScheduleActivityRepository) {
 
         this.activityRepository = activityRepository;
         this.tourDayRepository = tourDayRepository;
         this.locationRepository = locationRepository;
+        this.bookingScheduleActivityRepository = bookingScheduleActivityRepository;
     }
 
     @Override
@@ -93,6 +101,7 @@ public class TourActivityServiceImpl implements TourActivityService {
 
     @Override
     public void delete(Long id) {
+        detachScheduleSnapshots(List.of(id));
         activityRepository.deleteById(id);
     }
 
@@ -102,15 +111,24 @@ public class TourActivityServiceImpl implements TourActivityService {
         TourDay day = tourDayRepository.findById(tourDayId)
                 .orElseThrow(() -> new RuntimeException("Tour day not found"));
 
-        activityRepository.deleteByTourDayId(tourDayId);
+        List<TourActivity> existingActivities = activityRepository
+                .findByTourDayIdOrderBySortOrderAsc(tourDayId);
+        Map<Integer, TourActivity> existingBySortOrder = existingActivities
+                .stream()
+                .filter(activity -> activity.getSortOrder() != null)
+                .collect(Collectors.toMap(
+                        TourActivity::getSortOrder,
+                        Function.identity(),
+                        (first, ignored) -> first));
 
-        List<TourActivity> activities = new ArrayList<>();
+        Set<Long> retainedIds = new HashSet<>();
 
         int index = 1;
 
         for (TourActivityRequest r : requests) {
 
-            TourActivity a = new TourActivity();
+            int sortOrder = r.getSortOrder() != null ? r.getSortOrder() : index;
+            TourActivity a = existingBySortOrder.getOrDefault(sortOrder, new TourActivity());
 
             a.setTourDay(day);
             a.setTitle(r.getTitle());
@@ -118,15 +136,39 @@ public class TourActivityServiceImpl implements TourActivityService {
             a.setStartTime(r.getStartTime());
             a.setEndTime(r.getEndTime());
             a.setLocationName(trimToNull(r.getLocationName()));
-
-            a.setSortOrder(r.getSortOrder() != null ? r.getSortOrder() : index++);
+            a.setSortOrder(sortOrder);
 
             setLocation(a, r.getLocationId());
 
-            activities.add(a);
+            TourActivity saved = activityRepository.save(a);
+            if (saved.getId() != null) {
+                retainedIds.add(saved.getId());
+            }
+            index++;
         }
 
-        activityRepository.saveAll(activities);
+        List<Long> removedIds = existingActivities
+                .stream()
+                .map(TourActivity::getId)
+                .filter(id -> id != null && !retainedIds.contains(id))
+                .toList();
+
+        if (!removedIds.isEmpty()) {
+            detachScheduleSnapshots(removedIds);
+            activityRepository.deleteAllById(removedIds);
+        }
+
+        activityRepository.flush();
+    }
+
+    private void detachScheduleSnapshots(List<Long> activityIds) {
+
+        if (activityIds == null || activityIds.isEmpty()) {
+            return;
+        }
+
+        bookingScheduleActivityRepository.clearOriginalActivityReferences(activityIds);
+        bookingScheduleActivityRepository.flush();
     }
 
     private void setLocation(

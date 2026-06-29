@@ -1,11 +1,20 @@
 package com.bookingtoursonla.service;
 
-import java.math.BigDecimal;
-import java.text.NumberFormat;
-import java.time.format.DateTimeFormatter;
+import static com.bookingtoursonla.service.CustomerEmailTemplateSupport.BRAND_NAME;
+import static com.bookingtoursonla.service.CustomerEmailTemplateSupport.bookingStatusLabel;
+import static com.bookingtoursonla.service.CustomerEmailTemplateSupport.bookingTypeLabel;
+import static com.bookingtoursonla.service.CustomerEmailTemplateSupport.customerTypeLabel;
+import static com.bookingtoursonla.service.CustomerEmailTemplateSupport.fallback;
+import static com.bookingtoursonla.service.CustomerEmailTemplateSupport.formatCurrency;
+import static com.bookingtoursonla.service.CustomerEmailTemplateSupport.formatDate;
+import static com.bookingtoursonla.service.CustomerEmailTemplateSupport.formatOptionalTime;
+import static com.bookingtoursonla.service.CustomerEmailTemplateSupport.paymentMethodLabel;
+import static com.bookingtoursonla.service.CustomerEmailTemplateSupport.paymentStatusLabel;
+import static com.bookingtoursonla.service.CustomerEmailTemplateSupport.plain;
+import static com.bookingtoursonla.service.CustomerEmailTemplateSupport.value;
+
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -16,25 +25,27 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
-import org.springframework.web.util.HtmlUtils;
 
 import com.bookingtoursonla.entity.Booking;
 import com.bookingtoursonla.entity.BookingCustomer;
+import com.bookingtoursonla.entity.BookingScheduleActivity;
+import com.bookingtoursonla.entity.BookingScheduleDay;
 import com.bookingtoursonla.exception.EmailDeliveryException;
 import com.bookingtoursonla.repository.BookingCustomerRepository;
 import com.bookingtoursonla.repository.BookingRepository;
+import com.bookingtoursonla.repository.BookingScheduleActivityRepository;
+import com.bookingtoursonla.repository.BookingScheduleDayRepository;
 
 @Service
 public class BookingConfirmationEmailService {
 
     private static final Logger log = LoggerFactory.getLogger(BookingConfirmationEmailService.class);
     private static final String EMAILJS_SEND_URL = "https://api.emailjs.com/api/v1.0/email/send";
-    private static final Locale VIETNAMESE = Locale.forLanguageTag("vi-VN");
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
 
     private final BookingRepository bookingRepository;
     private final BookingCustomerRepository bookingCustomerRepository;
+    private final BookingScheduleDayRepository bookingScheduleDayRepository;
+    private final BookingScheduleActivityRepository bookingScheduleActivityRepository;
     private final BookingEmailTemplateBuilder templateBuilder;
     private final RestClient restClient;
     private final boolean enabled;
@@ -43,10 +54,13 @@ public class BookingConfirmationEmailService {
     private final String publicKey;
     private final String privateKey;
     private final String publicUrl;
+    private final String assetPublicUrl;
 
     public BookingConfirmationEmailService(
             BookingRepository bookingRepository,
             BookingCustomerRepository bookingCustomerRepository,
+            BookingScheduleDayRepository bookingScheduleDayRepository,
+            BookingScheduleActivityRepository bookingScheduleActivityRepository,
             BookingEmailTemplateBuilder templateBuilder,
             RestClient.Builder restClientBuilder,
             @Value("${app.email.emailjs.enabled:false}") boolean enabled,
@@ -54,10 +68,13 @@ public class BookingConfirmationEmailService {
             @Value("${app.email.emailjs.template-id:}") String templateId,
             @Value("${app.email.emailjs.public-key:}") String publicKey,
             @Value("${app.email.emailjs.private-key:}") String privateKey,
-            @Value("${app.public-url:http://localhost:5173}") String publicUrl) {
+            @Value("${app.public-url:http://localhost:5173}") String publicUrl,
+            @Value("${app.asset-public-url:http://localhost:8080}") String assetPublicUrl) {
 
         this.bookingRepository = bookingRepository;
         this.bookingCustomerRepository = bookingCustomerRepository;
+        this.bookingScheduleDayRepository = bookingScheduleDayRepository;
+        this.bookingScheduleActivityRepository = bookingScheduleActivityRepository;
         this.templateBuilder = templateBuilder;
         this.restClient = restClientBuilder.build();
         this.enabled = enabled;
@@ -65,7 +82,8 @@ public class BookingConfirmationEmailService {
         this.templateId = templateId;
         this.publicKey = publicKey;
         this.privateKey = privateKey;
-        this.publicUrl = stripTrailingSlash(publicUrl);
+        this.publicUrl = CustomerEmailTemplateSupport.stripTrailingSlash(publicUrl, "http://localhost:5173");
+        this.assetPublicUrl = CustomerEmailTemplateSupport.stripTrailingSlash(assetPublicUrl, "http://localhost:8080");
 
         log.info(
                 "Email xác nhận booking qua EmailJS đang {}",
@@ -86,14 +104,28 @@ public class BookingConfirmationEmailService {
                 .orElseThrow(() -> new IllegalStateException("Booking không tồn tại để gửi email"));
         List<BookingCustomer> customers = bookingCustomerRepository
                 .findByBookingIdOrderByIdAsc(bookingId);
+        List<BookingScheduleDay> scheduleDays = bookingScheduleDayRepository
+                .findByBookingIdOrderByDayNumberAsc(bookingId);
+
         String bookingUrl = publicUrl + "/tai-khoan/booking/" + booking.getId();
-        String subject = "[Tây Bắc Travel] Xác nhận đặt tour " + booking.getBookingCode();
-        String emailHtml = templateBuilder.build(booking, customers, bookingUrl);
+        String subject = "[" + BRAND_NAME + "] Xác nhận đặt tour " + booking.getBookingCode();
+        String emailHtml = CustomerEmailTemplateSupport.compactFallbackEmailHtml(
+                booking,
+                "Đặt tour thành công",
+                "Tây Bắc Travel đã ghi nhận yêu cầu đặt tour của bạn. Vui lòng kiểm tra lại thông tin hành trình và danh sách khách trong tài khoản.",
+                bookingUrl,
+                "Xem chi tiết đặt tour",
+                publicUrl,
+                assetPublicUrl);
         String emailText = buildPlainTextFallback(booking, bookingUrl);
 
         Map<String, Object> templateParams = new LinkedHashMap<>();
         templateParams.put("to_email", booking.getEmail());
+        templateParams.put("to", booking.getEmail());
         templateParams.put("to_name", booking.getFullName());
+        templateParams.put("name", booking.getFullName());
+        templateParams.put("from_name", BRAND_NAME);
+        templateParams.put("reply_to", booking.getEmail());
         templateParams.put("subject", subject);
         templateParams.put("booking_code", booking.getBookingCode());
         templateParams.put("email_html", emailHtml);
@@ -101,7 +133,7 @@ public class BookingConfirmationEmailService {
         templateParams.put("message_html", emailHtml);
         templateParams.put("message", emailText);
         templateParams.put("email_text", emailText);
-        addStaticTemplateParams(templateParams, booking, customers, bookingUrl);
+        addStaticTemplateParams(templateParams, booking, customers, bookingUrl, scheduleDays);
         templateParams.put("order_id", booking.getBookingCode());
         templateParams.put("email", booking.getEmail());
         templateParams.put(
@@ -159,6 +191,25 @@ public class BookingConfirmationEmailService {
                 maskEmail(booking.getEmail()));
     }
 
+    private Map<Long, List<BookingScheduleActivity>> loadActivitiesByDayId(
+            List<BookingScheduleDay> scheduleDays) {
+
+        List<Long> dayIds = scheduleDays.stream()
+                .map(BookingScheduleDay::getId)
+                .filter(id -> id != null)
+                .toList();
+        if (dayIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return bookingScheduleActivityRepository.findByScheduleDayIds(dayIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        activity -> activity.getBookingScheduleDay().getId(),
+                        LinkedHashMap::new,
+                        Collectors.toList()));
+    }
+
     private void validateConfiguration() {
 
         if (isBlank(serviceId) || isBlank(templateId) || isBlank(publicKey)) {
@@ -167,11 +218,109 @@ public class BookingConfirmationEmailService {
         }
     }
 
-    private String stripTrailingSlash(String value) {
+    private String buildPlainTextFallback(Booking booking, String bookingUrl) {
 
-        String normalized = isBlank(value) ? "http://localhost:5173" : value.trim();
+        var departure = booking.getTourDeparture();
+        var tour = departure.getTour();
 
-        return normalized.replaceAll("/+$", "");
+        return """
+                TÂY BẮC TRAVEL - XÁC NHẬN ĐẶT TOUR
+
+                Mã booking: %s
+                Khách hàng: %s
+                Email: %s
+                Số điện thoại: %s
+                Tour: %s
+                Ngày khởi hành: %s
+                Giờ khởi hành: %s
+                Tổng số khách: %s
+                Tổng giá tour: %s
+                Trạng thái booking: %s
+                Trạng thái thanh toán: %s
+
+                Xem chi tiết: %s
+                """.formatted(
+                plain(booking.getBookingCode()),
+                plain(booking.getFullName()),
+                plain(booking.getEmail()),
+                plain(booking.getPhone()),
+                plain(tour.getTitle()),
+                formatDate(departure.getDepartureDate()),
+                departure.getDepartureTime() != null
+                        ? formatOptionalTime(departure.getDepartureTime())
+                        : "Đang cập nhật",
+                value(booking.getTotalPeople()),
+                formatCurrency(booking.getTotalPrice()),
+                bookingStatusLabel(booking),
+                paymentStatusLabel(booking),
+                bookingUrl);
+    }
+
+    private void addStaticTemplateParams(
+            Map<String, Object> params,
+            Booking booking,
+            List<BookingCustomer> customers,
+            String bookingUrl,
+            List<BookingScheduleDay> scheduleDays) {
+
+        var departure = booking.getTourDeparture();
+        var tour = departure.getTour();
+
+        params.put("brand_name", BRAND_NAME);
+        params.put("brand_logo_url", CustomerEmailTemplateSupport.logoUrl(publicUrl));
+        params.put("logo_url", CustomerEmailTemplateSupport.logoUrl(publicUrl));
+        params.put("tour_image_url", CustomerEmailTemplateSupport.tourImageUrl(tour, assetPublicUrl, publicUrl));
+        params.put("customer_name", plain(booking.getFullName()));
+        params.put("customer_phone", plain(booking.getPhone()));
+        params.put("customer_email", plain(booking.getEmail()));
+        params.put("pickup_address", fallback(booking.getPickupAddress()));
+        params.put("tour_name", plain(tour.getTitle()));
+        params.put("departure_date", formatDate(departure.getDepartureDate()));
+        params.put(
+                "departure_time",
+                departure.getDepartureTime() != null
+                        ? formatOptionalTime(departure.getDepartureTime())
+                        : "Đang cập nhật");
+        params.put(
+                "duration",
+                value(tour.getDurationDays()) + " ngày "
+                        + value(tour.getDurationNights()) + " đêm");
+        params.put("departure_location", fallback(tour.getDepartureLocation()));
+        params.put("booking_type", bookingTypeLabel(booking));
+        params.put("booking_status", bookingStatusLabel(booking));
+        params.put("payment_status", paymentStatusLabel(booking));
+        params.put("payment_method", paymentMethodLabel(booking.getPaymentMethod()));
+        params.put("adult_count", value(booking.getAdultCount()));
+        params.put("child_count", value(booking.getChildCount()));
+        params.put("total_people", value(booking.getTotalPeople()));
+        params.put("adult_price", formatCurrency(booking.getAdultPriceSnapshot()));
+        params.put("child_price", formatCurrency(booking.getChildPriceSnapshot()));
+        params.put("total_price", formatCurrency(booking.getTotalPrice()));
+        params.put("paid_amount", formatCurrency(booking.getPaidAmount()));
+        params.put("remaining_amount", formatCurrency(booking.getRemainingAmount()));
+        params.put("note", fallback(booking.getNote()));
+        params.put("special_request", fallback(booking.getSpecialRequest()));
+        params.put("booking_url", bookingUrl);
+        params.put("passenger_summary", buildPassengerSummary(customers));
+        params.put("itinerary_summary", CustomerEmailTemplateSupport.scheduleSummary(scheduleDays));
+    }
+
+    private String buildPassengerSummary(List<BookingCustomer> customers) {
+
+        if (customers == null || customers.isEmpty()) {
+            return "Thông tin hành khách đang được cập nhật.";
+        }
+
+        return customers.stream()
+                .limit(CustomerEmailTemplateSupport.MAX_CUSTOMERS_IN_EMAIL)
+                .map(customer -> "- "
+                        + fallback(customer.getFullName())
+                        + " - "
+                        + customerTypeLabel(customer)
+                        + (Boolean.TRUE.equals(customer.getGroupLeader())
+                                ? " (Trưởng đoàn)"
+                                : ""))
+                .collect(Collectors.joining("\n"));
     }
 
     private String maskEmail(String email) {
@@ -238,165 +387,5 @@ public class BookingConfirmationEmailService {
 
         return "EmailJS chưa thể gửi email xác nhận (HTTP " + status
                 + "). Vui lòng kiểm tra cấu hình dịch vụ và thử lại.";
-    }
-
-    private String buildPlainTextFallback(Booking booking, String bookingUrl) {
-
-        return """
-                TÂY BẮC TRAVEL - XÁC NHẬN ĐẶT TOUR
-
-                Mã booking: %s
-                Khách hàng: %s
-                Email: %s
-                Số điện thoại: %s
-                Tour: %s
-                Ngày khởi hành: %s
-                Tổng số khách: %s
-                Tổng giá tour: %s
-                Trạng thái booking: %s
-                Trạng thái thanh toán: %s
-
-                Xem chi tiết: %s
-                """.formatted(
-                plain(booking.getBookingCode()),
-                plain(booking.getFullName()),
-                plain(booking.getEmail()),
-                plain(booking.getPhone()),
-                plain(booking.getTourDeparture().getTour().getTitle()),
-                booking.getTourDeparture().getDepartureDate(),
-                booking.getTotalPeople(),
-                booking.getTotalPrice(),
-                booking.getStatus(),
-                booking.getPaymentStatus(),
-                bookingUrl);
-    }
-
-    private String plain(String value) {
-        return HtmlUtils.htmlUnescape(value == null ? "" : value.trim());
-    }
-
-    private void addStaticTemplateParams(
-            Map<String, Object> params,
-            Booking booking,
-            List<BookingCustomer> customers,
-            String bookingUrl) {
-
-        var departure = booking.getTourDeparture();
-        var tour = departure.getTour();
-
-        params.put("brand_name", "Tây Bắc Travel");
-        params.put("customer_name", plain(booking.getFullName()));
-        params.put("customer_phone", plain(booking.getPhone()));
-        params.put("customer_email", plain(booking.getEmail()));
-        params.put("pickup_address", fallback(booking.getPickupAddress()));
-        params.put("tour_name", plain(tour.getTitle()));
-        params.put(
-                "departure_date",
-                departure.getDepartureDate() != null
-                        ? DATE_FORMAT.format(departure.getDepartureDate())
-                        : "Đang cập nhật");
-        params.put(
-                "departure_time",
-                departure.getDepartureTime() != null
-                        ? TIME_FORMAT.format(departure.getDepartureTime())
-                        : "Đang cập nhật");
-        params.put(
-                "duration",
-                value(tour.getDurationDays()) + " ngày "
-                        + value(tour.getDurationNights()) + " đêm");
-        params.put("departure_location", fallback(tour.getDepartureLocation()));
-        params.put("booking_type", bookingTypeLabel(booking));
-        params.put("booking_status", bookingStatusLabel(booking));
-        params.put("payment_status", paymentStatusLabel(booking));
-        params.put("payment_method", fallback(booking.getPaymentMethod()));
-        params.put("adult_count", value(booking.getAdultCount()));
-        params.put("child_count", value(booking.getChildCount()));
-        params.put("total_people", value(booking.getTotalPeople()));
-        params.put("adult_price", formatCurrency(booking.getAdultPriceSnapshot()));
-        params.put("child_price", formatCurrency(booking.getChildPriceSnapshot()));
-        params.put("total_price", formatCurrency(booking.getTotalPrice()));
-        params.put("paid_amount", formatCurrency(booking.getPaidAmount()));
-        params.put("remaining_amount", formatCurrency(booking.getRemainingAmount()));
-        params.put("note", fallback(booking.getNote()));
-        params.put("special_request", fallback(booking.getSpecialRequest()));
-        params.put("booking_url", bookingUrl);
-        params.put("passenger_summary", buildPassengerSummary(customers));
-    }
-
-    private String buildPassengerSummary(List<BookingCustomer> customers) {
-
-        if (customers == null || customers.isEmpty()) {
-            return "Thông tin hành khách đang được cập nhật.";
-        }
-
-        return customers.stream()
-                .limit(20)
-                .map(customer -> "• "
-                        + fallback(customer.getFullName())
-                        + " — "
-                        + (customer.getCustomerType() != null
-                                ? customer.getCustomerType().name()
-                                : "Hành khách")
-                        + (Boolean.TRUE.equals(customer.getGroupLeader())
-                                ? " (Trưởng đoàn)"
-                                : ""))
-                .collect(Collectors.joining("\n"));
-    }
-
-    private String bookingTypeLabel(Booking booking) {
-        if (booking.getBookingType() == null) {
-            return "Cá nhân";
-        }
-
-        return switch (booking.getBookingType()) {
-            case GROUP -> "Theo đoàn";
-            case PRIVATE -> "Tour riêng";
-            default -> "Cá nhân";
-        };
-    }
-
-    private String bookingStatusLabel(Booking booking) {
-        if (booking.getStatus() == null) {
-            return "Đang xử lý";
-        }
-
-        return switch (booking.getStatus()) {
-            case CONFIRMED -> "Đã xác nhận";
-            case CANCELLED -> "Đã hủy";
-            case IN_PROGRESS -> "Đang diễn ra";
-            case COMPLETED -> "Đã hoàn thành";
-            default -> "Đang chờ xác nhận";
-        };
-    }
-
-    private String paymentStatusLabel(Booking booking) {
-        if (booking.getPaymentStatus() == null) {
-            return "Chưa thanh toán";
-        }
-
-        return switch (booking.getPaymentStatus()) {
-            case PAID -> "Đã thanh toán toàn bộ";
-            case PARTIAL -> "Đã đặt cọc";
-            case PENDING_REVIEW -> "Đang chờ xác nhận thanh toán";
-            case REFUNDED -> "Đã hoàn tiền";
-            case PARTIALLY_REFUNDED -> "Đã hoàn một phần";
-            case FORFEITED -> "Khoản thanh toán không được hoàn";
-            case FAILED -> "Thanh toán chưa thành công";
-            default -> "Chưa thanh toán";
-        };
-    }
-
-    private String formatCurrency(BigDecimal amount) {
-        NumberFormat format = NumberFormat.getNumberInstance(VIETNAMESE);
-        format.setMaximumFractionDigits(0);
-        return format.format(amount != null ? amount : BigDecimal.ZERO) + " đ";
-    }
-
-    private String fallback(String value) {
-        return value == null || value.isBlank() ? "Không có" : plain(value);
-    }
-
-    private int value(Integer number) {
-        return number != null ? number : 0;
     }
 }

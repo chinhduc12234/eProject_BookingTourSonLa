@@ -92,7 +92,7 @@ public class PublicTourServiceImpl implements PublicTourService {
 
         List<TourDepartureDto> visibleDepartures = response.getDepartures()
                 .stream()
-                .filter(this::isVisibleDeparture)
+                .filter(this::isBookableDeparture)
                 .toList();
 
         response.setDepartures(visibleDepartures);
@@ -180,10 +180,15 @@ public class PublicTourServiceImpl implements PublicTourService {
                 && calculateAvailableSeats(departure) > 0;
     }
 
-    private boolean isVisibleDeparture(TourDepartureDto departure) {
+    private boolean isBookableDeparture(TourDepartureDto departure) {
 
         return departure.getDepartureDate() != null
-                && !departure.getDepartureDate().isBefore(LocalDate.now());
+                && !departure.getDepartureDate().isBefore(LocalDate.now())
+                && departure.getStatus() == DepartureStatus.OPEN
+                && departure.getAvailableSeats() != null
+                && departure.getAvailableSeats() > 0
+                && (departure.getBookingDeadline() == null
+                        || departure.getBookingDeadline().isAfter(LocalDateTime.now()));
     }
 
     private BigDecimal effectiveAdultPrice(

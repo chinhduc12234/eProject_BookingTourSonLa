@@ -62,7 +62,9 @@ import com.bookingtoursonla.entity.enums.Gender;
 import com.bookingtoursonla.entity.enums.PaymentStatus;
 import com.bookingtoursonla.entity.enums.RoleName;
 import com.bookingtoursonla.entity.enums.TourStatus;
+import com.bookingtoursonla.event.BookingAdminConfirmedEvent;
 import com.bookingtoursonla.event.BookingCreatedEvent;
+import com.bookingtoursonla.event.BookingEmployeeCompletedEvent;
 import com.bookingtoursonla.repository.BookingCustomerRepository;
 import com.bookingtoursonla.repository.BookingEmployeeRepository;
 import com.bookingtoursonla.repository.BookingRepository;
@@ -448,6 +450,8 @@ public class BookingServiceImpl implements BookingService {
             approvePendingPayment(booking);
         }
 
+        boolean shouldSendAdminConfirmationEmail = false;
+
         if (Boolean.TRUE.equals(request.getConfirm())) {
             if (booking.getStatus() == BookingStatus.CANCELLED) {
                 throw new RuntimeException("Đặt lịch đã hủy nên không thể xác nhận");
@@ -464,10 +468,15 @@ public class BookingServiceImpl implements BookingService {
 
             if (booking.getStatus() != BookingStatus.CONFIRMED) {
                 applyBookingStatusTransition(booking, BookingStatus.CONFIRMED, adminEmail);
+                shouldSendAdminConfirmationEmail = true;
             }
         }
 
         Booking saved = bookingRepository.save(booking);
+
+        if (shouldSendAdminConfirmationEmail) {
+            eventPublisher.publishEvent(new BookingAdminConfirmedEvent(saved.getId()));
+        }
 
         List<BookingCustomer> customers = bookingCustomerRepository
                 .findByBookingIdOrderByIdAsc(saved.getId());
@@ -563,11 +572,20 @@ public class BookingServiceImpl implements BookingService {
             throw new RuntimeException("Còn " + pendingCount + " hoạt động chưa được nhân viên cập nhật");
         }
 
+        boolean shouldSendTourCompletedEmail = false;
+
         if (booking.getStatus() != BookingStatus.COMPLETED) {
             applyBookingStatusTransition(booking, BookingStatus.COMPLETED, null);
+            shouldSendTourCompletedEmail = true;
         }
 
         Booking saved = bookingRepository.save(booking);
+
+        if (shouldSendTourCompletedEmail) {
+            eventPublisher.publishEvent(new BookingEmployeeCompletedEvent(
+                    saved.getId(),
+                    employee.getFullName()));
+        }
 
         List<BookingCustomer> customers = bookingCustomerRepository
                 .findByBookingIdOrderByIdAsc(saved.getId());
@@ -1180,7 +1198,8 @@ public class BookingServiceImpl implements BookingService {
     private void syncBookingProgressFromSchedule(Booking booking) {
 
         if (booking.getStatus() == BookingStatus.PENDING
-                || booking.getStatus() == BookingStatus.CANCELLED) {
+                || booking.getStatus() == BookingStatus.CANCELLED
+                || booking.getStatus() == BookingStatus.COMPLETED) {
             return;
         }
 
@@ -1198,12 +1217,7 @@ public class BookingServiceImpl implements BookingService {
                 .stream()
                 .allMatch(activity -> isFinishedScheduleStatus(activity.getStatus()));
 
-        if (allFinished && booking.getStatus() != BookingStatus.COMPLETED) {
-            applyBookingStatusTransition(booking, BookingStatus.COMPLETED, null);
-            return;
-        }
-
-        if (hasStarted && booking.getStatus() != BookingStatus.IN_PROGRESS) {
+        if ((hasStarted || allFinished) && booking.getStatus() != BookingStatus.IN_PROGRESS) {
             applyBookingStatusTransition(booking, BookingStatus.IN_PROGRESS, null);
             return;
         }

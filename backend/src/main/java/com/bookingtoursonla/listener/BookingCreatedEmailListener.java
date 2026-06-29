@@ -29,9 +29,9 @@ public class BookingCreatedEmailListener {
             emailService.sendBookingConfirmation(event.bookingId());
         } catch (Exception ex) {
             log.error(
-                    "Không thể gửi email xác nhận cho booking id {}: {}",
+                    "Không thể gửi email xác nhận cho booking id {}",
                     event.bookingId(),
-                    ex.getMessage());
+                    ex);
         }
     }
 }

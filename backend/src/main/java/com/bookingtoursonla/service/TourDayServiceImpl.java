@@ -1,7 +1,11 @@
 package com.bookingtoursonla.service;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +16,7 @@ import com.bookingtoursonla.dto.TourDayRequest;
 import com.bookingtoursonla.entity.Tour;
 import com.bookingtoursonla.entity.TourActivity;
 import com.bookingtoursonla.entity.TourDay;
+import com.bookingtoursonla.repository.BookingScheduleActivityRepository;
 import com.bookingtoursonla.repository.TourActivityRepository;
 import com.bookingtoursonla.repository.TourDayRepository;
 import com.bookingtoursonla.repository.TourRepository;
@@ -23,15 +28,18 @@ public class TourDayServiceImpl implements TourDayService {
     private final TourDayRepository tourDayRepository;
     private final TourRepository tourRepository;
     private final TourActivityRepository activityRepository;
+    private final BookingScheduleActivityRepository bookingScheduleActivityRepository;
 
     public TourDayServiceImpl(
             TourDayRepository tourDayRepository,
             TourRepository tourRepository,
-            TourActivityRepository activityRepository) {
+            TourActivityRepository activityRepository,
+            BookingScheduleActivityRepository bookingScheduleActivityRepository) {
 
         this.tourDayRepository = tourDayRepository;
         this.tourRepository = tourRepository;
         this.activityRepository = activityRepository;
+        this.bookingScheduleActivityRepository = bookingScheduleActivityRepository;
     }
 
     @Override
@@ -46,17 +54,12 @@ public class TourDayServiceImpl implements TourDayService {
     public TourDayDto create(Long tourId, TourDayRequest request) {
 
         Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new RuntimeException("Kh\u00f4ng t\u00ecm th\u1ea5y tour"));
+                .orElseThrow(() -> new RuntimeException("Khong tim thay tour"));
 
         TourDay day = new TourDay();
         day.setTour(tour);
         day.setDayNumber(request.getDayNumber());
-
-        day.setTitle(
-                request.getTitle() != null && !request.getTitle().trim().isEmpty()
-                        ? request.getTitle().trim()
-                        : "Ngày " + request.getDayNumber());
-
+        day.setTitle(defaultTitle(request.getTitle(), request.getDayNumber()));
         day.setDescription(request.getDescription());
 
         return mapToDto(tourDayRepository.save(day));
@@ -69,7 +72,7 @@ public class TourDayServiceImpl implements TourDayService {
                 .orElseThrow(() -> new RuntimeException("Tour day not found"));
 
         day.setDayNumber(request.getDayNumber());
-        day.setTitle(request.getTitle());
+        day.setTitle(defaultTitle(request.getTitle(), request.getDayNumber()));
         day.setDescription(request.getDescription());
 
         return mapToDto(tourDayRepository.save(day));
@@ -81,62 +84,72 @@ public class TourDayServiceImpl implements TourDayService {
         TourDay day = tourDayRepository.findByIdAndTourId(dayId, tourId)
                 .orElseThrow(() -> new RuntimeException("Tour day not found"));
 
-        activityRepository.deleteByTourDayId(dayId);
+        deleteActivitiesForDay(dayId);
         tourDayRepository.delete(day);
     }
 
-    // ===================== FIX CHÍNH =====================
     @Override
     public void replaceAll(Long tourId, List<TourDayRequest> requests) {
 
         Tour tour = tourRepository.findById(tourId)
-                .orElseThrow(() -> new RuntimeException("Kh\u00f4ng t\u00ecm th\u1ea5y tour"));
+                .orElseThrow(() -> new RuntimeException("Khong tim thay tour"));
 
         if (requests == null || requests.isEmpty()) {
-            throw new RuntimeException("Danh s\u00e1ch ng\u00e0y tour kh\u00f4ng \u0111\u01b0\u1ee3c \u0111\u1ec3 tr\u1ed1ng");
+            throw new RuntimeException("Danh sach ngay tour khong duoc de trong");
         }
 
-        // 1. DELETE ACTIVITIES TRƯỚC
         List<TourDay> oldDays = tourDayRepository.findByTourIdOrderByDayNumberAsc(tourId);
+        Map<Integer, TourDay> oldDaysByNumber = oldDays
+                .stream()
+                .filter(day -> day.getDayNumber() != null)
+                .collect(Collectors.toMap(
+                        TourDay::getDayNumber,
+                        Function.identity(),
+                        (first, ignored) -> first));
 
-        for (TourDay d : oldDays) {
-            activityRepository.deleteByTourDayId(d.getId());
-        }
-
-        activityRepository.flush();
-
-        // 2. DELETE DAYS (FIX QUAN TRỌNG)
-        tourDayRepository.deleteByTourId(tourId);
-        tourDayRepository.flush();
-
-        // 3. INSERT NEW DAYS
-        List<TourDay> newDays = new ArrayList<>();
-
+        Set<Long> retainedDayIds = new HashSet<>();
         int index = 1;
 
-        for (TourDayRequest r : requests) {
+        for (TourDayRequest request : requests) {
+            int dayNumber = request.getDayNumber() != null ? request.getDayNumber() : index;
+            TourDay day = oldDaysByNumber.getOrDefault(dayNumber, new TourDay());
 
-            TourDay day = new TourDay();
             day.setTour(tour);
+            day.setDayNumber(dayNumber);
+            day.setTitle(defaultTitle(request.getTitle(), dayNumber));
+            day.setDescription(request.getDescription());
 
-            day.setDayNumber(
-                    r.getDayNumber() != null ? r.getDayNumber() : index);
-
-            day.setTitle(
-                    (r.getTitle() != null && !r.getTitle().trim().isEmpty())
-                            ? r.getTitle().trim()
-                            : "Ngày " + index);
-
-            day.setDescription(r.getDescription());
-
-            newDays.add(day);
+            TourDay saved = tourDayRepository.save(day);
+            if (saved.getId() != null) {
+                retainedDayIds.add(saved.getId());
+            }
             index++;
         }
 
-        tourDayRepository.saveAll(newDays);
+        for (TourDay oldDay : oldDays) {
+            if (oldDay.getId() != null && !retainedDayIds.contains(oldDay.getId())) {
+                deleteActivitiesForDay(oldDay.getId());
+                tourDayRepository.delete(oldDay);
+            }
+        }
+
+        tourDayRepository.flush();
     }
 
-    // ===================== DTO =====================
+    private void deleteActivitiesForDay(Long dayId) {
+
+        List<Long> activityIds = activityRepository
+                .findByTourDayIdOrderBySortOrderAsc(dayId)
+                .stream()
+                .map(TourActivity::getId)
+                .filter(id -> id != null)
+                .toList();
+
+        detachScheduleSnapshots(activityIds);
+        activityRepository.deleteAllById(activityIds);
+        activityRepository.flush();
+    }
+
     private TourDayDto mapToDto(TourDay day) {
 
         TourDayDto dto = new TourDayDto();
@@ -155,21 +168,21 @@ public class TourDayServiceImpl implements TourDayService {
         return dto;
     }
 
-    private TourActivityDto mapActivityToDto(TourActivity a) {
+    private TourActivityDto mapActivityToDto(TourActivity activity) {
 
         TourActivityDto dto = new TourActivityDto();
-        dto.setId(a.getId());
-        dto.setTitle(a.getTitle());
-        dto.setDescription(a.getDescription());
-        dto.setStartTime(a.getStartTime() != null ? a.getStartTime().toString() : null);
-        dto.setEndTime(a.getEndTime() != null ? a.getEndTime().toString() : null);
-        dto.setSortOrder(a.getSortOrder());
+        dto.setId(activity.getId());
+        dto.setTitle(activity.getTitle());
+        dto.setDescription(activity.getDescription());
+        dto.setStartTime(activity.getStartTime() != null ? activity.getStartTime().toString() : null);
+        dto.setEndTime(activity.getEndTime() != null ? activity.getEndTime().toString() : null);
+        dto.setSortOrder(activity.getSortOrder());
 
-        if (a.getLocation() != null) {
-            dto.setLocationId(a.getLocation().getId());
+        if (activity.getLocation() != null) {
+            dto.setLocationId(activity.getLocation().getId());
         }
 
-        dto.setLocationName(resolveActivityLocationName(a));
+        dto.setLocationName(resolveActivityLocationName(activity));
 
         return dto;
     }
@@ -180,6 +193,21 @@ public class TourDayServiceImpl implements TourDayService {
             return customName;
         }
         return activity.getLocation() != null ? activity.getLocation().getName() : null;
+    }
+
+    private void detachScheduleSnapshots(List<Long> activityIds) {
+
+        if (activityIds == null || activityIds.isEmpty()) {
+            return;
+        }
+
+        bookingScheduleActivityRepository.clearOriginalActivityReferences(activityIds);
+        bookingScheduleActivityRepository.flush();
+    }
+
+    private String defaultTitle(String title, Integer dayNumber) {
+        String trimmed = trimToNull(title);
+        return trimmed != null ? trimmed : "Ngay " + dayNumber;
     }
 
     private String trimToNull(String value) {

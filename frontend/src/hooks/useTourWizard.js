@@ -25,9 +25,12 @@ import {
 } from "../api/tourDepartureApi";
 
 function buildDeparturesPayload(list) {
+  const now = new Date();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   const rows = (list || [])
-    .map((d) => {
+    .map((d, index) => {
 
       const departureDate = (d.departureDate || "")
         .toString()
@@ -61,6 +64,24 @@ function buildDeparturesPayload(list) {
           : Number(d.childPrice);
 
       const status = d.status || null;
+
+      if ((status || "OPEN") === "OPEN") {
+        const departureDay = departureDate
+          ? new Date(`${departureDate}T00:00:00`)
+          : null;
+
+        if (departureDay && departureDay < today) {
+          throw new Error(
+            `Lịch khởi hành dòng ${index + 1} đã qua ngày. Hãy đổi sang ngày từ hôm nay trở đi hoặc đặt trạng thái Đóng đặt.`,
+          );
+        }
+
+        if (d.bookingDeadline && new Date(d.bookingDeadline) <= now) {
+          throw new Error(
+            `Hạn đặt của lịch khởi hành dòng ${index + 1} đã qua. Hãy cập nhật hạn đặt mới hoặc đặt trạng thái Đóng đặt.`,
+          );
+        }
+      }
 
       return {
         id: d.id ?? null,

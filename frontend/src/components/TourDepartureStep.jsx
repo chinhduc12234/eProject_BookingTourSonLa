@@ -44,6 +44,26 @@ function isExpiredDeadline(value) {
   return Boolean(value) && new Date(value) < new Date();
 }
 
+function isPastDepartureDate(value) {
+  if (!value) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const date = new Date(`${toDateInputValue(value)}T00:00:00`);
+  return date < today;
+}
+
+function shouldResetDeadline(currentDeadline, nextDepartureDate) {
+  if (!nextDepartureDate) return false;
+  if (!currentDeadline) return true;
+
+  const deadline = new Date(currentDeadline);
+  const departureEnd = new Date(`${nextDepartureDate}T23:59:59`);
+
+  return deadline < new Date() || deadline > departureEnd;
+}
+
 function statusLabel(status) {
   if (status === "OPEN") return "Còn chỗ";
   if (status === "FULL") return "Đã đủ";
@@ -110,7 +130,10 @@ export default function TourDepartureStep({
       [field]: value,
     };
 
-    if (field === "departureDate" && !copy[index].bookingDeadline) {
+    if (
+      field === "departureDate" &&
+      shouldResetDeadline(copy[index].bookingDeadline, value)
+    ) {
       copy[index].bookingDeadline = getDefaultDeadline(value);
     }
 

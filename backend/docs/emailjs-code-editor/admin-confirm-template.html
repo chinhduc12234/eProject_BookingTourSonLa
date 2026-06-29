@@ -1,0 +1,78 @@
+<div style="margin:0;padding:28px 10px;background:#eef5ec;font-family:Arial,sans-serif;color:#1f2937;line-height:1.65">
+  <div style="max-width:760px;margin:0 auto;background:#ffffff;border-radius:22px;overflow:hidden;border:1px solid #dfe8de">
+    <div style="height:8px;background:linear-gradient(90deg,#0f6b43,#9acb7d,#d2a04d)"></div>
+
+    <div style="padding:24px 30px;text-align:center;background:#ffffff">
+      <img src="{{logo_url}}" width="86" alt="{{brand_name}}" style="width:86px;height:86px;object-fit:contain" />
+      <div style="margin-top:8px;font-size:12px;font-weight:900;letter-spacing:2px;color:#0f6b43;text-transform:uppercase">{{brand_name}}</div>
+      <div style="margin-top:6px;color:#64746a">Thông báo xác nhận tour từ trung tâm điều hành</div>
+    </div>
+
+    <img src="{{tour_image_url}}" width="760" alt="Cảnh sắc Sơn La" style="display:block;width:100%;max-height:280px;object-fit:cover;background:#f7faf6" />
+
+    <div style="padding:32px;background:linear-gradient(135deg,#10231b,#19432d 60%,#7a5b2a);color:#ffffff">
+      <div style="font-size:12px;font-weight:900;letter-spacing:2px;color:#c9f8cc;text-transform:uppercase">Tour đã được xác nhận</div>
+      <h1 style="margin:10px 0 0;font-size:30px;line-height:1.25">{{customer_name}}, hành trình của bạn đã sẵn sàng</h1>
+      <p style="margin:14px 0 0;color:#e8f5e8">
+        Admin Tây Bắc Travel đã kiểm tra và xác nhận booking {{booking_code}}. Đội ngũ điều hành sẽ chuẩn bị lịch trình, điều phối hướng dẫn viên và các dịch vụ cần thiết cho chuyến đi.
+      </p>
+    </div>
+
+    <div style="padding:30px">
+      <div style="padding:20px;border-radius:18px;background:#f7fbf4;border:1px solid #dfe8de">
+        <div style="font-size:12px;font-weight:900;letter-spacing:1.5px;color:#0f6b43;text-transform:uppercase">Thông tin hành trình</div>
+        <h2 style="margin:8px 0 0;font-size:24px;line-height:1.35;color:#10231b">{{tour_name}}</h2>
+        <table role="presentation" style="width:100%;margin-top:14px;border-collapse:collapse">
+          <tr><td style="padding:8px 0;color:#64746a">Mã booking</td><td style="padding:8px 0;text-align:right;font-weight:800">{{booking_code}}</td></tr>
+          <tr><td style="padding:8px 0;color:#64746a">Ngày khởi hành</td><td style="padding:8px 0;text-align:right;font-weight:800">{{departure_date}} lúc {{departure_time}}</td></tr>
+          <tr><td style="padding:8px 0;color:#64746a">Điểm khởi hành</td><td style="padding:8px 0;text-align:right;font-weight:800">{{departure_location}}</td></tr>
+          <tr><td style="padding:8px 0;color:#64746a">Tổng số khách</td><td style="padding:8px 0;text-align:right;font-weight:800">{{total_people}}</td></tr>
+          <tr><td style="padding:8px 0;color:#64746a">Điểm đón</td><td style="padding:8px 0;text-align:right;font-weight:800">{{pickup_address}}</td></tr>
+        </table>
+      </div>
+
+      <div style="margin-top:24px">
+        <h3 style="margin:0;font-size:19px;color:#10231b">Các bước chuẩn bị trước chuyến đi</h3>
+        <table role="presentation" style="width:100%;margin-top:10px;border-collapse:collapse">
+          <tr>
+            <td style="width:50%;padding:7px;vertical-align:top"><div style="min-height:96px;padding:15px;border-radius:16px;background:#ffffff;border:1px solid #e2e8df"><strong>Kiểm tra thông tin</strong><br /><span style="color:#58695f">Đối chiếu họ tên, số điện thoại, email và danh sách khách.</span></div></td>
+            <td style="width:50%;padding:7px;vertical-align:top"><div style="min-height:96px;padding:15px;border-radius:16px;background:#ffffff;border:1px solid #e2e8df"><strong>Chuẩn bị giấy tờ</strong><br /><span style="color:#58695f">Mang giấy tờ tùy thân cần thiết cho từng hành khách.</span></div></td>
+          </tr>
+          <tr>
+            <td style="width:50%;padding:7px;vertical-align:top"><div style="min-height:96px;padding:15px;border-radius:16px;background:#ffffff;border:1px solid #e2e8df"><strong>Sắp xếp điểm đón</strong><br /><span style="color:#58695f">Có mặt đúng giờ tại điểm đón đã đăng ký.</span></div></td>
+            <td style="width:50%;padding:7px;vertical-align:top"><div style="min-height:96px;padding:15px;border-radius:16px;background:#ffffff;border:1px solid #e2e8df"><strong>Thanh toán</strong><br /><span style="color:#58695f">Theo dõi khoản còn lại để chuyến đi không bị gián đoạn.</span></div></td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="margin-top:24px;padding:22px;border-radius:18px;background:#10231b;color:#ffffff">
+        <h3 style="margin:0;font-size:19px">Thanh toán booking</h3>
+        <table role="presentation" style="width:100%;margin-top:12px;border-collapse:collapse">
+          <tr><td style="padding:7px 0;color:#d8e7db">Tổng giá tour</td><td style="padding:7px 0;text-align:right;font-size:20px;font-weight:900;color:#f3d6a5">{{total_price}}</td></tr>
+          <tr><td style="padding:7px 0;color:#d8e7db">Đã thanh toán</td><td style="padding:7px 0;text-align:right;font-weight:800">{{paid_amount}}</td></tr>
+          <tr><td style="padding:7px 0;color:#d8e7db">Còn lại</td><td style="padding:7px 0;text-align:right;font-weight:800">{{remaining_amount}}</td></tr>
+        </table>
+        <div style="margin-top:10px;color:#d8e7db">Trạng thái: <strong style="color:#ffffff">{{payment_status}}</strong></div>
+      </div>
+
+      <div style="margin-top:24px;padding:18px;border-radius:16px;background:#fff8ed;border:1px solid #f0dfc1">
+        <h3 style="margin:0;font-size:18px;color:#2f2418">Lịch trình đã xác nhận</h3>
+        <div style="margin-top:8px;color:#4b3925;white-space:pre-line">{{itinerary_summary}}</div>
+      </div>
+
+      <div style="margin-top:24px;padding:18px;border-radius:16px;background:#f5faf1;border:1px solid #dbe8d7">
+        <h3 style="margin:0;font-size:18px;color:#10231b">Hành khách tham gia</h3>
+        <div style="margin-top:8px;color:#4b5b52;white-space:pre-line">{{passenger_summary}}</div>
+      </div>
+
+      <div style="margin-top:26px;text-align:center">
+        <a href="{{booking_url}}" target="_blank" style="display:inline-block;padding:14px 24px;border-radius:14px;background:#0f6b43;color:#ffffff;text-decoration:none;font-weight:900">Xem chi tiết booking</a>
+      </div>
+    </div>
+
+    <div style="padding:22px 30px;background:#f7faf6;color:#64746a;font-size:12px;text-align:center;border-top:1px solid #e5ece2">
+      <strong style="color:#10231b">{{brand_name}}</strong><br />
+      Hotline: 1900 6868 · Email: support@taybactravel.vn
+    </div>
+  </div>
+</div>

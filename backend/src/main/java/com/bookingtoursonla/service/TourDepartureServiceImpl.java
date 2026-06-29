@@ -185,6 +185,19 @@ public class TourDepartureServiceImpl implements TourDepartureService {
         if (request.getReservedPeople() != null && request.getReservedPeople() < 0) {
             throw new RuntimeException("S\u1ed1 ch\u1ed7 \u0111ang gi\u1eef kh\u00f4ng \u0111\u01b0\u1ee3c \u00e2m");
         }
+
+        if (request.getStatus() == null || request.getStatus() == DepartureStatus.OPEN) {
+            if (request.getDepartureDate().isBefore(LocalDate.now())) {
+                throw new RuntimeException(
+                        "Lich khoi hanh dang mo ban phai co ngay khoi hanh tu hom nay tro di");
+            }
+
+            if (request.getBookingDeadline() != null
+                    && !request.getBookingDeadline().isAfter(LocalDateTime.now())) {
+                throw new RuntimeException(
+                        "Han dat cua lich dang mo ban phai lon hon thoi diem hien tai");
+            }
+        }
     }
 
     private void validateNoDuplicateIdsOrDates(List<TourDepartureRequest> requests) {
