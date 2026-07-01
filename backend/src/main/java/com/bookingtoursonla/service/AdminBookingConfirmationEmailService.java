@@ -109,6 +109,7 @@ public class AdminBookingConfirmationEmailService {
                 .findByBookingIdOrderByIdAsc(bookingId);
         List<BookingScheduleDay> scheduleDays = bookingScheduleDayRepository
                 .findByBookingIdOrderByDayNumberAsc(bookingId);
+        Map<Long, List<BookingScheduleActivity>> activitiesByDayId = loadActivitiesByDayId(scheduleDays);
 
         String bookingUrl = publicUrl + "/tai-khoan/booking/" + booking.getId();
         String subject = "[" + BRAND_NAME + "] Tour của bạn đã được xác nhận - "
@@ -132,12 +133,15 @@ public class AdminBookingConfirmationEmailService {
         templateParams.put("reply_to", booking.getEmail());
         templateParams.put("subject", subject);
         templateParams.put("booking_code", booking.getBookingCode());
-        templateParams.put("email_html", emailHtml);
-        templateParams.put("email_html}", emailHtml);
-        templateParams.put("message_html", emailHtml);
         templateParams.put("message", emailText);
         templateParams.put("email_text", emailText);
-        addTemplateParams(templateParams, booking, customers, scheduleDays, bookingUrl);
+        addTemplateParams(
+                templateParams,
+                booking,
+                customers,
+                scheduleDays,
+                activitiesByDayId,
+                bookingUrl);
 
         Map<String, Object> request = new LinkedHashMap<>();
         request.put("service_id", serviceId);
@@ -401,6 +405,7 @@ public class AdminBookingConfirmationEmailService {
             Booking booking,
             List<BookingCustomer> customers,
             List<BookingScheduleDay> scheduleDays,
+            Map<Long, List<BookingScheduleActivity>> activitiesByDayId,
             String bookingUrl) {
 
         var departure = booking.getTourDeparture();
@@ -436,7 +441,9 @@ public class AdminBookingConfirmationEmailService {
         params.put("remaining_amount", formatCurrency(booking.getRemainingAmount()));
         params.put("booking_url", bookingUrl);
         params.put("passenger_summary", buildPassengerSummary(customers));
-        params.put("itinerary_summary", CustomerEmailTemplateSupport.scheduleSummary(scheduleDays));
+        params.put(
+                "itinerary_summary",
+                CustomerEmailTemplateSupport.scheduleSummary(scheduleDays, activitiesByDayId));
     }
 
     private String buildPlainTextFallback(Booking booking, String bookingUrl) {

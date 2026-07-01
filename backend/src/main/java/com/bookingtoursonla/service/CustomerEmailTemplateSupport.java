@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -196,6 +197,94 @@ final class CustomerEmailTemplateSupport {
                     .append(fallback(day.getTitle()));
         }
         return summary.toString();
+    }
+
+    static String scheduleSummary(
+            List<BookingScheduleDay> days,
+            Map<Long, List<BookingScheduleActivity>> activitiesByDayId) {
+        if (days == null || days.isEmpty()) {
+            return "Lịch trình chi tiết đang được đội ngũ điều hành cập nhật.";
+        }
+
+        StringBuilder summary = new StringBuilder();
+        for (BookingScheduleDay day : days) {
+            if (!summary.isEmpty()) {
+                summary.append("\n\n");
+            }
+
+            String dayLabel = "Ngày " + value(day.getDayNumber());
+            summary.append(dayLabel);
+
+            if (hasMeaningfulDayTitle(day)) {
+                summary.append(": ").append(plain(day.getTitle()));
+            }
+
+            if (hasText(day.getDescription())) {
+                summary.append("\n").append(collapsePlainText(day.getDescription()));
+            }
+
+            Long dayId = day.getId();
+            List<BookingScheduleActivity> activities = activitiesByDayId != null && dayId != null
+                    ? activitiesByDayId.getOrDefault(dayId, List.of())
+                    : List.of();
+
+            for (BookingScheduleActivity activity : activities) {
+                summary.append("\n").append(scheduleActivitySummary(activity));
+            }
+        }
+        return summary.toString();
+    }
+
+    private static boolean hasMeaningfulDayTitle(BookingScheduleDay day) {
+        if (day == null || !hasText(day.getTitle())) {
+            return false;
+        }
+
+        String title = plain(day.getTitle());
+        String normalizedTitle = title
+                .toLowerCase(VIETNAMESE)
+                .replaceAll("\\s+", " ")
+                .trim();
+        int dayNumber = value(day.getDayNumber());
+
+        return !normalizedTitle.equals("ngày " + dayNumber)
+                && !normalizedTitle.equals("ngay " + dayNumber)
+                && !normalizedTitle.equals("day " + dayNumber);
+    }
+
+    private static String scheduleActivitySummary(BookingScheduleActivity activity) {
+        if (activity == null) {
+            return "- Hoạt động đang cập nhật";
+        }
+
+        List<String> details = new ArrayList<>();
+        String timeRange = activityTimeRange(activity);
+        if (hasText(timeRange) && !"Trong ngày".equals(timeRange)) {
+            details.add(timeRange);
+        }
+        if (hasText(activity.getActualLocation())) {
+            details.add(plain(activity.getActualLocation()));
+        }
+
+        StringBuilder line = new StringBuilder("- ");
+        if (!details.isEmpty()) {
+            line.append(String.join(" | ", details)).append(" - ");
+        }
+
+        line.append(fallback(activity.getTitle()));
+
+        if (hasText(activity.getDescription())) {
+            line.append(": ").append(collapsePlainText(activity.getDescription()));
+        }
+
+        return line.toString();
+    }
+
+    private static String collapsePlainText(String value) {
+        return plain(value)
+                .replaceAll("[\\r\\n]+", " ")
+                .replaceAll("\\s{2,}", " ")
+                .trim();
     }
 
     static String renderItinerary(

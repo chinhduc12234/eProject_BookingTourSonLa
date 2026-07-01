@@ -105,6 +105,7 @@ public class TourCompletedThankYouEmailService {
                 .orElseThrow(() -> new IllegalStateException("Booking không tồn tại để gửi email cảm ơn"));
         List<BookingScheduleDay> scheduleDays = bookingScheduleDayRepository
                 .findByBookingIdOrderByDayNumberAsc(bookingId);
+        Map<Long, List<BookingScheduleActivity>> activitiesByDayId = loadActivitiesByDayId(scheduleDays);
 
         String bookingUrl = publicUrl + "/tai-khoan/booking/" + booking.getId();
         String reviewUrl = feedbackUrl
@@ -131,12 +132,16 @@ public class TourCompletedThankYouEmailService {
         templateParams.put("reply_to", booking.getEmail());
         templateParams.put("subject", subject);
         templateParams.put("booking_code", booking.getBookingCode());
-        templateParams.put("email_html", emailHtml);
-        templateParams.put("email_html}", emailHtml);
-        templateParams.put("message_html", emailHtml);
         templateParams.put("message", emailText);
         templateParams.put("email_text", emailText);
-        addTemplateParams(templateParams, booking, scheduleDays, bookingUrl, reviewUrl, employeeName);
+        addTemplateParams(
+                templateParams,
+                booking,
+                scheduleDays,
+                activitiesByDayId,
+                bookingUrl,
+                reviewUrl,
+                employeeName);
 
         Map<String, Object> request = new LinkedHashMap<>();
         request.put("service_id", serviceId);
@@ -364,6 +369,7 @@ public class TourCompletedThankYouEmailService {
             Map<String, Object> params,
             Booking booking,
             List<BookingScheduleDay> scheduleDays,
+            Map<Long, List<BookingScheduleActivity>> activitiesByDayId,
             String bookingUrl,
             String reviewUrl,
             String employeeName) {
@@ -389,7 +395,9 @@ public class TourCompletedThankYouEmailService {
         params.put("booking_url", bookingUrl);
         params.put("review_url", reviewUrl);
         params.put("feedback_url", reviewUrl);
-        params.put("itinerary_summary", CustomerEmailTemplateSupport.scheduleSummary(scheduleDays));
+        params.put(
+                "itinerary_summary",
+                CustomerEmailTemplateSupport.scheduleSummary(scheduleDays, activitiesByDayId));
     }
 
     private String buildPlainTextFallback(

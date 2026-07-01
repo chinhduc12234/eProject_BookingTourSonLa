@@ -255,21 +255,25 @@ export default function BookingForm({
       if (!target) return;
 
       const stickyHeaderOffset = window.innerWidth < 768 ? 92 : 108;
-      const viewportRoom = window.innerHeight - stickyHeaderOffset - 24;
-      const targetOffset =
-        target.offsetHeight < viewportRoom
-          ? stickyHeaderOffset + (viewportRoom - target.offsetHeight) / 2
-          : stickyHeaderOffset + 16;
+      const targetTopPadding = 16;
+      const targetRect = target.getBoundingClientRect();
       const targetTop =
-        target.getBoundingClientRect().top + window.scrollY - targetOffset;
-      const reduceMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-      ).matches;
+        targetRect.top + window.scrollY - stickyHeaderOffset - targetTopPadding;
+      const isTargetReadable =
+        targetRect.top >= stickyHeaderOffset + targetTopPadding &&
+        targetRect.bottom <= window.innerHeight - 24;
 
-      window.scrollTo({
-        top: Math.max(0, targetTop),
-        behavior: reduceMotion ? "auto" : "smooth",
-      });
+      if (!isTargetReadable) {
+        const reduceMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+
+        window.scrollTo({
+          top: Math.max(0, targetTop),
+          behavior: reduceMotion ? "auto" : "smooth",
+        });
+      }
+
       target.focus({ preventScroll: true });
     });
   };

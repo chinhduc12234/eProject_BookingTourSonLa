@@ -106,6 +106,7 @@ public class BookingConfirmationEmailService {
                 .findByBookingIdOrderByIdAsc(bookingId);
         List<BookingScheduleDay> scheduleDays = bookingScheduleDayRepository
                 .findByBookingIdOrderByDayNumberAsc(bookingId);
+        Map<Long, List<BookingScheduleActivity>> activitiesByDayId = loadActivitiesByDayId(scheduleDays);
 
         String bookingUrl = publicUrl + "/tai-khoan/booking/" + booking.getId();
         String subject = "[" + BRAND_NAME + "] Xác nhận đặt tour " + booking.getBookingCode();
@@ -128,27 +129,17 @@ public class BookingConfirmationEmailService {
         templateParams.put("reply_to", booking.getEmail());
         templateParams.put("subject", subject);
         templateParams.put("booking_code", booking.getBookingCode());
-        templateParams.put("email_html", emailHtml);
-        templateParams.put("email_html}", emailHtml);
-        templateParams.put("message_html", emailHtml);
         templateParams.put("message", emailText);
         templateParams.put("email_text", emailText);
-        addStaticTemplateParams(templateParams, booking, customers, bookingUrl, scheduleDays);
+        addStaticTemplateParams(
+                templateParams,
+                booking,
+                customers,
+                bookingUrl,
+                scheduleDays,
+                activitiesByDayId);
         templateParams.put("order_id", booking.getBookingCode());
         templateParams.put("email", booking.getEmail());
-        templateParams.put(
-                "orders",
-                List.of(Map.of(
-                        "name", booking.getTourDeparture().getTour().getTitle(),
-                        "units", booking.getTotalPeople(),
-                        "price", booking.getTotalPrice())));
-        templateParams.put(
-                "cost",
-                Map.of(
-                        "shipping", 0,
-                        "tax", 0,
-                        "total", booking.getTotalPrice()));
-
         Map<String, Object> request = new LinkedHashMap<>();
         request.put("service_id", serviceId);
         request.put("template_id", templateId);
@@ -261,7 +252,8 @@ public class BookingConfirmationEmailService {
             Booking booking,
             List<BookingCustomer> customers,
             String bookingUrl,
-            List<BookingScheduleDay> scheduleDays) {
+            List<BookingScheduleDay> scheduleDays,
+            Map<Long, List<BookingScheduleActivity>> activitiesByDayId) {
 
         var departure = booking.getTourDeparture();
         var tour = departure.getTour();
@@ -302,7 +294,9 @@ public class BookingConfirmationEmailService {
         params.put("special_request", fallback(booking.getSpecialRequest()));
         params.put("booking_url", bookingUrl);
         params.put("passenger_summary", buildPassengerSummary(customers));
-        params.put("itinerary_summary", CustomerEmailTemplateSupport.scheduleSummary(scheduleDays));
+        params.put(
+                "itinerary_summary",
+                CustomerEmailTemplateSupport.scheduleSummary(scheduleDays, activitiesByDayId));
     }
 
     private String buildPassengerSummary(List<BookingCustomer> customers) {

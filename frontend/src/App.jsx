@@ -1,3 +1,4 @@
+import { useLayoutEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AnimatePresence } from "framer-motion";
@@ -35,6 +36,35 @@ import AdminBookingDetailPage from "./pages/admin/AdminBookingDetailPage";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import AdminLayout from "./layouts/AdminLayout";
 import AuthLayout from "./layouts/AuthLayout";
+
+function ScrollToTop() {
+  const { pathname, search, hash } = useLocation();
+
+  useLayoutEffect(() => {
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+  }, []);
+
+  useLayoutEffect(() => {
+    if (hash) return;
+
+    const scrollToPageTop = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+
+    scrollToPageTop();
+    const frameId = window.requestAnimationFrame(scrollToPageTop);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [pathname, search, hash]);
+
+  return null;
+}
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -184,6 +214,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Toaster position="top-right" />
+      <ScrollToTop />
       <AnimatedRoutes />
     </BrowserRouter>
   );
