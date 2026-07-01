@@ -110,12 +110,12 @@ public class BookingConfirmationEmailService {
 
         String bookingUrl = publicUrl + "/tai-khoan/booking/" + booking.getId();
         String subject = "[" + BRAND_NAME + "] Xác nhận đặt tour " + booking.getBookingCode();
-        String emailHtml = CustomerEmailTemplateSupport.compactFallbackEmailHtml(
+        String emailHtml = templateBuilder.build(
                 booking,
-                "Đặt tour thành công",
-                "Tây Bắc Travel đã ghi nhận yêu cầu đặt tour của bạn. Vui lòng kiểm tra lại thông tin hành trình và danh sách khách trong tài khoản.",
+                customers,
+                scheduleDays,
+                activitiesByDayId,
                 bookingUrl,
-                "Xem chi tiết đặt tour",
                 publicUrl,
                 assetPublicUrl);
         String emailText = buildPlainTextFallback(booking, bookingUrl);
@@ -131,6 +131,7 @@ public class BookingConfirmationEmailService {
         templateParams.put("booking_code", booking.getBookingCode());
         templateParams.put("message", emailText);
         templateParams.put("email_text", emailText);
+        templateParams.put("email_html", emailHtml);
         addStaticTemplateParams(
                 templateParams,
                 booking,

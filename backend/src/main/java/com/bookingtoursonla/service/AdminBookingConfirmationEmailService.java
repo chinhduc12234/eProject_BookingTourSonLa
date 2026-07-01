@@ -114,14 +114,12 @@ public class AdminBookingConfirmationEmailService {
         String bookingUrl = publicUrl + "/tai-khoan/booking/" + booking.getId();
         String subject = "[" + BRAND_NAME + "] Tour của bạn đã được xác nhận - "
                 + booking.getBookingCode();
-        String emailHtml = CustomerEmailTemplateSupport.compactFallbackEmailHtml(
+        String emailHtml = buildEmailHtml(
                 booking,
-                "Tour của bạn đã được xác nhận",
-                "Admin Tây Bắc Travel đã xác nhận booking của bạn. Hãy kiểm tra thông tin tour, điểm đón và chuẩn bị sẵn sàng cho ngày khởi hành.",
-                bookingUrl,
-                "Xem chi tiết booking",
-                publicUrl,
-                assetPublicUrl);
+                customers,
+                scheduleDays,
+                activitiesByDayId,
+                bookingUrl);
         String emailText = buildPlainTextFallback(booking, bookingUrl);
 
         Map<String, Object> templateParams = new LinkedHashMap<>();
@@ -135,6 +133,7 @@ public class AdminBookingConfirmationEmailService {
         templateParams.put("booking_code", booking.getBookingCode());
         templateParams.put("message", emailText);
         templateParams.put("email_text", emailText);
+        templateParams.put("email_html", emailHtml);
         addTemplateParams(
                 templateParams,
                 booking,

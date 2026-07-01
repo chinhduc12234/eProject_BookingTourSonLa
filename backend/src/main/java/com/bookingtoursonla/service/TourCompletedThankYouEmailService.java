@@ -113,14 +113,13 @@ public class TourCompletedThankYouEmailService {
                 + "booking=" + booking.getBookingCode();
         String subject = "[" + BRAND_NAME + "] Cảm ơn bạn đã đồng hành cùng chúng tôi - "
                 + booking.getBookingCode();
-        String emailHtml = CustomerEmailTemplateSupport.compactFallbackEmailHtml(
+        String emailHtml = buildEmailHtml(
                 booking,
-                "Cảm ơn bạn vì chuyến đi vừa qua",
-                "Tour đã được hướng dẫn viên ghi nhận hoàn thành. Tây Bắc Travel rất mong nhận được đánh giá của bạn sau chuyến đi.",
+                scheduleDays,
+                activitiesByDayId,
+                bookingUrl,
                 reviewUrl,
-                "Đánh giá tour ngay",
-                publicUrl,
-                assetPublicUrl);
+                employeeName);
         String emailText = buildPlainTextFallback(booking, bookingUrl, reviewUrl);
 
         Map<String, Object> templateParams = new LinkedHashMap<>();
@@ -134,6 +133,7 @@ public class TourCompletedThankYouEmailService {
         templateParams.put("booking_code", booking.getBookingCode());
         templateParams.put("message", emailText);
         templateParams.put("email_text", emailText);
+        templateParams.put("email_html", emailHtml);
         addTemplateParams(
                 templateParams,
                 booking,
