@@ -9,8 +9,10 @@ import {
   LogOut,
   MapPin,
   Search,
+  ShieldCheck,
 } from "lucide-react";
 import { employeeApi } from "../../api/bookingApi";
+import { DepartureTypeBadge } from "../admin/bookingShared";
 import "./EmployeeDashboard.css";
 
 const getBookingStatusLabel = (status) => {
@@ -106,9 +108,10 @@ export default function EmployeeDashboard() {
 
   const filteredBookings = bookings.filter((booking) => {
     const keyword = searchTerm.toLowerCase();
+    const customerName = booking.customerName || booking.customer || "";
     return (
       booking.bookingCode?.toLowerCase().includes(keyword) ||
-      booking.customer?.toLowerCase().includes(keyword) ||
+      customerName.toLowerCase().includes(keyword) ||
       booking.tourName?.toLowerCase().includes(keyword)
     );
   });
@@ -119,16 +122,15 @@ export default function EmployeeDashboard() {
       currency: "VND",
     }).format(value || 0);
 
-  const confirmedCount =
-    stats.confirmedBookings ??
-    bookings.filter((booking) => booking.status === "CONFIRMED").length;
-
   const completedCount =
     stats.completedBookings ??
     bookings.filter((booking) => booking.status === "COMPLETED").length;
 
-  const confirmedOnlyCount = bookings.filter(
-    (booking) => booking.status === "CONFIRMED",
+  const activeCount = bookings.filter((booking) =>
+    ["CONFIRMED", "IN_PROGRESS"].includes(booking.status),
+  ).length;
+  const privateDepartureCount = bookings.filter(
+    (booking) => booking.privateDeparture,
   ).length;
 
   if (loading) {
@@ -213,9 +215,9 @@ export default function EmployeeDashboard() {
 
             <div className="stat-card">
               <div>
-                <span className="stat-label">Chờ / đã xác nhận</span>
+                <span className="stat-label">Cần theo dõi</span>
                 <span className="stat-value text-amber">
-                  {confirmedCount}
+                  {activeCount}
                 </span>
               </div>
               <div className="stat-icon icon-amber pulse">
@@ -225,13 +227,13 @@ export default function EmployeeDashboard() {
 
             <div className="stat-card">
               <div>
-                <span className="stat-label">Đã xác nhận</span>
+                <span className="stat-label">Tour riêng</span>
                 <span className="stat-value text-green">
-                  {confirmedOnlyCount}
+                  {privateDepartureCount}
                 </span>
               </div>
               <div className="stat-icon icon-green">
-                <CheckCircle />
+                <ShieldCheck />
               </div>
             </div>
 
@@ -270,11 +272,9 @@ export default function EmployeeDashboard() {
                 <table className="custom-admin-table">
                   <thead>
                     <tr>
-                      <th>Mã đơn</th>
-                      <th>Khách hàng</th>
-                      <th>Thông tin tour</th>
-                      <th>Ngày đặt</th>
-                      <th className="text-center">Số chỗ</th>
+                      <th>Đơn & khách</th>
+                      <th>Tour & lịch</th>
+                      <th className="text-center">Số người</th>
                       <th>Tổng tiền</th>
                       <th className="text-center">Trạng thái</th>
                       <th className="text-center">Thao tác</th>
@@ -284,23 +284,37 @@ export default function EmployeeDashboard() {
                     {filteredBookings.length > 0 ? (
                       filteredBookings.map((booking) => (
                         <tr key={booking.id}>
-                          <td data-label="Mã đơn" className="font-mono-code">{booking.bookingCode}</td>
-                          <td data-label="Khách hàng">
-                            <div className="customer-main-name">{booking.customer}</div>
-                            <div className="customer-sub-phone">{booking.phone}</div>
+                          <td data-label="Đơn & khách">
+                            <div className="font-mono-code">{booking.bookingCode}</div>
+                            <div className="customer-main-name">
+                              {booking.customerName || booking.customer || "Khách hàng"}
+                            </div>
+                            <div className="customer-sub-phone">
+                              {booking.phone || booking.email || "Chưa có liên hệ"}
+                            </div>
                           </td>
-                          <td data-label="Thông tin tour" className="max-width-cell">
+                          <td data-label="Tour & lịch" className="max-width-cell">
                             <div className="truncate-text" title={booking.tourName}>
                               {booking.tourName}
                             </div>
+                            <div className="booking-tour-meta">
+                              <DepartureTypeBadge booking={booking} />
+                              <span className="date-chip">
+                                {booking.departureDate
+                                  ? new Date(booking.departureDate).toLocaleDateString("vi-VN")
+                                  : booking.date
+                                    ? new Date(booking.date).toLocaleDateString("vi-VN")
+                                    : "Chưa cập nhật"}
+                              </span>
+                            </div>
                           </td>
-                          <td data-label="Ngày đặt" className="whitespace-nowrap-text">
-                            {booking.date
-                              ? new Date(booking.date).toLocaleDateString("vi-VN")
-                              : "Chưa cập nhật"}
-                          </td>
-                          <td data-label="Số chỗ" className="text-center">
-                            <span className="badge-slots">{booking.slots} vé</span>
+                          <td data-label="Số người" className="text-center">
+                            <span className="badge-slots">
+                              {booking.totalPeople || booking.slots || 0} khách
+                            </span>
+                            <div className="people-breakdown">
+                              NL {booking.adultCount || 0} · TE {booking.childCount || 0}
+                            </div>
                           </td>
                           <td data-label="Tổng tiền" className="price-text-highlight">
                             {formatVND(booking.totalPrice)}
@@ -341,7 +355,7 @@ export default function EmployeeDashboard() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="8" className="empty-row-text">
+                        <td colSpan="6" className="empty-row-text">
                           Không tìm thấy đơn đặt chỗ nào trong dữ liệu được phân công.
                         </td>
                       </tr>

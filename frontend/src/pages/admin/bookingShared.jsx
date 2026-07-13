@@ -109,6 +109,30 @@ export const bookingTypeText = {
   PRIVATE: "Tour riêng",
 };
 
+export const getDepartureTypeMeta = (booking) => {
+  const privateDeparture = Boolean(
+    booking?.privateDeparture ?? booking?.isPrivateDeparture
+  );
+
+  return privateDeparture
+    ? {
+        label: "Tour riêng",
+        title: "Lịch tour riêng",
+        description: "Khách đã đặt lịch dành riêng cho đoàn này.",
+        className: "border-amber-200 bg-amber-50 text-amber-800",
+        panelClassName: "border-amber-200 bg-amber-50 text-amber-950",
+        dotClassName: "bg-amber-500",
+      }
+    : {
+        label: "Tour ghép",
+        title: "Lịch tour ghép",
+        description: "Khách đã đặt lịch ghép khách theo ngày mở bán.",
+        className: "border-emerald-200 bg-emerald-50 text-emerald-800",
+        panelClassName: "border-emerald-200 bg-emerald-50 text-emerald-950",
+        dotClassName: "bg-emerald-500",
+      };
+};
+
 export const customerTypeText = {
   ADULT: "Người lớn",
   CHILD: "Trẻ em",
@@ -170,6 +194,22 @@ export function Badge({ meta }) {
         meta.className,
       ].join(" ")}
     >
+      {meta.label}
+    </span>
+  );
+}
+
+export function DepartureTypeBadge({ booking }) {
+  const meta = getDepartureTypeMeta(booking);
+
+  return (
+    <span
+      className={[
+        "inline-flex min-h-8 items-center gap-2 rounded-full border px-3 text-xs font-black uppercase tracking-wide",
+        meta.className,
+      ].join(" ")}
+    >
+      <span className={["h-1.5 w-1.5 rounded-full", meta.dotClassName].join(" ")} />
       {meta.label}
     </span>
   );

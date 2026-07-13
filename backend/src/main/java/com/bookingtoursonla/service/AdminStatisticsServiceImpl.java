@@ -208,6 +208,8 @@ public class AdminStatisticsServiceImpl implements AdminStatisticsService {
                     item.setBookingCode(booking.getBookingCode());
                     item.setCustomerName(booking.getFullName());
                     item.setTourName(tour != null ? tour.getTitle() : "Tour chưa cập nhật");
+                    item.setPrivateDeparture(
+                            departure != null && Boolean.TRUE.equals(departure.getIsPrivateDeparture()));
                     item.setTotalPeople(booking.getTotalPeople());
                     item.setTotalPrice(valueOrZero(booking.getTotalPrice()));
                     item.setPaidAmount(valueOrZero(booking.getPaidAmount()));

@@ -32,12 +32,14 @@ import { employeeApi } from "../../api/bookingApi";
 import { resolveUploadedFileUrl } from "../../api/userApi";
 import {
   Badge,
+  DepartureTypeBadge,
   bookingTypeText,
   customerTypeText,
   formatCurrency,
   formatDate,
   formatDateTime,
   formatTime,
+  getDepartureTypeMeta,
   getMeta,
   paymentMeta,
   paymentPlanText,
@@ -202,6 +204,7 @@ export default function EmployeeTimelinePage() {
 
   const progress = useMemo(() => getScheduleProgress(detail), [detail]);
   const pendingActivities = useMemo(() => getPendingActivities(detail), [detail]);
+  const departureTypeMeta = useMemo(() => getDepartureTypeMeta(detail), [detail]);
 
   const loadDetail = useCallback(async () => {
     try {
@@ -456,6 +459,7 @@ export default function EmployeeTimelinePage() {
         <div className="tl-hero">
           <div>
             <div className="tl-hero-badges">
+              <DepartureTypeBadge booking={detail} />
               <span className="tl-hero-type">
                 {bookingTypeText[detail.bookingType] || detail.bookingType || "Tour"}
               </span>
@@ -467,7 +471,7 @@ export default function EmployeeTimelinePage() {
             <div className="tl-hero-stat">
               <Users />
               <b>{detail.totalPeople || 0}</b>
-              <small>{detail.adultCount || 0} NL · {detail.childCount || 0} TE</small>
+              <small>khách · {detail.adultCount || 0} NL · {detail.childCount || 0} TE</small>
             </div>
             <div className="tl-hero-stat">
               <CalendarDays />
@@ -485,8 +489,9 @@ export default function EmployeeTimelinePage() {
         <div className="tl-confirm-grid">
           <div>
             <div className="tl-section">
-              <h3 className="tl-section-title"><UserCheck /> Liên hệ & đón khách</h3>
+              <h3 className="tl-section-title"><UserCheck /> Thông tin tác nghiệp</h3>
               <div className="tl-info-grid">
+                <div className="tl-info-item"><span>Loại lịch</span><b>{departureTypeMeta.label}</b></div>
                 <div className="tl-info-item"><span>Người đặt</span><b>{detail.customerName}</b></div>
                 {detail.organizationName && (
                   <div className="tl-info-item"><span>Đoàn / tổ chức</span><b>{detail.organizationName}</b></div>
@@ -508,6 +513,9 @@ export default function EmployeeTimelinePage() {
                 </div>
                 <div className="tl-info-item">
                   <span>Khởi hành</span><b>{detail.departureLocation || "Chưa cập nhật"}</b>
+                </div>
+                <div className="tl-info-item">
+                  <span>Số người</span><b>{detail.totalPeople || 0} khách · {detail.adultCount || 0} NL · {detail.childCount || 0} TE</b>
                 </div>
               </div>
             </div>
@@ -554,6 +562,15 @@ export default function EmployeeTimelinePage() {
 
           <aside>
             <div className="tl-side-card">
+              <h4><CalendarDays /> Lịch đi</h4>
+              <div className="tl-info-grid">
+                <div className="tl-info-item"><span>Ngày</span><b>{formatDate(detail.departureDate)}</b></div>
+                <div className="tl-info-item"><span>Giờ</span><b>{formatTime(detail.departureTime)}</b></div>
+                <div className="tl-info-item"><span>Thời lượng</span><b>{detail.durationDays || 0} ngày {detail.durationNights || 0} đêm</b></div>
+              </div>
+            </div>
+
+            <div className="tl-side-card">
               <h4><Banknote /> Thanh toán</h4>
               <div className="tl-info-grid">
                 <div className="tl-info-item"><span>Tổng</span><b className="tl-price">{formatCurrency(detail.totalPrice)}</b></div>
@@ -561,23 +578,10 @@ export default function EmployeeTimelinePage() {
                 {Number(detail.remainingAmount || 0) > 0 && (
                   <div className="tl-info-item"><span>Còn lại</span><b className="tl-remaining">{formatCurrency(detail.remainingAmount)}</b></div>
                 )}
-                {detail.paymentPlan && (
-                  <div className="tl-info-item">
-                    <span>Hình thức</span>
-                    <b>{paymentPlanText[detail.paymentPlan] || detail.paymentPlan}</b>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="tl-side-card">
-              <h4><CheckCircle /> Xác nhận</h4>
-              <div className="tl-info-grid">
-                <div className="tl-info-item"><span>Đặt lúc</span><b>{formatDateTime(detail.bookedAt)}</b></div>
-                <div className="tl-info-item"><span>Xác nhận</span><b>{formatDateTime(detail.confirmedAt)}</b></div>
-                {detail.confirmedByName && (
-                  <div className="tl-info-item"><span>Bởi</span><b>{detail.confirmedByName}</b></div>
-                )}
+                <div className="tl-info-item">
+                  <span>Gói</span>
+                  <b>{paymentPlanText[detail.paymentPlan] || detail.paymentPlan || "Chưa cập nhật"}</b>
+                </div>
               </div>
             </div>
 
@@ -1008,6 +1012,7 @@ export default function EmployeeTimelinePage() {
             </div>
           </div>
           <div className="tl-header-badges">
+            <DepartureTypeBadge booking={detail} />
             <Badge meta={getMeta(statusMeta, detail.status)} />
             <Badge meta={getMeta(paymentMeta, detail.paymentStatus)} />
           </div>

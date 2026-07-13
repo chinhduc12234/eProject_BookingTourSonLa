@@ -33,6 +33,7 @@ import { getAllStaff } from "../../api/staffApi";
 import { resolveUploadedFileUrl } from "../../api/userApi";
 import {
   Badge,
+  DepartureTypeBadge,
   DetailPaymentRow,
   InfoCard,
   TextBlock,
@@ -42,6 +43,7 @@ import {
   formatDate,
   formatDateTime,
   formatTime,
+  getDepartureTypeMeta,
   getMeta,
   paymentMeta,
   paymentMethodText,
@@ -363,6 +365,8 @@ export default function AdminBookingDetailPage() {
     skippedScheduleActivities > 0;
   const scheduleLastUpdatedAt = detail.scheduleLastUpdatedAt;
   const scheduleLastUpdatedBy = detail.scheduleLastUpdatedBy;
+  const departureTypeMeta = getDepartureTypeMeta(detail);
+  const DepartureTypeIcon = detail.privateDeparture ? ShieldCheck : Users;
 
   return (
     <div className="min-h-screen bg-[#f8fafc] p-4 text-slate-900 md:p-8">
@@ -389,6 +393,7 @@ export default function AdminBookingDetailPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <DepartureTypeBadge booking={detail} />
             <Badge meta={getMeta(statusMeta, detail.status)} />
             <Badge meta={getMeta(paymentMeta, detail.paymentStatus)} />
             <button
@@ -449,8 +454,11 @@ export default function AdminBookingDetailPage() {
                 </div>
 
                 <div className="p-5">
-                  <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">
-                    Tour đã đặt
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">
+                      Tour đã đặt
+                    </span>
+                    <DepartureTypeBadge booking={detail} />
                   </div>
                   <h2 className="mt-2 text-2xl font-black text-slate-950">
                     {detail.tourName}
@@ -460,6 +468,23 @@ export default function AdminBookingDetailPage() {
                       {detail.tourShortDescription}
                     </p>
                   )}
+
+                  <div
+                    className={[
+                      "mt-4 flex items-start gap-3 rounded-2xl border p-4",
+                      departureTypeMeta.panelClassName,
+                    ].join(" ")}
+                  >
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/70">
+                      <DepartureTypeIcon size={20} />
+                    </span>
+                    <div>
+                      <div className="font-black">{departureTypeMeta.title}</div>
+                      <p className="mt-1 text-sm font-semibold leading-6 opacity-80">
+                        {departureTypeMeta.description}
+                      </p>
+                    </div>
+                  </div>
 
                   <div className="mt-5 grid gap-3 sm:grid-cols-2">
                     <InfoCard
@@ -518,6 +543,11 @@ export default function AdminBookingDetailPage() {
                 icon={ShieldCheck}
                 label="Loại đơn"
                 value={bookingTypeText[detail.bookingType] || detail.bookingType}
+              />
+              <InfoCard
+                icon={DepartureTypeIcon}
+                label="Loại lịch đã đặt"
+                value={departureTypeMeta.label}
               />
               <InfoCard
                 icon={MapPin}

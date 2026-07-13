@@ -18,6 +18,7 @@ import {
 import { getAdminStatistics } from "../../api/adminStatisticsApi";
 import {
   Badge,
+  DepartureTypeBadge,
   formatCurrency,
   formatDate,
   formatDateTime,
@@ -422,6 +423,9 @@ export default function AdminStatisticsPage() {
                           </td>
                           <td className="px-5 py-4" data-label="Tour">
                             <div className="max-w-[280px] font-bold text-slate-900">{booking.tourName}</div>
+                            <div className="mt-2">
+                              <DepartureTypeBadge booking={booking} />
+                            </div>
                           </td>
                           <td className="px-5 py-4 font-bold text-slate-700" data-label="Ngày đi">
                             {formatDate(booking.departureDate)}

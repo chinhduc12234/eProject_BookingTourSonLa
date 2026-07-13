@@ -105,6 +105,8 @@ public class AdminStatisticsResponse {
 
         private String tourName;
 
+        private Boolean privateDeparture;
+
         private Integer totalPeople;
 
         private BigDecimal totalPrice;

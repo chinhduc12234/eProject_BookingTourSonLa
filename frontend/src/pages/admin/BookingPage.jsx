@@ -3,13 +3,13 @@ import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   Activity,
-  AlertTriangle,
   CalendarDays,
   CreditCard,
   Eye,
   Loader2,
   RefreshCcw,
   Search,
+  ShieldCheck,
   TicketCheck,
   Users,
 } from "lucide-react";
@@ -17,38 +17,15 @@ import {
 import { getAdminBookings } from "../../api/bookingApi";
 import {
   Badge,
+  DepartureTypeBadge,
   bookingStatuses,
   formatCurrency,
   formatDate,
-  formatDateTime,
   getMeta,
   paymentMeta,
   paymentStatuses,
   statusMeta,
 } from "./bookingShared";
-
-const scheduleReportMeta = {
-  EMPTY: {
-    label: "Chưa có lịch trình",
-    className: "border-slate-200 bg-slate-50 text-slate-600",
-  },
-  WAITING: {
-    label: "Chưa báo cáo",
-    className: "border-slate-200 bg-slate-50 text-slate-600",
-  },
-  IN_PROGRESS: {
-    label: "Đang báo cáo",
-    className: "border-sky-200 bg-sky-50 text-sky-800",
-  },
-  NEEDS_REVIEW: {
-    label: "Cần admin xem",
-    className: "border-amber-200 bg-amber-50 text-amber-800",
-  },
-  COMPLETED: {
-    label: "Ổn, đã xong",
-    className: "border-emerald-200 bg-emerald-50 text-emerald-800",
-  },
-};
 
 export default function BookingPage() {
   const [bookings, setBookings] = useState([]);
@@ -126,13 +103,19 @@ export default function BookingPage() {
     const pendingPayment = bookings.filter(
       (booking) => booking.paymentStatus === "PENDING_REVIEW",
     ).length;
-    const needsReview = bookings.filter((booking) => booking.scheduleNeedsReview).length;
+    const privateDepartures = bookings.filter((booking) => booking.privateDeparture).length;
     const people = bookings.reduce(
       (sum, booking) => sum + Number(booking.totalPeople || 0),
       0,
     );
 
-    return { confirmed, paid, pendingPayment, needsReview, people };
+    return {
+      confirmed,
+      paid,
+      pendingPayment,
+      privateDepartures,
+      people,
+    };
   }, [bookings]);
 
   const submitSearch = (event) => {
@@ -174,8 +157,8 @@ export default function BookingPage() {
           {[
             { label: "Tổng đơn đặt tour", value: totalElements, Icon: TicketCheck },
             { label: "Chờ/Xác nhận", value: summary.confirmed, Icon: CalendarDays },
-            { label: "Báo cáo cần xem", value: summary.needsReview, Icon: AlertTriangle },
             { label: "Kiểm tra thanh toán", value: summary.pendingPayment, Icon: CreditCard },
+            { label: "Tour riêng trong trang", value: summary.privateDepartures, Icon: ShieldCheck },
             { label: "Khách trong trang", value: summary.people, Icon: Users },
           ].map(({ label, value, Icon }) => (
             <div key={label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -249,17 +232,15 @@ export default function BookingPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1320px] text-left text-sm">
+              <table className="w-full min-w-[1180px] text-left text-sm">
                 <thead className="bg-slate-50 text-xs font-black uppercase tracking-wider text-slate-500">
                   <tr>
                     <th className="px-5 py-4">Đơn đặt tour</th>
                     <th className="px-5 py-4">Khách hàng</th>
-                    <th className="px-5 py-4">Tour</th>
-                    <th className="px-5 py-4">Ngày đi</th>
+                    <th className="px-5 py-4">Tour & lịch</th>
                     <th className="px-5 py-4">Số khách</th>
                     <th className="px-5 py-4">Tổng tiền</th>
                     <th className="px-5 py-4">Trạng thái</th>
-                    <th className="px-5 py-4">Báo cáo NV</th>
                     <th className="px-5 py-4">Thanh toán</th>
                     <th className="px-5 py-4">Thao tác</th>
                   </tr>
@@ -275,19 +256,23 @@ export default function BookingPage() {
                       </td>
                       <td className="px-5 py-4">
                         <div className="font-bold text-slate-900">{booking.customerName}</div>
-                        <div className="mt-1 text-xs text-slate-500">{booking.phone}</div>
-                        <div className="mt-1 text-xs text-slate-500">{booking.email}</div>
+                        <div className="mt-1 text-xs font-semibold text-slate-500">
+                          {booking.phone || booking.email || "Chưa có liên hệ"}
+                        </div>
                       </td>
                       <td className="px-5 py-4">
                         <div className="max-w-[240px] font-bold text-slate-900">{booking.tourName}</div>
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          <DepartureTypeBadge booking={booking} />
+                          <span className="inline-flex min-h-8 items-center rounded-full border border-slate-200 bg-slate-50 px-3 text-xs font-black text-slate-700">
+                            {formatDate(booking.departureDate)}
+                          </span>
+                        </div>
                         {booking.assignedStaffName && (
                           <div className="mt-1 text-xs font-semibold text-emerald-700">
                             NV: {booking.assignedStaffName}
                           </div>
                         )}
-                      </td>
-                      <td className="px-5 py-4 font-bold text-slate-700">
-                        {formatDate(booking.departureDate)}
                       </td>
                       <td className="px-5 py-4">
                         <div className="font-black">{booking.totalPeople || 0}</div>
@@ -299,29 +284,19 @@ export default function BookingPage() {
                         {formatCurrency(booking.totalPrice)}
                       </td>
                       <td className="px-5 py-4">
-                        <Badge meta={getMeta(statusMeta, booking.status)} />
-                      </td>
-                      <td className="px-5 py-4">
-                        <div
-                          className={[
-                            "inline-flex min-h-9 items-center rounded-full border px-3 text-xs font-black",
-                            getMeta(scheduleReportMeta, booking.scheduleReportStatus).className,
-                          ].join(" ")}
-                        >
-                          {getMeta(scheduleReportMeta, booking.scheduleReportStatus).label}
+                        <div className="space-y-2">
+                          <Badge meta={getMeta(statusMeta, booking.status)} />
+                          {booking.scheduleNeedsReview && (
+                            <div className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-black text-amber-800">
+                              Cần xem báo cáo
+                            </div>
+                          )}
+                          {Number(booking.scheduleTotalActivities || 0) > 0 && !booking.scheduleNeedsReview && (
+                            <div className="text-xs font-bold text-slate-500">
+                              Lịch trình {booking.scheduleProgressPercent || 0}%
+                            </div>
+                          )}
                         </div>
-                        {Number(booking.scheduleTotalActivities || 0) > 0 && (
-                          <div className="mt-2 text-xs font-bold text-slate-500">
-                            {booking.scheduleCompletedActivities || 0}/{booking.scheduleTotalActivities || 0} mốc
-                            {" · "}
-                            {booking.scheduleProgressPercent || 0}%
-                          </div>
-                        )}
-                        {booking.scheduleLastUpdatedAt && (
-                          <div className="mt-1 max-w-[190px] text-xs font-semibold text-slate-500">
-                            {booking.scheduleLastUpdatedBy || "Nhân viên"} · {formatDateTime(booking.scheduleLastUpdatedAt)}
-                          </div>
-                        )}
                       </td>
                       <td className="px-5 py-4">
                         <Badge meta={getMeta(paymentMeta, booking.paymentStatus)} />
