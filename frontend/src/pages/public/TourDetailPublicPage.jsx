@@ -63,6 +63,24 @@ const departureStatusText = {
   CLOSED: "Đã đóng",
 };
 
+const getDepartureType = (departure) => {
+  const isPrivateDeparture = Boolean(
+    departure?.isPrivateDeparture ?? departure?.privateDeparture
+  );
+
+  return isPrivateDeparture
+    ? {
+        label: "Tour riêng",
+        badgeClass: "border-[#d4a878]/60 bg-[#d4a878]/20 text-[#ffe0ad]",
+        dotClass: "bg-[#d4a878]",
+      }
+    : {
+        label: "Tour ghép",
+        badgeClass: "border-[#7FB77E]/60 bg-[#7FB77E]/[0.18] text-[#c9ffc8]",
+        dotClass: "bg-[#9de09c]",
+      };
+};
+
 const normalizeServiceItems = (value) => {
   const text = String(value || "")
     .replace(/<br\s*\/?>/gi, "\n")
@@ -521,6 +539,7 @@ export default function TourDetailPublicPage() {
                     const isOpen =
                       departure.status === "OPEN" &&
                       Number(departure.availableSeats || 0) > 0;
+                    const departureType = getDepartureType(departure);
 
                     return (
                       <button
@@ -542,6 +561,20 @@ export default function TourDetailPublicPage() {
                           <div className="mt-1 text-base font-black text-white">
                             {formatDate(departure.departureDate)} · {formatTime(departure.departureTime)}
                           </div>
+                          <span
+                            className={[
+                              "mt-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-black uppercase tracking-wider",
+                              departureType.badgeClass,
+                            ].join(" ")}
+                          >
+                            <span
+                              className={[
+                                "h-1.5 w-1.5 rounded-full",
+                                departureType.dotClass,
+                              ].join(" ")}
+                            />
+                            {departureType.label}
+                          </span>
                         </div>
                         <div>
                           <div className="text-xs font-black uppercase tracking-widest text-slate-500">

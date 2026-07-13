@@ -1408,6 +1408,7 @@ public class BookingServiceImpl implements BookingService {
         response.setContactPerson(booking.getContactPerson());
         response.setTourId(tour.getId());
         response.setDepartureId(departure.getId());
+        response.setPrivateDeparture(Boolean.TRUE.equals(departure.getIsPrivateDeparture()));
         response.setTourName(tour.getTitle());
         applyAssignedStaffResponse(response, loadAssignedStaffMembers(booking.getId()));
         response.setDepartureDate(departure.getDepartureDate());
@@ -1436,6 +1437,7 @@ public class BookingServiceImpl implements BookingService {
         response.setUserId(booking.getUser() != null ? booking.getUser().getId() : null);
         response.setTourId(tour.getId());
         response.setDepartureId(departure.getId());
+        response.setPrivateDeparture(Boolean.TRUE.equals(departure.getIsPrivateDeparture()));
         response.setStatus(booking.getStatus().name());
         response.setPaymentStatus(booking.getPaymentStatus().name());
         response.setBookingType(booking.getBookingType().name());

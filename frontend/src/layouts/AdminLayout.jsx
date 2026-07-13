@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
 import {
   BarChart3,
+  ChartPie,
   Compass,
   Home,
   LogOut,
@@ -13,6 +14,7 @@ import {
 import { logout } from "../utils/auth";
 
 const navItems = [
+  { to: "/admin/statistics", label: "Thống kê", Icon: ChartPie },
   { to: "/admin", label: "Tổng quan", Icon: BarChart3, end: true },
   { to: "/admin/staff", label: "Nhân viên", Icon: UsersRound },
   { to: "/admin/provinces", label: "Tỉnh thành", Icon: Map },

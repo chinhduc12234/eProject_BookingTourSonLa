@@ -21,6 +21,8 @@ public class BookingDetailResponse {
 
     private Long departureId;
 
+    private Boolean privateDeparture;
+
     private String status;
 
     private String paymentStatus;

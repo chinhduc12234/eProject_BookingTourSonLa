@@ -7,6 +7,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminStatisticsPage from "./pages/admin/AdminStatisticsPage";
 import EmployeeDashboard from "./pages/employee/EmployeeDashboard";
 import EmployeeTimelinePage from "./pages/employee/EmployeeTimelinePage";
 import CustomerHome from "./pages/customer/CustomerHome";
@@ -196,6 +197,7 @@ function AnimatedRoutes() {
           }
         >
           <Route index element={<AdminDashboard />} />
+          <Route path="statistics" element={<AdminStatisticsPage />} />
           <Route path="provinces" element={<ProvincePage />} />
           <Route path="districts" element={<DistrictPage />} />
           <Route path="locations" element={<LocationPage />} />

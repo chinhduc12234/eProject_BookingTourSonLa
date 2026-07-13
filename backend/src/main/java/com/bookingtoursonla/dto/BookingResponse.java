@@ -58,6 +58,8 @@ public class BookingResponse {
 
     private Long departureId;
 
+    private Boolean privateDeparture;
+
     private String tourName;
 
     private Long assignedStaffId;

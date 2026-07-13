@@ -81,4 +81,30 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
   @Query("SELECT SUM(b.totalPrice) FROM Booking b WHERE b.deletedAt IS NULL AND b.status = com.bookingtoursonla.entity.enums.BookingStatus.CONFIRMED")
   java.math.BigDecimal calculateTotalConfirmedRevenue();
 
+  @Query("""
+      SELECT b FROM Booking b
+      JOIN FETCH b.tourDeparture d
+      JOIN FETCH d.tour
+      WHERE b.deletedAt IS NULL
+        AND b.bookedAt >= :start
+        AND b.bookedAt < :end
+      ORDER BY b.bookedAt DESC
+      """)
+  List<Booking> findStatisticsBookings(
+      @Param("start") LocalDateTime start,
+      @Param("end") LocalDateTime end);
+
+  @Query("""
+      SELECT b FROM Booking b
+      JOIN FETCH b.tourDeparture d
+      JOIN FETCH d.tour
+      WHERE b.deletedAt IS NULL
+        AND d.departureDate >= :start
+        AND d.departureDate < :end
+      ORDER BY d.departureDate ASC
+      """)
+  List<Booking> findStatisticsDepartures(
+      @Param("start") java.time.LocalDate start,
+      @Param("end") java.time.LocalDate end);
+
 }

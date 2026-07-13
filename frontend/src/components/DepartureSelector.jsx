@@ -56,6 +56,22 @@ export default function DepartureSelector({
         const selected = Number(selectedId) === Number(departure.id);
         const adultPrice = departure.adultPrice ?? tourPrice;
         const childPrice = departure.childPrice ?? adultPrice;
+        const isPrivateDeparture = Boolean(
+          departure.isPrivateDeparture ?? departure.privateDeparture
+        );
+        const departureType = isPrivateDeparture
+          ? {
+              label: "Tour riêng",
+              description: "Dành riêng cho đoàn của bạn",
+              badgeClass: "border-[#d4a878]/60 bg-[#d4a878]/20 text-[#ffe0ad]",
+              dotClass: "bg-[#d4a878]",
+            }
+          : {
+              label: "Tour ghép",
+              description: "Ghép khách theo lịch mở bán",
+              badgeClass: "border-[#7FB77E]/60 bg-[#7FB77E]/[0.18] text-[#c9ffc8]",
+              dotClass: "bg-[#9de09c]",
+            };
 
         return (
           <button
@@ -73,6 +89,7 @@ export default function DepartureSelector({
                 adultPrice: departure.adultPrice ?? tourPrice,
                 childPrice: departure.childPrice ?? (departure.adultPrice ?? tourPrice),
                 availableSeats: departure.availableSeats,
+                isPrivateDeparture,
               };
               localStorage.setItem('booking_temp_departure', JSON.stringify(tempDeparture));
             }}
@@ -90,8 +107,8 @@ export default function DepartureSelector({
               </span>
             )}
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
+            <div className="flex flex-col gap-3 pr-9 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-3 text-sm font-bold text-white">
                   <span className="inline-flex items-center gap-2">
                     <CalendarDays size={16} className="text-[#9de09c]" />
@@ -100,6 +117,28 @@ export default function DepartureSelector({
                   <span className="inline-flex items-center gap-2 text-slate-300">
                     <Clock3 size={16} className="text-[#9de09c]" />
                     {formatTime(departure.departureTime)}
+                  </span>
+                </div>
+
+                <div
+                  className={[
+                    "mt-3 inline-flex max-w-full items-start gap-2 rounded-xl border px-3 py-2 text-left",
+                    departureType.badgeClass,
+                  ].join(" ")}
+                >
+                  <span
+                    className={[
+                      "mt-1 h-2 w-2 shrink-0 rounded-full",
+                      departureType.dotClass,
+                    ].join(" ")}
+                  />
+                  <span className="min-w-0">
+                    <span className="block text-xs font-black uppercase tracking-wider">
+                      {departureType.label}
+                    </span>
+                    <span className="block text-[11px] font-semibold leading-4 opacity-85">
+                      {departureType.description}
+                    </span>
                   </span>
                 </div>
 

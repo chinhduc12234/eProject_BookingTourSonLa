@@ -183,6 +183,34 @@ const buildTourGallery = (booking) => {
   return items;
 };
 
+const getDepartureTypeMeta = (booking) => {
+  const privateDeparture = Boolean(
+    booking?.privateDeparture ?? booking?.isPrivateDeparture
+  );
+
+  return privateDeparture
+    ? {
+        label: "Tour riêng",
+        title: "Đã đặt lịch tour riêng",
+        description: "Lịch này dành riêng cho đoàn của bạn.",
+        Icon: ShieldCheck,
+        iconClass: "bg-[#d4a878]/20 text-[#f3d7b0]",
+        pillClass: "border-[#d4a878]/45 bg-[#d4a878]/[0.18] text-[#ffe0ad]",
+        cardClass: "border-[#d4a878]/25 bg-[#d4a878]/[0.08]",
+        dotClass: "bg-[#d4a878]",
+      }
+    : {
+        label: "Tour ghép",
+        title: "Đã đặt lịch tour ghép",
+        description: "Lịch này ghép khách theo ngày khởi hành mở bán.",
+        Icon: Users,
+        iconClass: "bg-[#7FB77E]/20 text-[#9de09c]",
+        pillClass: "border-[#7FB77E]/45 bg-[#7FB77E]/[0.18] text-[#d9ffd8]",
+        cardClass: "border-[#7FB77E]/25 bg-[#7FB77E]/[0.08]",
+        dotClass: "bg-[#9de09c]",
+      };
+};
+
 export default function BookingDetailPage() {
   const { bookingId } = useParams();
   const navigate = useNavigate();
@@ -321,6 +349,8 @@ export default function BookingDetailPage() {
   const descriptionBlocks = normalizeTextBlocks(
     booking?.tourDescription || booking?.tourShortDescription,
   );
+  const departureTypeMeta = getDepartureTypeMeta(booking);
+  const DepartureTypeIcon = departureTypeMeta.Icon;
 
   const handlePay = async (paymentType = selectedPaymentType) => {
     if (!booking) return;
@@ -498,9 +528,14 @@ export default function BookingDetailPage() {
                           </span>
                         )}
                       </div>
-                      <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#7FB77E]/20 bg-[#7FB77E]/15 px-3 py-1.5 text-xs font-black text-[#d9ffd8] backdrop-blur-sm">
-                        <CheckCircle2 size={14} className="text-[#9de09c]" />
-                        Tour đã đặt
+                      <div
+                        className={[
+                          "mt-4 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black backdrop-blur-sm",
+                          departureTypeMeta.pillClass,
+                        ].join(" ")}
+                      >
+                        <DepartureTypeIcon size={14} />
+                        Tour đã đặt • {departureTypeMeta.label}
                       </div>
                     </div>
                   </button>
@@ -558,6 +593,20 @@ export default function BookingDetailPage() {
                       {paymentPlanText[booking.paymentPlan] || booking.paymentPlan}
                     </span>
                   )}
+                  <span
+                    className={[
+                      "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.14em]",
+                      departureTypeMeta.pillClass,
+                    ].join(" ")}
+                  >
+                    <span
+                      className={[
+                        "h-1.5 w-1.5 rounded-full",
+                        departureTypeMeta.dotClass,
+                      ].join(" ")}
+                    />
+                    {departureTypeMeta.label}
+                  </span>
                 </div>
 
                 {/* Tên Tour */}
@@ -570,6 +619,46 @@ export default function BookingDetailPage() {
                     {tourSummary}
                   </p>
                 )}
+
+                <div
+                  className={[
+                    "mt-5 flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between",
+                    departureTypeMeta.cardClass,
+                  ].join(" ")}
+                >
+                  <div className="flex items-start gap-3">
+                    <span
+                      className={[
+                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
+                        departureTypeMeta.iconClass,
+                      ].join(" ")}
+                    >
+                      <DepartureTypeIcon size={20} />
+                    </span>
+                    <div>
+                      <div className="text-base font-black text-white">
+                        {departureTypeMeta.title}
+                      </div>
+                      <p className="mt-1 text-sm leading-6 text-slate-300">
+                        {departureTypeMeta.description}
+                      </p>
+                    </div>
+                  </div>
+                  <span
+                    className={[
+                      "inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.14em]",
+                      departureTypeMeta.pillClass,
+                    ].join(" ")}
+                  >
+                    <span
+                      className={[
+                        "h-1.5 w-1.5 rounded-full",
+                        departureTypeMeta.dotClass,
+                      ].join(" ")}
+                    />
+                    {departureTypeMeta.label}
+                  </span>
+                </div>
 
                 <div className="mt-8 grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
                   <HeroFact
@@ -714,6 +803,11 @@ export default function BookingDetailPage() {
                     label="Loại đơn"
                     value={bookingTypeText[booking.bookingType] || "Cá nhân"}
                     hint="Hình thức đặt tour"
+                  />
+                  <DetailMetric
+                    label="Loại lịch đã đặt"
+                    value={departureTypeMeta.label}
+                    hint={departureTypeMeta.description}
                   />
                   <DetailMetric
                     label="Liên hệ nhanh"
