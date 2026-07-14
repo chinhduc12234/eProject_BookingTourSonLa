@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   CalendarDays,
   ChevronRight,
   Eye,
   Loader2,
+  RefreshCcw,
+  Search,
   Users,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -29,6 +31,10 @@ const bookingTypeText = {
 export default function BookingHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState([]);
+  const [loadError, setLoadError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
 
   useEffect(() => {
     let mounted = true;
@@ -36,12 +42,13 @@ export default function BookingHistoryPage() {
     const loadBookings = async () => {
       try {
         setLoading(true);
+        setLoadError("");
         const response = await getMyBookings();
         if (mounted) setBookings(response.data || []);
       } catch (error) {
-        toast.error(
-          error?.response?.data?.message || "Không thể tải lịch sử đặt tour",
-        );
+        const message = error?.response?.data?.message || "Không thể tải lịch sử đặt tour";
+        setLoadError(message);
+        toast.error(message);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -52,7 +59,22 @@ export default function BookingHistoryPage() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [reloadKey]);
+
+  const filteredBookings = useMemo(() => {
+    const keyword = searchTerm.trim().toLocaleLowerCase("vi-VN");
+
+    return bookings.filter((booking) => {
+      const matchesStatus = statusFilter === "ALL" || booking.status === statusFilter;
+      const searchableText = [
+        booking.bookingCode,
+        booking.tourName,
+        booking.departureDate,
+      ].join(" ").toLocaleLowerCase("vi-VN");
+
+      return matchesStatus && (!keyword || searchableText.includes(keyword));
+    });
+  }, [bookings, searchTerm, statusFilter]);
 
   return (
     <AccountShell
@@ -73,13 +95,53 @@ export default function BookingHistoryPage() {
             </div>
           </div>
           <span className="rounded-full bg-white/[0.06] px-3 py-1 text-xs font-bold text-slate-300">
-            {bookings.length}
+            {filteredBookings.length}/{bookings.length}
           </span>
+        </div>
+
+        <div className="mt-5 grid gap-3 rounded-2xl border border-white/10 bg-[#020617]/35 p-3 sm:grid-cols-[1fr_220px]">
+          <label className="relative block">
+            <span className="sr-only">Tìm booking</span>
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9de09c]" />
+            <input
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              className="field-input pl-11"
+              placeholder="Tìm mã đơn hoặc tên tour..."
+            />
+          </label>
+          <label>
+            <span className="sr-only">Lọc trạng thái booking</span>
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+              className="field-input"
+            >
+              <option value="ALL">Tất cả trạng thái</option>
+              <option value="PENDING">Chờ xác nhận</option>
+              <option value="CONFIRMED">Đã xác nhận</option>
+              <option value="IN_PROGRESS">Đang đi tour</option>
+              <option value="COMPLETED">Đã hoàn thành</option>
+              <option value="CANCELLED">Đã hủy</option>
+            </select>
+          </label>
         </div>
 
         {loading ? (
           <div className="flex min-h-[320px] items-center justify-center">
             <Loader2 className="h-10 w-10 animate-spin text-[#7FB77E]" />
+          </div>
+        ) : loadError ? (
+          <div className="py-14 text-center" role="alert">
+            <RefreshCcw className="mx-auto h-10 w-10 text-rose-200" />
+            <p className="mt-4 text-sm font-bold text-slate-200">{loadError}</p>
+            <button
+              type="button"
+              onClick={() => setReloadKey((value) => value + 1)}
+              className="btn-outline mt-5 text-sm"
+            >
+              <RefreshCcw size={16} /> Thử tải lại
+            </button>
           </div>
         ) : bookings.length === 0 ? (
           <div className="py-14 text-center">
@@ -94,9 +156,26 @@ export default function BookingHistoryPage() {
               <ChevronRight size={16} />
             </Link>
           </div>
+        ) : filteredBookings.length === 0 ? (
+          <div className="py-14 text-center">
+            <Search className="mx-auto h-10 w-10 text-slate-400" />
+            <p className="mt-4 text-sm font-bold text-slate-300">
+              Không có booking phù hợp với điều kiện lọc.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchTerm("");
+                setStatusFilter("ALL");
+              }}
+              className="btn-outline mt-5 text-sm"
+            >
+              Xóa bộ lọc
+            </button>
+          </div>
         ) : (
           <div className="mt-5 grid gap-4 lg:grid-cols-2">
-            {bookings.map((booking) => {
+            {filteredBookings.map((booking) => {
               const itemStatus = getMeta(bookingStatusMeta, booking.status);
               const itemPayment = getMeta(
                 paymentStatusMeta,

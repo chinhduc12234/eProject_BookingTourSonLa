@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
 import {
   BarChart3,
+  CalendarRange,
   ChartPie,
   Compass,
   Home,
@@ -9,19 +10,21 @@ import {
   MapPinned,
   Mountain,
   TicketCheck,
+  UserRound,
   UsersRound,
 } from "lucide-react";
-import { logout } from "../utils/auth";
+import { getAuthName, logout } from "../utils/auth";
 
 const navItems = [
-  { to: "/admin/statistics", label: "Thống kê", Icon: ChartPie },
   { to: "/admin", label: "Tổng quan", Icon: BarChart3, end: true },
+  { to: "/admin/group-tours", label: "Tour ghép", Icon: CalendarRange },
+  { to: "/admin/bookings", label: "Đơn tour riêng", Icon: TicketCheck },
+  { to: "/admin/statistics", label: "Thống kê", Icon: ChartPie },
+  { to: "/admin/tours", label: "Tour", Icon: Mountain },
   { to: "/admin/staff", label: "Nhân viên", Icon: UsersRound },
+  { to: "/admin/locations", label: "Địa điểm", Icon: MapPinned },
   { to: "/admin/provinces", label: "Tỉnh thành", Icon: Map },
   { to: "/admin/districts", label: "Quận huyện", Icon: Compass },
-  { to: "/admin/locations", label: "Địa điểm", Icon: MapPinned },
-  { to: "/admin/tours", label: "Tour", Icon: Mountain },
-  { to: "/admin/bookings", label: "Đơn đặt tour", Icon: TicketCheck },
 ];
 
 const navClass = ({ isActive }) =>
@@ -33,6 +36,8 @@ const navClass = ({ isActive }) =>
   ].join(" ");
 
 export default function AdminLayout() {
+  const adminName = getAuthName() || "Quản trị viên";
+
   return (
     <div className="admin-shell flex h-screen overflow-hidden text-slate-900">
       <aside className="admin-sidebar flex w-[260px] shrink-0 flex-col border-r border-slate-800 bg-[#0f172a] px-4 py-5 text-[#f8fafc]">
@@ -62,6 +67,18 @@ export default function AdminLayout() {
             </NavLink>
           ))}
         </nav>
+
+        <div className="admin-session-card mb-3 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.045] p-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
+            <UserRound size={19} />
+          </span>
+          <span className="min-w-0">
+            <strong className="block truncate text-sm text-white">{adminName}</strong>
+            <small className="mt-0.5 block text-[10px] font-black uppercase tracking-[0.15em] text-[#d4a878]">
+              Phiên quản trị
+            </small>
+          </span>
+        </div>
 
         <div className="admin-sidebar-footer mt-6 space-y-2 border-t border-white/10 pt-4">
           <Link

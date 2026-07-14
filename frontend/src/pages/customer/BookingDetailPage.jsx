@@ -16,7 +16,6 @@ import {
   Phone,
   QrCode,
   ReceiptText,
-  RefreshCcw,
   ShieldCheck,
   UserRound,
   Users,
@@ -463,6 +462,11 @@ export default function BookingDetailPage() {
             </div>
           </div>
         </div>
+      </div>
+      <div className="mt-4 rounded-xl border border-sky-300/25 bg-sky-300/10 p-3 text-xs leading-6 text-sky-100">
+        QR này phục vụ luồng thanh toán mô phỏng, không xác nhận giao dịch tự động.
+        Trạng thái chỉ thay đổi sau khi quản trị viên kiểm tra thủ công; không chuyển
+        tiền thật vào tài khoản mẫu.
       </div>
     </div>
   );
@@ -1255,6 +1259,32 @@ export default function BookingDetailPage() {
                 </div>
               )}
             </div>
+
+            {canCancel && (
+              <div className="rounded-2xl border border-rose-300/25 bg-rose-300/[0.07] p-5">
+                <div className="flex items-start gap-3">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-rose-300/10 text-rose-200">
+                    <AlertTriangle size={20} />
+                  </span>
+                  <div>
+                    <h2 className="text-lg font-black text-white">Hủy booking</h2>
+                    <p className="mt-1 text-sm leading-6 text-slate-300">
+                      {booking.refundPolicyNote ||
+                        "Chính sách hoàn tiền sẽ được hệ thống áp dụng theo trạng thái thanh toán và ngày khởi hành."}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCancelBooking}
+                  disabled={cancelling}
+                  className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-rose-300/35 bg-rose-300/10 px-4 text-sm font-black text-rose-100 transition hover:border-rose-200/60 hover:bg-rose-300/20 disabled:cursor-wait disabled:opacity-60"
+                >
+                  {cancelling ? <Loader2 size={17} className="animate-spin" /> : <XCircle size={17} />}
+                  {cancelling ? "Đang hủy booking..." : "Yêu cầu hủy booking"}
+                </button>
+              </div>
+            )}
 
             <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
               <div className="flex items-center gap-3 border-b border-white/10 pb-4">

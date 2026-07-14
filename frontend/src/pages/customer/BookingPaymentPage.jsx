@@ -17,6 +17,7 @@ import toast from "react-hot-toast";
 import { createBooking } from "../../api/bookingApi";
 import { resolveUploadedFileUrl } from "../../api/userApi";
 import BookingStepBar from "../../components/BookingStepBar";
+import TourImage from "../../components/TourImage";
 import {
   clearBookingDraft,
   getBookingDraft,
@@ -85,13 +86,15 @@ export default function BookingPaymentPage() {
 
       clearBookingDraft();
 
+      toast.success("Đơn đã được ghi nhận và đang chờ kiểm tra thanh toán.");
+
       navigate(`/thank-you?bookingId=${response.data.id}`, {
         replace: true,
       });
     } catch (error) {
       toast.error(
         error?.response?.data?.message ||
-          "Không thể hoàn tất thanh toán",
+          "Không thể gửi yêu cầu đặt tour",
       );
     } finally {
       setSubmitting(false);
@@ -144,8 +147,8 @@ export default function BookingPaymentPage() {
     },
     {
       key: "done",
-      label: "Thanh toán thành công",
-      description: "Đơn đặt tour đã được ghi nhận trong lịch sử",
+      label: "Chờ xác nhận",
+      description: "Đơn và giao dịch chờ bộ phận vận hành kiểm tra",
       disabled: true,
     },
   ];
@@ -191,17 +194,15 @@ export default function BookingPaymentPage() {
                   </div>
 
                   <div className="overflow-hidden rounded-xl border border-white/10 bg-[#020617]/50">
-                    {coverImage ? (
-                      <img
+                    <div className="aspect-[16/10] w-full">
+                      <TourImage
                         src={coverImage}
                         alt={draft.tour?.title}
-                        className="aspect-[16/10] h-full w-full object-cover"
+                        loading="eager"
+                        className="h-full w-full object-cover"
+                        placeholderClassName="bg-[#0b1f17]"
                       />
-                    ) : (
-                      <div className="flex aspect-[16/10] items-center justify-center text-sm text-slate-500">
-                        Chưa có ảnh tour
-                      </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -216,7 +217,7 @@ export default function BookingPaymentPage() {
                       Chọn hình thức thanh toán
                     </h2>
                     <p className="text-sm text-slate-400">
-                      Chọn đặt cọc hoặc thanh toán toàn bộ để hoàn tất đơn đặt tour.
+                      Chọn phương án để gửi đơn và chờ bộ phận vận hành đối soát thủ công.
                     </p>
                   </div>
                 </div>
@@ -314,10 +315,10 @@ export default function BookingPaymentPage() {
                   </span>
                   <div>
                     <h2 className="text-xl font-black text-white">
-                      Mã QR thanh toán
+                      QR hỗ trợ chuyển khoản
                     </h2>
                     <p className="text-sm text-slate-400">
-                      Quét QR hoặc chuyển khoản theo đúng nội dung bên dưới.
+                      Thông tin minh họa cho luồng chuyển khoản thủ công.
                     </p>
                   </div>
                 </div>
@@ -353,6 +354,12 @@ export default function BookingPaymentPage() {
                   </div>
                 </div>
 
+                <div className="mt-4 rounded-xl border border-sky-300/25 bg-sky-300/10 p-3 text-xs leading-6 text-sky-100">
+                  Đây là luồng thanh toán mô phỏng, không phải cổng thanh toán tự động.
+                  Hệ thống chỉ ghi nhận lựa chọn; trạng thái thanh toán do bộ phận vận hành
+                  kiểm tra và cập nhật thủ công. Không chuyển tiền thật vào tài khoản mẫu.
+                </div>
+
                 <div className="mt-5 grid gap-3">
                   <button
                     type="button"
@@ -365,7 +372,7 @@ export default function BookingPaymentPage() {
                     ) : (
                       <CheckCircle2 size={18} />
                     )}
-                    Đã chuyển khoản
+                    Gửi xác nhận chuyển khoản
                   </button>
                 </div>
               </div>

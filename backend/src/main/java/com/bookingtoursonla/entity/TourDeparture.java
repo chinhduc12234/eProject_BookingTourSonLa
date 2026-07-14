@@ -116,7 +116,9 @@ public class TourDeparture {
             this.status = DepartureStatus.OPEN;
         }
 
-        if (this.status != DepartureStatus.CLOSED && this.currentPeople >= this.maxPeople) {
+        int occupiedPeople = this.currentPeople + this.reservedPeople;
+
+        if (this.status != DepartureStatus.CLOSED && occupiedPeople >= this.maxPeople) {
             this.status = DepartureStatus.FULL;
         } else if (this.status == DepartureStatus.FULL) {
             this.status = DepartureStatus.OPEN;

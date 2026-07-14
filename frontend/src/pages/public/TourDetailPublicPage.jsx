@@ -28,8 +28,8 @@ import toast from "react-hot-toast";
 import { getPublicTourDetail } from "../../api/publicTourApi";
 import { resolveUploadedFileUrl } from "../../api/userApi";
 import DepartureSelector from "../../components/DepartureSelector";
+import TourImage from "../../components/TourImage";
 import PublicLayout from "./PublicLayout";
-import { scenicGallery, scenicImages } from "./publicContent";
 import { getRole, isLoggedIn } from "../../utils/auth";
 
 const formatCurrency = (value) =>
@@ -204,28 +204,17 @@ export default function TourDetailPublicPage() {
   }
 
   const { tour, images = [], days = [], departures = [] } = detail;
-  const coverImage =
-    resolveUploadedFileUrl(tour.thumbnail || images[0]?.imageUrl) ||
-    scenicImages.mocChauTea;
-  const galleryImages =
-    images.length > 0
-      ? images.map((image) => ({
-          id: image.id,
-          imageUrl: resolveUploadedFileUrl(image.imageUrl),
-          title: tour.title,
-        }))
-      : scenicGallery.map((image, index) => ({
-          id: `fallback-${index}`,
-          imageUrl: image.image,
-          title: image.title,
-        }));
+  const coverImage = resolveUploadedFileUrl(tour.thumbnail || images[0]?.imageUrl);
+  const galleryImages = images
+    .map((image) => ({
+      id: image.id,
+      imageUrl: resolveUploadedFileUrl(image.imageUrl),
+      title: tour.title,
+    }))
+    .filter((image) => image.imageUrl);
   const normalizedGalleryIndex =
     galleryImages.length > 0 ? activeGalleryIndex % galleryImages.length : 0;
   const activeGalleryImage = galleryImages[normalizedGalleryIndex];
-  const handleImageError = (event) => {
-    event.currentTarget.onerror = null;
-    event.currentTarget.src = scenicImages.mocChauTea;
-  };
 
   return (
     <PublicLayout>
@@ -240,16 +229,22 @@ export default function TourDetailPublicPage() {
         </div>
 
         <div className="relative min-h-[560px] overflow-hidden">
-          <motion.img
+          <motion.div
             key={coverImage}
-            src={coverImage}
-            alt={tour.title}
             initial={{ scale: 1.15, opacity: 0 }}
             animate={{ scale: 1.05, opacity: 1 }}
             transition={{ duration: 1.4, ease: "easeOut" }}
-            onError={handleImageError}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
+            className="absolute inset-0 h-full w-full"
+          >
+            <TourImage
+              src={coverImage}
+              alt={tour.title}
+              loading="eager"
+              fetchPriority="high"
+              className="h-full w-full object-cover"
+              placeholderClassName="h-full bg-[#0b1f17]"
+            />
+          </motion.div>
           <div className="absolute inset-0 bg-gradient-to-br from-[#020617]/90 via-[#020617]/60 to-[#020617]/30" />
           <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#020617] to-transparent" />
           <div className="absolute -top-10 right-1/3 h-72 w-72 rounded-full bg-[#7FB77E]/20 blur-[120px]" />
@@ -369,16 +364,19 @@ export default function TourDetailPublicPage() {
                 </div>
                 <div className="tour-gallery mt-5 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] p-3 shadow-soft-dark sm:p-4">
                   <div className="group relative overflow-hidden rounded-2xl bg-[#07120f]">
-                    <motion.img
+                    <motion.div
                       key={activeGalleryImage?.imageUrl}
-                      src={activeGalleryImage?.imageUrl}
-                      alt={activeGalleryImage?.title || tour.title}
                       initial={{ opacity: 0, scale: 1.03 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.45 }}
-                      onError={handleImageError}
-                      className="aspect-[16/10] w-full object-cover sm:aspect-[16/9]"
-                    />
+                      className="aspect-[16/10] w-full sm:aspect-[16/9]"
+                    >
+                      <TourImage
+                        src={activeGalleryImage?.imageUrl}
+                        alt={activeGalleryImage?.title || tour.title}
+                        className="h-full w-full object-cover"
+                      />
+                    </motion.div>
                     <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/75 via-transparent to-[#020617]/10" />
 
                     <button
@@ -440,12 +438,10 @@ export default function TourDetailPublicPage() {
                             : "border-transparent opacity-65 hover:opacity-100",
                         ].join(" ")}
                       >
-                        <img
+                        <TourImage
                           src={image.imageUrl}
                           alt=""
                           loading="lazy"
-                          decoding="async"
-                          onError={handleImageError}
                           className="h-full w-full object-cover"
                         />
                       </button>
@@ -943,16 +939,21 @@ export default function TourDetailPublicPage() {
           >
             <X size={20} />
           </button>
-          <motion.img
+          <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.35 }}
-            src={lightboxImage}
-            alt={tour.title}
-            onError={handleImageError}
             onClick={(e) => e.stopPropagation()}
-            className="max-h-[85vh] max-w-6xl rounded-2xl object-contain shadow-2xl"
-          />
+            className="h-[min(85vh,780px)] w-full max-w-6xl overflow-hidden rounded-2xl shadow-2xl"
+          >
+            <TourImage
+              src={lightboxImage}
+              alt={tour.title}
+              loading="eager"
+              className="h-full w-full object-contain"
+              placeholderClassName="bg-[#0b1f17]"
+            />
+          </motion.div>
         </motion.div>
       )}
       </div>

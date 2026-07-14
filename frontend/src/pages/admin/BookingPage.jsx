@@ -103,7 +103,9 @@ export default function BookingPage() {
     const pendingPayment = bookings.filter(
       (booking) => booking.paymentStatus === "PENDING_REVIEW",
     ).length;
-    const privateDepartures = bookings.filter((booking) => booking.privateDeparture).length;
+    const privateDepartures = bookings.filter(
+      (booking) => booking.bookingType === "PRIVATE" || booking.privateDeparture,
+    ).length;
     const people = bookings.reduce(
       (sum, booking) => sum + Number(booking.totalPeople || 0),
       0,
@@ -134,10 +136,10 @@ export default function BookingPage() {
             </span>
             <div>
               <h1 className="text-3xl font-black tracking-tight">
-                Quản lý đơn đặt tour
+                Quản lý đơn tour riêng
               </h1>
               <p className="mt-1 text-sm font-semibold text-slate-500">
-                Theo dõi đơn đặt tour, kiểm tra thanh toán, phân công nhân viên và xác nhận hành trình.
+                Xử lý từng yêu cầu tour riêng, thanh toán, nhân viên phụ trách và lịch trình dành riêng cho đoàn.
               </p>
             </div>
           </div>
@@ -155,7 +157,7 @@ export default function BookingPage() {
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           {[
-            { label: "Tổng đơn đặt tour", value: totalElements, Icon: TicketCheck },
+            { label: "Tổng đơn tour riêng", value: totalElements, Icon: TicketCheck },
             { label: "Chờ/Xác nhận", value: summary.confirmed, Icon: CalendarDays },
             { label: "Kiểm tra thanh toán", value: summary.pendingPayment, Icon: CreditCard },
             { label: "Tour riêng trong trang", value: summary.privateDepartures, Icon: ShieldCheck },
@@ -228,11 +230,11 @@ export default function BookingPage() {
             </div>
           ) : bookings.length === 0 ? (
             <div className="py-20 text-center font-semibold text-slate-500">
-              Chưa có đơn đặt tour phù hợp.
+              Chưa có đơn tour riêng phù hợp.
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1180px] text-left text-sm">
+              <table className="admin-responsive-table admin-wide-table w-full text-left text-sm">
                 <thead className="bg-slate-50 text-xs font-black uppercase tracking-wider text-slate-500">
                   <tr>
                     <th className="px-5 py-4">Đơn đặt tour</th>
@@ -248,19 +250,19 @@ export default function BookingPage() {
                 <tbody className="divide-y divide-slate-100">
                   {bookings.map((booking) => (
                     <tr key={booking.id} className="align-top transition hover:bg-slate-50">
-                      <td className="px-5 py-4">
+                      <td data-label="Đơn đặt tour" className="px-5 py-4">
                         <div className="font-black text-slate-950">{booking.bookingCode}</div>
                         <div className="mt-1 text-xs font-semibold text-slate-500">
                           #{booking.id}
                         </div>
                       </td>
-                      <td className="px-5 py-4">
+                      <td data-label="Khách hàng" className="px-5 py-4">
                         <div className="font-bold text-slate-900">{booking.customerName}</div>
                         <div className="mt-1 text-xs font-semibold text-slate-500">
                           {booking.phone || booking.email || "Chưa có liên hệ"}
                         </div>
                       </td>
-                      <td className="px-5 py-4">
+                      <td data-label="Tour & lịch" className="px-5 py-4">
                         <div className="max-w-[240px] font-bold text-slate-900">{booking.tourName}</div>
                         <div className="mt-2 flex flex-wrap items-center gap-2">
                           <DepartureTypeBadge booking={booking} />
@@ -274,16 +276,16 @@ export default function BookingPage() {
                           </div>
                         )}
                       </td>
-                      <td className="px-5 py-4">
+                      <td data-label="Số khách" className="px-5 py-4">
                         <div className="font-black">{booking.totalPeople || 0}</div>
                         <div className="mt-1 text-xs text-slate-500">
                           NL {booking.adultCount || 0} · TE {booking.childCount || 0}
                         </div>
                       </td>
-                      <td className="px-5 py-4 font-black text-amber-700">
+                      <td data-label="Tổng tiền" className="px-5 py-4 font-black text-amber-700">
                         {formatCurrency(booking.totalPrice)}
                       </td>
-                      <td className="px-5 py-4">
+                      <td data-label="Trạng thái" className="px-5 py-4">
                         <div className="space-y-2">
                           <Badge meta={getMeta(statusMeta, booking.status)} />
                           {booking.scheduleNeedsReview && (
@@ -298,10 +300,10 @@ export default function BookingPage() {
                           )}
                         </div>
                       </td>
-                      <td className="px-5 py-4">
+                      <td data-label="Thanh toán" className="px-5 py-4">
                         <Badge meta={getMeta(paymentMeta, booking.paymentStatus)} />
                       </td>
-                      <td className="px-5 py-4">
+                      <td data-label="Thao tác" className="px-5 py-4">
                         <div className="flex flex-wrap gap-2">
                           <Link
                             to={`/admin/bookings/${booking.id}`}

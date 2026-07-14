@@ -93,11 +93,13 @@ const formatMonthLabel = (value) => {
 };
 
 const formatDepartureLocation = (value) =>
-  String(value || "").trim().toUpperCase() === "HN" ? "Sài Gòn" : value;
+  String(value || "").trim().toUpperCase() === "HN" ? "Hà Nội" : value;
 
 export default function TourListPage() {
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
   const [keyword, setKeyword] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
@@ -108,6 +110,7 @@ export default function TourListPage() {
     const loadTours = async () => {
       try {
         setLoading(true);
+        setLoadError("");
 
         const firstResponse = await getPublicTours({
           page: 0,
@@ -139,16 +142,16 @@ export default function TourListPage() {
           ),
         ]);
       } catch (error) {
-        toast.error(
-          error?.response?.data?.message || "Không thể tải danh sách tour",
-        );
+        const message = error?.response?.data?.message || "Không thể tải danh sách tour";
+        setLoadError(message);
+        toast.error(message);
       } finally {
         setLoading(false);
       }
     };
 
     loadTours();
-  }, []);
+  }, [reloadKey]);
 
   const departureLocations = useMemo(
     () =>
@@ -772,7 +775,20 @@ export default function TourListPage() {
                 </p>
               </div>
             </div>
-          ) : tours.length === 0 ? (
+          ) : loadError ? (
+            <div className="mt-10 rounded-2xl border border-rose-300/25 bg-rose-300/[0.07] py-16 text-center" role="alert">
+              <RefreshCcw size={30} className="mx-auto text-rose-200" />
+              <p className="mt-4 text-lg font-black text-white">Chưa tải được danh sách tour</p>
+              <p className="mx-auto mt-2 max-w-lg px-4 text-sm leading-6 text-slate-300">{loadError}</p>
+              <button
+                type="button"
+                onClick={() => setReloadKey((value) => value + 1)}
+                className="btn-outline mt-6 text-sm"
+              >
+                <RefreshCcw size={16} /> Thử tải lại
+              </button>
+            </div>
+          ) : visibleTours.length === 0 ? (
             <div className="mt-10 rounded-2xl border border-white/10 bg-white/[0.04] py-20 text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#7FB77E]/10 text-[#9de09c]">
                 <Search size={28} />

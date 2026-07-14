@@ -150,7 +150,7 @@ export default function PaymentPage() {
       localStorage.removeItem("booking_temp_form");
       localStorage.removeItem("booking_temp_complete");
 
-      toast.success("Đặt tour và ghi nhận thanh toán thành công!");
+      toast.success("Đơn và lựa chọn thanh toán đã được ghi nhận, đang chờ kiểm tra.");
       navigate(`/thank-you?bookingId=${bookingId}`);
     } catch (error) {
       console.error("Booking Error:", error);
@@ -361,7 +361,7 @@ export default function PaymentPage() {
               <div className="rounded-2xl border border-[#7FB77E]/30 bg-gradient-to-br from-[#7FB77E]/10 via-[#020617]/40 to-[#A67C52]/10 p-5">
                 <h3 className="text-base font-black text-white mb-4 flex items-center gap-2">
                   <QrCode size={20} className="text-[#9de09c]" />
-                  Cổng thanh toán tự động VietQR (Napas)
+                  QR hỗ trợ chuyển khoản thủ công
                 </h3>
 
                 <div className="grid gap-6 md:grid-cols-5 items-center">
@@ -417,7 +417,7 @@ export default function PaymentPage() {
 
                     <div className="bg-white/[0.04] p-3 rounded-lg border border-white/5 space-y-1.5 text-xs text-slate-300">
                       <p className="font-bold text-white flex items-center gap-1">
-                        <CreditCard size={13} className="text-[#d4a878]" /> Bước 2: Kiểm tra nội dung chuyển khoản tự động
+                        <CreditCard size={13} className="text-[#d4a878]" /> Bước 2: Kiểm tra nội dung chuyển khoản
                       </p>
                       <p>Hệ thống tự điền nội dung: <span className="bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-mono font-bold text-xs">{transferDesc}</span></p>
                     </div>
@@ -427,8 +427,11 @@ export default function PaymentPage() {
                 <div className="mt-5 rounded-lg bg-[#7FB77E]/10 border border-[#7FB77E]/30 p-3 text-xs text-slate-300 flex items-start gap-2">
                   <CheckCircle2 size={16} className="text-[#9de09c] shrink-0 mt-0.5" />
                   <p>
-                    <strong>Hướng dẫn:</strong> Mở ứng dụng ngân hàng của bạn, chọn chức năng <strong>Quét mã QR</strong> để tự động điền thông tin tài khoản, số tiền <strong>{formatCurrency(currentPaymentAmount)}</strong> và nội dung mà không cần nhập tay.
+                    <strong>Hướng dẫn:</strong> QR chỉ hỗ trợ điền tài khoản, số tiền <strong>{formatCurrency(currentPaymentAmount)}</strong> và nội dung. Giao dịch không được xác nhận tự động; bộ phận vận hành sẽ kiểm tra và cập nhật trạng thái thủ công.
                   </p>
+                </div>
+                <div className="mt-3 rounded-lg border border-sky-300/25 bg-sky-300/10 p-3 text-xs leading-6 text-sky-100">
+                  Đây là luồng thanh toán mô phỏng. Không chuyển tiền thật vào tài khoản mẫu.
                 </div>
               </div>
 
@@ -440,12 +443,12 @@ export default function PaymentPage() {
                 {submitting ? (
                   <>
                     <Loader2 size={20} className="animate-spin" />
-                    Đang xử lý tạo đơn và đồng bộ thanh toán...
+                    Đang gửi đơn và lựa chọn thanh toán...
                   </>
                 ) : (
                   <>
                     <Send size={18} />
-                    Xác nhận đã chuyển khoản & Đặt tour
+                    Gửi xác nhận chuyển khoản & đặt tour
                   </>
                 )}
               </button>

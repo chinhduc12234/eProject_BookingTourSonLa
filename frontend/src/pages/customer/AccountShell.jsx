@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 
 import PublicLayout from "../public/PublicLayout";
+import { scenicImages } from "../public/publicContent";
 
 const navItems = [
   { to: "/tai-khoan", label: "Tổng quan", Icon: LayoutDashboard },
@@ -25,8 +26,18 @@ export default function AccountShell({
     <PublicLayout>
       <section className="account-shell min-h-[calc(100vh-80px)] bg-[#020617] py-10 sm:py-14">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.07] via-white/[0.03] to-[#7FB77E]/10">
-            <div className="grid gap-5 p-5 sm:p-7 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div className="account-hero relative isolate overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.07] via-white/[0.03] to-[#7FB77E]/10">
+            <div className="account-hero-art absolute inset-y-0 right-0 w-full sm:w-[58%]" aria-hidden="true">
+              <img
+                src={scenicImages.sonLaLandscape}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#07110e] via-[#07110e]/80 to-[#07110e]/15" />
+            </div>
+            <div className="relative z-10 grid gap-5 p-5 sm:p-7 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
                 <span className="section-tag">
                   <ShieldCheck size={12} /> Tài khoản khách hàng
@@ -43,7 +54,7 @@ export default function AccountShell({
               {actions && <div className="flex flex-wrap gap-3">{actions}</div>}
             </div>
 
-            <nav className="flex gap-2 overflow-x-auto border-t border-white/10 px-5 py-3 sm:px-7">
+            <nav className="relative z-10 flex gap-2 overflow-x-auto border-t border-white/10 bg-[#020617]/35 px-5 py-3 backdrop-blur-md sm:px-7">
               {navItems.map(({ to, label, Icon }) => (
                 <NavLink
                   key={to}

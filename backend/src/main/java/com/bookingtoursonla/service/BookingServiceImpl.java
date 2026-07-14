@@ -38,6 +38,7 @@ import com.bookingtoursonla.dto.BookingScheduleDayResponse;
 import com.bookingtoursonla.dto.BookingStaffAssignmentResponse;
 import com.bookingtoursonla.dto.CancelBookingRequest;
 import com.bookingtoursonla.dto.CreateBookingRequest;
+import com.bookingtoursonla.dto.GroupTourDepartureResponse;
 import com.bookingtoursonla.dto.PayBookingRequest;
 import com.bookingtoursonla.dto.TourImageDto;
 import com.bookingtoursonla.dto.UpdateBookingScheduleActivityRequest;
@@ -176,6 +177,15 @@ public class BookingServiceImpl implements BookingService {
 
         Tour tour = departure.getTour();
 
+        recalculateDepartureCapacity(departure);
+
+        BookingType bookingType = parseBookingType(request.getBookingType());
+        validateBookingTypeInfo(bookingType, request);
+
+        boolean groupTourBooking = isGroupTourBooking(bookingType, departure);
+        boolean groupAlreadyConfirmed = groupTourBooking
+                && isGroupAlreadyConfirmed(departure.getId());
+
         validateBookableDeparture(tour, departure, totalPeople);
 
         BigDecimal adultPrice = departure.getAdultPrice() != null
@@ -189,9 +199,6 @@ public class BookingServiceImpl implements BookingService {
         BigDecimal totalPrice = adultPrice
                 .multiply(BigDecimal.valueOf(adultCount))
                 .add(childPrice.multiply(BigDecimal.valueOf(childCount)));
-
-        BookingType bookingType = parseBookingType(request.getBookingType());
-        validateBookingTypeInfo(bookingType, request);
 
         Booking booking = new Booking();
 
@@ -213,14 +220,23 @@ public class BookingServiceImpl implements BookingService {
         booking.setTotalPrice(totalPrice);
         booking.setNote(trimToNull(request.getNote()));
         booking.setSpecialRequest(trimToNull(request.getSpecialRequest()));
-        applyBookingStatusTransition(booking, BookingStatus.PENDING, null);
+        booking.setStatus(null);
+        applyBookingStatusTransition(
+                booking,
+                groupAlreadyConfirmed ? BookingStatus.CONFIRMED : BookingStatus.PENDING,
+                null);
         booking.setRefundedAmount(BigDecimal.ZERO);
         applySimulatedPayment(booking, request);
 
-        Booking saved = bookingRepository.save(booking);
+        Booking saved = bookingRepository.saveAndFlush(booking);
+
+        if (groupTourBooking) {
+            inheritGroupStaffAssignment(saved);
+        }
 
         saveBookingCustomers(saved, request);
         snapshotBookingSchedule(saved, tour);
+        autoConfirmGroupWhenFull(departure);
         eventPublisher.publishEvent(new BookingCreatedEvent(saved.getId()));
 
         return mapToResponse(saved);
@@ -351,6 +367,7 @@ public class BookingServiceImpl implements BookingService {
                     "Thanh toán đang chờ xét duyệt, vui lòng chờ admin xử lý trước khi hủy đặt lịch");
         }
 
+        recalculateDepartureCapacity(booking.getTourDeparture());
         applyBookingStatusTransition(booking, BookingStatus.CANCELLED, null);
         applyCancellationPaymentPolicy(booking);
 
@@ -390,7 +407,7 @@ public class BookingServiceImpl implements BookingService {
         String normalizedKeyword = isBlank(keyword) ? null : keyword.trim();
 
         return bookingRepository
-                .searchAdminBookings(
+                .searchAdminPrivateBookings(
                         normalizedKeyword,
                         bookingStatus,
                         payStatus,
@@ -405,6 +422,8 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository
                 .findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
+
+        ensurePrivateBooking(booking);
 
         List<BookingCustomer> customers = bookingCustomerRepository
                 .findByBookingIdOrderByIdAsc(booking.getId());
@@ -426,6 +445,9 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository
                 .findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
+
+        ensurePrivateBooking(booking);
+        recalculateDepartureCapacity(booking.getTourDeparture());
 
         List<BookingEmployee> currentAssignments = null;
         List<BookingStaffAssignmentRequest> assignedStaffMembers = resolveAssignedStaffAssignments(request);
@@ -482,6 +504,88 @@ public class BookingServiceImpl implements BookingService {
                 .findByBookingIdOrderByIdAsc(saved.getId());
 
         return mapToDetailResponse(saved, customers);
+    }
+
+    @Override
+    @Transactional
+    public Page<GroupTourDepartureResponse> getAdminGroupTours(
+            int page,
+            int size,
+            String keyword) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        String normalizedKeyword = isBlank(keyword) ? null : keyword.trim();
+
+        return bookingRepository
+                .searchAdminGroupDepartures(normalizedKeyword, pageable)
+                .map(this::mapGroupTourResponse);
+    }
+
+    @Override
+    @Transactional
+    public GroupTourDepartureResponse assignGroupTourStaff(
+            Long departureId,
+            Long employeeId) {
+
+        TourDeparture departure = tourDepartureRepository
+                .findByIdForUpdate(departureId)
+                .orElseThrow(() -> new RuntimeException("Lịch khởi hành không tồn tại"));
+
+        ensureGroupDeparture(departure);
+
+        User employee = requireActiveStaff(employeeId);
+        List<Booking> activeBookings = loadActiveGroupBookings(departureId);
+
+        if (activeBookings.isEmpty()) {
+            throw new RuntimeException("Tour ghép chưa có booking đang hoạt động để phân công");
+        }
+
+        BookingStaffAssignmentRequest assignment = new BookingStaffAssignmentRequest();
+        assignment.setEmployeeId(employee.getId());
+        assignment.setRoleInTrip("GUIDE");
+
+        for (Booking booking : activeBookings) {
+            syncAssignedStaffMembers(booking, List.of(assignment));
+        }
+
+        return mapGroupTourResponse(departure);
+    }
+
+    @Override
+    @Transactional
+    public GroupTourDepartureResponse confirmGroupTour(
+            Long departureId,
+            String adminEmail) {
+
+        TourDeparture departure = tourDepartureRepository
+                .findByIdForUpdate(departureId)
+                .orElseThrow(() -> new RuntimeException("Lịch khởi hành không tồn tại"));
+
+        ensureGroupDeparture(departure);
+        recalculateDepartureCapacity(departure);
+
+        List<Booking> activeBookings = loadActiveGroupBookings(departureId);
+
+        if (activeBookings.isEmpty()) {
+            throw new RuntimeException("Tour ghép chưa có booking đang hoạt động để xác nhận");
+        }
+
+        List<Booking> confirmedBookings = new ArrayList<>();
+
+        for (Booking booking : activeBookings) {
+            if (booking.getStatus() == BookingStatus.PENDING) {
+                applyBookingStatusTransition(booking, BookingStatus.CONFIRMED, adminEmail);
+                confirmedBookings.add(booking);
+            }
+        }
+
+        bookingRepository.saveAll(confirmedBookings);
+
+        confirmedBookings.forEach(booking ->
+                eventPublisher.publishEvent(new BookingAdminConfirmedEvent(booking.getId())));
+
+        return mapGroupTourResponse(departure);
     }
 
     @Override
@@ -1075,6 +1179,198 @@ public class BookingServiceImpl implements BookingService {
             return customName;
         }
         return activity.getLocation() != null ? activity.getLocation().getName() : null;
+    }
+
+    private GroupTourDepartureResponse mapGroupTourResponse(
+            TourDeparture departure) {
+
+        recalculateDepartureCapacity(departure);
+
+        List<Booking> groupBookings = bookingRepository
+                .findGroupBookingsByDepartureId(departure.getId());
+        List<Booking> activeBookings = groupBookings
+                .stream()
+                .filter(booking -> booking.getStatus() != BookingStatus.CANCELLED)
+                .toList();
+
+        int occupiedPeople = valueOrZero(departure.getCurrentPeople())
+                + valueOrZero(departure.getReservedPeople());
+        int maxPeople = valueOrZero(departure.getMaxPeople());
+        long pendingBookings = activeBookings
+                .stream()
+                .filter(booking -> booking.getStatus() == BookingStatus.PENDING)
+                .count();
+        long confirmedBookings = activeBookings
+                .stream()
+                .filter(booking -> booking.getStatus() != BookingStatus.PENDING)
+                .count();
+
+        GroupTourDepartureResponse response = new GroupTourDepartureResponse();
+        response.setDepartureId(departure.getId());
+        response.setTourId(departure.getTour().getId());
+        response.setTourName(departure.getTour().getTitle());
+        response.setDepartureDate(departure.getDepartureDate());
+        response.setDepartureTime(departure.getDepartureTime());
+        response.setCapacityStatus(departure.getStatus().name());
+        response.setGroupStatus(resolveGroupStatus(activeBookings));
+        response.setMaxPeople(maxPeople);
+        response.setOccupiedPeople(occupiedPeople);
+        response.setAvailableSeats(Math.max(0, maxPeople - occupiedPeople));
+        response.setBookingCount(activeBookings.size());
+        response.setPendingBookingCount((int) pendingBookings);
+        response.setConfirmedBookingCount((int) confirmedBookings);
+        response.setBookings(groupBookings.stream().map(this::mapToResponse).toList());
+
+        List<BookingEmployee> assignments = bookingEmployeeRepository
+                .findGroupAssignmentsByDepartureId(departure.getId());
+
+        if (!assignments.isEmpty()) {
+            User employee = assignments.get(0).getEmployee();
+            response.setAssignedStaffId(employee.getId());
+            response.setAssignedStaffName(employee.getFullName());
+            response.setAssignedStaffEmail(employee.getEmail());
+            response.setAssignedStaffPhone(employee.getPhone());
+        }
+
+        return response;
+    }
+
+    private String resolveGroupStatus(List<Booking> activeBookings) {
+
+        if (activeBookings.isEmpty()) {
+            return "CANCELLED";
+        }
+
+        if (activeBookings.stream().allMatch(
+                booking -> booking.getStatus() == BookingStatus.COMPLETED)) {
+            return "COMPLETED";
+        }
+
+        if (activeBookings.stream().anyMatch(
+                booking -> booking.getStatus() == BookingStatus.IN_PROGRESS)) {
+            return "IN_PROGRESS";
+        }
+
+        if (activeBookings.stream().anyMatch(
+                booking -> booking.getStatus() == BookingStatus.PENDING)) {
+            return "WAITING";
+        }
+
+        return "CONFIRMED";
+    }
+
+    private List<Booking> loadActiveGroupBookings(Long departureId) {
+        return bookingRepository
+                .findGroupBookingsByDepartureId(departureId)
+                .stream()
+                .filter(booking -> booking.getStatus() != BookingStatus.CANCELLED)
+                .toList();
+    }
+
+    private boolean isGroupAlreadyConfirmed(Long departureId) {
+        List<Booking> activeBookings = loadActiveGroupBookings(departureId);
+
+        return !activeBookings.isEmpty()
+                && activeBookings.stream().allMatch(
+                        booking -> booking.getStatus() == BookingStatus.CONFIRMED);
+    }
+
+    private void inheritGroupStaffAssignment(Booking booking) {
+        List<BookingEmployee> assignments = bookingEmployeeRepository
+                .findGroupAssignmentsByDepartureId(booking.getTourDeparture().getId());
+
+        if (assignments.isEmpty()) {
+            return;
+        }
+
+        BookingEmployee template = assignments.get(0);
+        BookingStaffAssignmentRequest assignment = new BookingStaffAssignmentRequest();
+        assignment.setEmployeeId(template.getEmployee().getId());
+        assignment.setRoleInTrip(template.getRoleInTrip());
+        assignment.setNote(template.getNote());
+        syncAssignedStaffMembers(booking, List.of(assignment));
+    }
+
+    private void autoConfirmGroupWhenFull(TourDeparture departure) {
+
+        if (Boolean.TRUE.equals(departure.getIsPrivateDeparture())) {
+            return;
+        }
+
+        int occupiedPeople = valueOrZero(departure.getCurrentPeople())
+                + valueOrZero(departure.getReservedPeople());
+
+        if (occupiedPeople < valueOrZero(departure.getMaxPeople())) {
+            return;
+        }
+
+        List<Booking> newlyConfirmed = new ArrayList<>();
+
+        for (Booking booking : loadActiveGroupBookings(departure.getId())) {
+            if (booking.getStatus() == BookingStatus.PENDING) {
+                applyBookingStatusTransition(booking, BookingStatus.CONFIRMED, null);
+                newlyConfirmed.add(booking);
+            }
+        }
+
+        bookingRepository.saveAll(newlyConfirmed);
+        newlyConfirmed.forEach(booking ->
+                eventPublisher.publishEvent(new BookingAdminConfirmedEvent(booking.getId())));
+    }
+
+    private void recalculateDepartureCapacity(TourDeparture departure) {
+        List<Booking> activeBookings = bookingRepository
+                .findActiveBookingsByDepartureId(departure.getId());
+
+        int reservedPeople = activeBookings
+                .stream()
+                .filter(booking -> booking.getStatus() == BookingStatus.PENDING)
+                .mapToInt(booking -> valueOrZero(booking.getTotalPeople()))
+                .sum();
+        int currentPeople = activeBookings
+                .stream()
+                .filter(booking -> booking.getStatus() == BookingStatus.CONFIRMED
+                        || booking.getStatus() == BookingStatus.IN_PROGRESS
+                        || booking.getStatus() == BookingStatus.COMPLETED)
+                .mapToInt(booking -> valueOrZero(booking.getTotalPeople()))
+                .sum();
+
+        departure.setReservedPeople(reservedPeople);
+        departure.setCurrentPeople(currentPeople);
+
+        if (departure.getStatus() != DepartureStatus.CLOSED) {
+            departure.setStatus(
+                    currentPeople + reservedPeople >= valueOrZero(departure.getMaxPeople())
+                            ? DepartureStatus.FULL
+                            : DepartureStatus.OPEN);
+        }
+
+        tourDepartureRepository.save(departure);
+    }
+
+    private boolean isGroupTourBooking(
+            BookingType bookingType,
+            TourDeparture departure) {
+        return bookingType != BookingType.PRIVATE
+                && !Boolean.TRUE.equals(departure.getIsPrivateDeparture());
+    }
+
+    private boolean isPrivateBooking(Booking booking) {
+        return booking.getBookingType() == BookingType.PRIVATE
+                || Boolean.TRUE.equals(booking.getTourDeparture().getIsPrivateDeparture());
+    }
+
+    private void ensurePrivateBooking(Booking booking) {
+        if (!isPrivateBooking(booking)) {
+            throw new RuntimeException(
+                    "Booking tour ghép phải được xử lý trong mục Quản lý tour ghép");
+        }
+    }
+
+    private void ensureGroupDeparture(TourDeparture departure) {
+        if (Boolean.TRUE.equals(departure.getIsPrivateDeparture())) {
+            throw new RuntimeException("Lịch khởi hành này thuộc tour riêng");
+        }
     }
 
     private void applyBookingStatusTransition(

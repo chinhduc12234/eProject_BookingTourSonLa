@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Award, HeartHandshake, Sparkles, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import PublicLayout from "./PublicLayout";
-import { companyStats, companyValues, scenicGallery, scenicImages, teamGroups } from "./publicContent";
+import { companyPillars, companyValues, scenicGallery, scenicImages, teamGroups } from "./publicContent";
 
 const fadeUp = {
     hidden: { opacity: 0, y: 20 },
@@ -58,9 +58,8 @@ export default function AboutPage() {
                         variants={fadeUp}
                         className="mt-6 max-w-3xl text-lg leading-8 text-slate-200"
                     >
-                        Chúng tôi xây dựng nền tảng đặt tour dựa trên kinh nghiệm điều hành
-                        thực địa, mạng lưới đối tác địa phương và cách tư vấn gần với nhu cầu
-                        thật của khách hàng.
+                        Nền tảng kết nối thông tin tour, lịch khởi hành và quy trình đặt chỗ
+                        trong một luồng rõ ràng, đồng thời giới thiệu cảnh sắc và văn hóa Sơn La.
                     </motion.p>
 
                     <motion.div
@@ -81,7 +80,7 @@ export default function AboutPage() {
                 </div>
             </section>
 
-            {/* STATS */}
+            {/* OPERATING PRINCIPLES */}
             <section className="relative bg-gradient-to-b from-[#f7faf6] via-[#eef6ed] to-[#f7faf6] py-20 text-slate-900">
                 <div className="absolute inset-0 bg-dots-fade opacity-40" />
                 <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -93,16 +92,16 @@ export default function AboutPage() {
                         className="text-center max-w-2xl mx-auto"
                     >
                         <span className="section-tag-light mx-auto">
-                            <Award size={12} /> Con số dẫn dắt
+                            <Award size={12} /> Nguyên tắc vận hành
                         </span>
                         <h2 className="mt-4 text-4xl font-black leading-tight sm:text-5xl">
-                            Hành trình{" "}
-                            <span className="text-gradient-green">Tây Bắc Travel</span>
+                            Ba điểm tựa cho một hành trình{" "}
+                            <span className="text-gradient-green">dễ theo dõi</span>
                         </h2>
                     </motion.div>
 
                     <div className="mt-12 grid gap-6 md:grid-cols-3">
-                        {companyStats.map((item, idx) => (
+                        {companyPillars.map((item, idx) => (
                             <motion.div
                                 key={item.label}
                                 initial={{ opacity: 0, y: 24 }}
@@ -113,10 +112,10 @@ export default function AboutPage() {
                                 className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-8 shadow-sm transition-all hover:border-[#7FB77E]/50 hover:shadow-soft-green"
                             >
                                 <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-gradient-to-br from-[#7FB77E]/25 to-[#A67C52]/15 blur-xl transition-all duration-500 group-hover:scale-150" />
-                                <div className="relative text-5xl font-black text-gradient-green">
+                                <div className="relative text-2xl font-black text-gradient-green">
                                     {item.value}
                                 </div>
-                                <p className="relative mt-4 text-sm font-bold uppercase tracking-wider text-slate-600">
+                                <p className="relative mt-4 text-sm font-semibold leading-7 text-slate-600">
                                     {item.label}
                                 </p>
                             </motion.div>
@@ -188,8 +187,8 @@ export default function AboutPage() {
                                 bằng giữa trải nghiệm, an toàn và thời gian nghỉ ngơi.
                             </p>
                             <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-bold uppercase tracking-widest text-[#d4a878]">
-                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#9de09c]" />
-                                Mạng lưới đối tác địa phương
+                                <span className="h-1.5 w-1.5 rounded-full bg-[#9de09c]" />
+                                Tập trung vào hành trình Sơn La
                             </div>
                         </motion.div>
 
@@ -271,7 +270,7 @@ export default function AboutPage() {
                                     {item.desc}
                                 </p>
                                 <div className="mt-5 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#4f8f4d] transition-all group-hover:translate-x-1">
-                                    Tìm hiểu thêm <ArrowRight size={14} />
+                                    Nhóm vận hành <ArrowRight size={14} />
                                 </div>
                             </motion.article>
                         ))}
@@ -303,8 +302,8 @@ export default function AboutPage() {
                                     </span>
                                 </h2>
                                 <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300">
-                                    Gửi nhu cầu - đội ngũ Tây Bắc Travel sẽ phản hồi với lịch trình
-                                    mẫu, báo giá minh bạch và phương án dự phòng phù hợp.
+                                    Gửi nhu cầu để đội ngũ đối chiếu tour đang mở bán và trao đổi
+                                    lịch trình, chi phí cùng các phương án phù hợp.
                                 </p>
                             </div>
                             <div className="flex flex-col gap-3 sm:flex-row md:flex-col md:items-end">

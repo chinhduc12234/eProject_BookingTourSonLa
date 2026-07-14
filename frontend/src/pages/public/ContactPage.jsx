@@ -1,8 +1,7 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, MessageSquare, Send, Sparkles } from "lucide-react";
+import { MessageSquare, Send, Sparkles } from "lucide-react";
 import PublicLayout from "./PublicLayout";
-import { contactCards, scenicImages, supportTopics } from "./publicContent";
+import { brand, contactCards, scenicImages, supportTopics } from "./publicContent";
 
 const fadeUp = {
     hidden: { opacity: 0, y: 20 },
@@ -14,11 +13,20 @@ const fadeUp = {
 };
 
 export default function ContactPage() {
-    const [sent, setSent] = useState(false);
-
     function handleSubmit(event) {
         event.preventDefault();
-        setSent(true);
+        const form = new FormData(event.currentTarget);
+        const subject = encodeURIComponent(`Yêu cầu tư vấn tour từ ${form.get("name")}`);
+        const body = encodeURIComponent([
+            `Họ tên: ${form.get("name")}`,
+            `Số điện thoại: ${form.get("phone")}`,
+            `Email: ${form.get("email")}`,
+            "",
+            "Nhu cầu:",
+            form.get("message"),
+        ].join("\n"));
+
+        window.location.href = `mailto:${brand.email}?subject=${subject}&body=${body}`;
     }
 
     return (
@@ -56,11 +64,8 @@ export default function ContactPage() {
                             </p>
 
                             <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-bold uppercase tracking-widest text-[#d4a878]">
-                                <span className="relative flex h-2 w-2">
-                                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#9de09c] opacity-75" />
-                                    <span className="relative inline-flex h-2 w-2 rounded-full bg-[#7FB77E]" />
-                                </span>
-                                Phản hồi trong 24 giờ
+                                <span className="h-2 w-2 rounded-full bg-[#7FB77E]" />
+                                Kênh tư vấn hành trình Sơn La
                             </div>
                         </motion.div>
 
@@ -124,7 +129,7 @@ export default function ContactPage() {
                             <div>
                                 <h2 className="text-2xl font-black">Gửi yêu cầu tư vấn</h2>
                                 <p className="text-sm text-slate-500">
-                                    Đội tư vấn phản hồi trong 24 giờ làm việc
+                                    Biểu mẫu sẽ mở ứng dụng email của bạn
                                 </p>
                             </div>
                         </div>
@@ -135,6 +140,9 @@ export default function ContactPage() {
                                     Họ và tên
                                 </span>
                                 <input
+                                    name="name"
+                                    autoComplete="name"
+                                    required
                                     className="field-input-light mt-2"
                                     placeholder="Nguyễn Văn A"
                                 />
@@ -144,6 +152,10 @@ export default function ContactPage() {
                                     Số điện thoại
                                 </span>
                                 <input
+                                    name="phone"
+                                    type="tel"
+                                    autoComplete="tel"
+                                    required
                                     className="field-input-light mt-2"
                                     placeholder="09xx xxx xxx"
                                 />
@@ -153,7 +165,10 @@ export default function ContactPage() {
                                     Email
                                 </span>
                                 <input
+                                    name="email"
                                     type="email"
+                                    autoComplete="email"
+                                    required
                                     className="field-input-light mt-2"
                                     placeholder="email@example.com"
                                 />
@@ -163,6 +178,8 @@ export default function ContactPage() {
                                     Nhu cầu của bạn
                                 </span>
                                 <textarea
+                                    name="message"
+                                    required
                                     className="mt-2 min-h-32 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-[#7FB77E] focus:ring-4 focus:ring-[#7FB77E]/15"
                                     placeholder="Ví dụ: Gia đình 4 người muốn đi Mộc Châu 3 ngày 2 đêm vào tháng 12..."
                                 />
@@ -173,20 +190,9 @@ export default function ContactPage() {
                             type="submit"
                             className="btn-primary relative mt-6 w-full text-sm sm:w-auto"
                         >
-                            Gửi yêu cầu
+                            Mở email để gửi
                             <Send size={16} />
                         </button>
-
-                        {sent && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 12, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                className="mt-5 inline-flex items-center gap-3 rounded-xl border border-[#7FB77E]/40 bg-[#edf7ec] px-4 py-3 text-sm font-bold text-[#4f8f4d]"
-                            >
-                                <CheckCircle2 size={18} />
-                                Yêu cầu đã được ghi nhận trên giao diện. Chúng tôi sẽ liên hệ sớm.
-                            </motion.div>
-                        )}
                     </motion.form>
 
                     <motion.div
@@ -231,9 +237,9 @@ export default function ContactPage() {
                             >
                                 <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent" />
                                 <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2 rounded-xl bg-[#020617]/80 px-3 py-2 backdrop-blur-md">
-                                    <span className="h-2 w-2 animate-pulse rounded-full bg-[#9de09c]" />
+                                    <span className="h-2 w-2 rounded-full bg-[#9de09c]" />
                                     <span className="text-xs font-bold text-white">
-                                        Văn phòng Sơn La đang mở cửa
+                                        Kênh tư vấn tại Sơn La
                                     </span>
                                 </div>
                             </div>

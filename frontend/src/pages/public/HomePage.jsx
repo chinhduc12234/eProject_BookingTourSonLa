@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import {
@@ -9,6 +9,9 @@ import {
     Compass,
     Loader2,
     MapPin,
+    Pause,
+    Play,
+    RefreshCcw,
     Search,
     Sparkles,
 } from "lucide-react";
@@ -18,7 +21,7 @@ import PublicLayout from "./PublicLayout";
 import {
     destinationGroups,
     heroSlides,
-    heroStats,
+    heroPromises,
     quickSearch,
     scenicGallery,
     scenicImages,
@@ -50,23 +53,49 @@ const marqueeWords = [
 export default function HomePage() {
     const [featuredTours, setFeaturedTours] = useState([]);
     const [featuredLoading, setFeaturedLoading] = useState(false);
+    const [featuredError, setFeaturedError] = useState("");
+    const [featuredReloadKey, setFeaturedReloadKey] = useState(0);
     const [heroIndex, setHeroIndex] = useState(0);
+    const [heroManualPaused, setHeroManualPaused] = useState(false);
+    const [heroHovered, setHeroHovered] = useState(false);
+    const touchStartX = useRef(null);
     const reduceMotion = useReducedMotion();
+    const heroPaused = heroManualPaused || heroHovered;
 
     useEffect(() => {
-        if (reduceMotion) return undefined;
+        if (reduceMotion || heroPaused) return undefined;
 
-        const interval = setInterval(
+        const timeout = setTimeout(
             () => setHeroIndex((idx) => (idx + 1) % heroSlides.length),
-            6500,
+            7000,
         );
-        return () => clearInterval(interval);
-    }, [reduceMotion]);
+        return () => clearTimeout(timeout);
+    }, [heroIndex, heroPaused, reduceMotion]);
+
+    const showPreviousHero = () => {
+        setHeroIndex((current) => (current - 1 + heroSlides.length) % heroSlides.length);
+    };
+
+    const showNextHero = () => {
+        setHeroIndex((current) => (current + 1) % heroSlides.length);
+    };
+
+    const handleHeroTouchEnd = (event) => {
+        if (touchStartX.current === null) return;
+
+        const distance = event.changedTouches[0].clientX - touchStartX.current;
+        touchStartX.current = null;
+        if (Math.abs(distance) < 48) return;
+
+        if (distance > 0) showPreviousHero();
+        else showNextHero();
+    };
 
     useEffect(() => {
         const loadFeaturedTours = async () => {
             try {
                 setFeaturedLoading(true);
+                setFeaturedError("");
 
                 const response = await getPublicTours({
                     page: 0,
@@ -75,27 +104,43 @@ export default function HomePage() {
                 });
 
                 setFeaturedTours(response.data.content || []);
-            } catch {
+            } catch (error) {
                 setFeaturedTours([]);
+                setFeaturedError(
+                    error?.response?.data?.message || "Chưa tải được tour đang mở bán.",
+                );
             } finally {
                 setFeaturedLoading(false);
             }
         };
 
         loadFeaturedTours();
-    }, []);
+    }, [featuredReloadKey]);
 
     return (
         <PublicLayout>
             <div className="home-page">
             {/* HERO */}
-            <section className="home-hero relative overflow-hidden">
+            <section
+                className="home-hero relative overflow-hidden"
+                aria-roledescription="slideshow"
+                aria-label="Cảnh đẹp Sơn La"
+                onMouseEnter={() => setHeroHovered(true)}
+                onMouseLeave={() => setHeroHovered(false)}
+                onTouchStart={(event) => {
+                    touchStartX.current = event.touches[0].clientX;
+                }}
+                onTouchEnd={handleHeroTouchEnd}
+            >
                 {heroSlides.map((slide, idx) => (
                     <motion.img
                         key={slide.image}
                         src={slide.image}
                         alt={idx === heroIndex ? slide.alt : ""}
                         aria-hidden={idx !== heroIndex}
+                        loading={idx === 0 ? "eager" : "lazy"}
+                        fetchPriority={idx === 0 ? "high" : "auto"}
+                        decoding="async"
                         onError={(event) => {
                             event.currentTarget.onerror = null;
                             event.currentTarget.src = scenicImages.mocChauTea;
@@ -174,7 +219,9 @@ export default function HomePage() {
                             variants={fadeUp}
                             className="mt-8 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-3"
                         >
-                            {heroStats.map((item, idx) => (
+                            {heroPromises.map((item, idx) => {
+                                const Icon = item.icon;
+                                return (
                                 <motion.div
                                     key={item.label}
                                     whileHover={{ y: -4 }}
@@ -184,18 +231,16 @@ export default function HomePage() {
                                     ].join(" ")}
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-br from-[#7FB77E]/0 via-transparent to-[#A67C52]/0 opacity-0 transition-opacity duration-500 group-hover:from-[#7FB77E]/20 group-hover:to-[#A67C52]/15 group-hover:opacity-100" />
-                                    <div className="relative text-3xl font-black text-white">
-                                        {item.value}
+                                    <div className="relative flex items-center gap-2 text-sm font-black text-white">
+                                        <Icon size={18} className="text-[#9de09c]" aria-hidden="true" />
+                                        {item.title}
                                     </div>
-                                    <div className="relative mt-1 text-xs font-semibold uppercase tracking-wider text-[#d4a878]">
+                                    <div className="relative mt-2 text-xs font-semibold leading-5 text-[#d9c1a5]">
                                         {item.label}
                                     </div>
-                                    <span
-                                        className="absolute right-3 top-3 h-2 w-2 rounded-full bg-[#9de09c]"
-                                        style={{ animationDelay: `${idx * 0.4}s` }}
-                                    />
                                 </motion.div>
-                            ))}
+                                );
+                            })}
                         </motion.div>
 
                         {/* hero indicators */}
@@ -209,12 +254,20 @@ export default function HomePage() {
                                     aria-pressed={idx === heroIndex}
                                     onClick={() => setHeroIndex(idx)}
                                     className={[
-                                        "h-1.5 rounded-full transition-all",
+                                        "relative h-1.5 overflow-hidden rounded-full transition-all",
                                         idx === heroIndex
-                                            ? "w-10 bg-gradient-to-r from-[#9de09c] to-[#A67C52]"
+                                            ? "w-10 bg-white/25"
                                             : "w-4 bg-white/25 hover:bg-white/40",
                                     ].join(" ")}
-                                />
+                                >
+                                    {idx === heroIndex && (
+                                        <span
+                                            key={`${heroIndex}-${heroPaused}`}
+                                            className="hero-progress absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#9de09c] to-[#A67C52]"
+                                            data-paused={heroPaused || reduceMotion ? "true" : "false"}
+                                        />
+                                    )}
+                                </button>
                             ))}
                             </div>
                             <div className="h-4 w-px bg-white/20" />
@@ -224,11 +277,16 @@ export default function HomePage() {
                             <div className="ml-auto flex gap-2">
                                 <button
                                     type="button"
-                                    onClick={() =>
-                                        setHeroIndex((current) =>
-                                            (current - 1 + heroSlides.length) % heroSlides.length,
-                                        )
-                                    }
+                                    onClick={() => setHeroManualPaused((current) => !current)}
+                                    aria-label={heroManualPaused ? "Tiếp tục trình chiếu" : "Tạm dừng trình chiếu"}
+                                    aria-pressed={heroManualPaused}
+                                    className="hero-control"
+                                >
+                                    {heroManualPaused ? <Play size={16} /> : <Pause size={16} />}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={showPreviousHero}
                                     aria-label="Ảnh Tây Bắc trước"
                                     className="hero-control"
                                 >
@@ -236,9 +294,7 @@ export default function HomePage() {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() =>
-                                        setHeroIndex((current) => (current + 1) % heroSlides.length)
-                                    }
+                                    onClick={showNextHero}
                                     aria-label="Ảnh Tây Bắc tiếp theo"
                                     className="hero-control"
                                 >
@@ -423,8 +479,8 @@ export default function HomePage() {
                                 <span className="text-gradient-green">Tây Bắc</span>
                             </h2>
                             <p className="mt-3 max-w-xl text-sm leading-7 text-slate-400">
-                                Những lịch trình được chọn lọc dựa trên đánh giá thật và mùa
-                                khởi hành đẹp nhất trong năm.
+                                Dữ liệu tour đang mở bán được tải trực tiếp từ hệ thống để bạn
+                                xem lịch trình và ngày khởi hành hiện có.
                             </p>
                         </motion.div>
                         <Link
@@ -442,6 +498,17 @@ export default function HomePage() {
                     {featuredLoading ? (
                         <div className="mt-10 flex min-h-[260px] items-center justify-center">
                             <Loader2 className="h-10 w-10 animate-spin text-[#7FB77E]" />
+                        </div>
+                    ) : featuredError ? (
+                        <div className="mt-10 rounded-2xl border border-rose-300/25 bg-rose-300/[0.07] py-12 text-center text-slate-200" role="alert">
+                            <p className="font-bold">{featuredError}</p>
+                            <button
+                                type="button"
+                                onClick={() => setFeaturedReloadKey((value) => value + 1)}
+                                className="btn-outline mt-5 text-sm"
+                            >
+                                <RefreshCcw size={16} /> Thử tải lại
+                            </button>
                         </div>
                     ) : featuredTours.length === 0 ? (
                         <div className="mt-10 rounded-2xl border border-white/10 bg-white/[0.04] py-16 text-center text-slate-300">
@@ -653,8 +720,8 @@ export default function HomePage() {
                                     </span>
                                 </h2>
                                 <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300">
-                                    Chia sẻ nhu cầu của bạn - chúng tôi sẽ phản hồi trong vòng 24h
-                                    với lịch trình mẫu, báo giá minh bạch và phương án dự phòng.
+                                    Chia sẻ nhu cầu để đội tư vấn đối chiếu tour đang mở bán và
+                                    trao đổi lịch trình, chi phí cùng các lưu ý liên quan.
                                 </p>
                             </div>
                             <div className="flex flex-col gap-3 sm:flex-row md:flex-col md:items-end">

@@ -14,6 +14,7 @@ import {
     User,
     Wind,
 } from "lucide-react";
+import { photoCredits, scenicImages } from "../public/publicContent";
 
 const containerVars = {
     hidden: { opacity: 0 },
@@ -110,7 +111,7 @@ export default function RegisterPage() {
     const fields = [
         { key: "fullName", icon: User, type: "text", placeholder: "Họ và tên của bạn", label: "Họ và tên" },
         { key: "email", icon: Mail, type: "email", placeholder: "Địa chỉ Email", label: "Email" },
-        { key: "phone", icon: Phone, type: "text", placeholder: "Số điện thoại", label: "Số điện thoại" },
+        { key: "phone", icon: Phone, type: "tel", placeholder: "Số điện thoại", label: "Số điện thoại" },
         { key: "password", icon: Lock, type: "password", placeholder: "Mật khẩu", label: "Mật khẩu" },
     ];
 
@@ -128,8 +129,7 @@ export default function RegisterPage() {
                 animate={{ scale: 1.05, opacity: 0.9 }}
                 transition={{ duration: 2, ease: "easeOut" }}
                 style={{
-                    backgroundImage:
-                        "url('https://media-dwrm.mae.gov.vn/Image/6509b7f5-3d98-ec62-450e-890bfc931115/2025/7/11/muong-la-son-la_ab4356465f.jpg')",
+                    backgroundImage: `url('${scenicImages.sonLaLandscape}')`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                 }}
@@ -174,8 +174,8 @@ export default function RegisterPage() {
                         variants={fadeInUp}
                         className="mt-8 max-w-md text-xl font-light leading-relaxed text-slate-200"
                     >
-                        Đăng ký tài khoản để nhận những ưu đãi đặc biệt và lưu giữ hành trình
-                        chinh phục vùng cao.
+                        Đăng ký tài khoản để đặt tour, theo dõi booking và quản lý thông tin
+                        cho hành trình của bạn.
                     </motion.p>
 
                     <motion.div className="mt-10 flex flex-wrap gap-3" variants={fadeInUp}>
@@ -198,9 +198,9 @@ export default function RegisterPage() {
 
                     <motion.div variants={fadeInUp} className="mt-10 grid gap-3">
                         {[
-                            "Lưu hành trình và yêu thích",
-                            "Nhận lịch khởi hành mới hằng tuần",
-                            "Ưu đãi riêng cho thành viên",
+                            "Đặt tour theo lịch khởi hành đang mở",
+                            "Theo dõi trạng thái booking và thanh toán",
+                            "Quản lý thông tin tài khoản",
                         ].map((line, i) => (
                             <div
                                 key={i}
@@ -263,6 +263,14 @@ export default function RegisterPage() {
                                                 <Icon className="absolute left-5 h-5 w-5 text-[#d4a878]" />
                                                 <input
                                                     type={field.type}
+                                                    name={field.key}
+                                                    autoComplete={{
+                                                        fullName: "name",
+                                                        email: "email",
+                                                        phone: "tel",
+                                                        password: "new-password",
+                                                    }[field.key]}
+                                                    required
                                                     placeholder={field.placeholder}
                                                     onChange={(e) =>
                                                         setForm({
@@ -307,6 +315,14 @@ export default function RegisterPage() {
                     </motion.div>
                 </div>
             </div>
+            <a
+                href={photoCredits.find((item) => item.label.includes("Mường La"))?.url}
+                target="_blank"
+                rel="noreferrer"
+                className="absolute bottom-4 left-6 z-20 text-[10px] font-semibold text-white/65 underline-offset-4 hover:text-white hover:underline"
+            >
+                Ảnh: Mường La, Sơn La · Wikimedia Commons
+            </a>
         </motion.div>
     );
 }

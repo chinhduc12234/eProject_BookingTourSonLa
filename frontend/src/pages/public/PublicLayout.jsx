@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-    Globe,
+    ArrowUp,
     Mail,
     MapPin,
     LogOut,
     Menu,
-    MessageCircle,
     Phone,
     Send,
-    Share2,
     UserRound,
     X,
 } from "lucide-react";
@@ -22,17 +20,46 @@ const navClass = ({ isActive }) =>
     ["nav-link", isActive ? "is-active" : ""].join(" ").trim();
 
 export default function PublicLayout({ children }) {
+    const { pathname } = useLocation();
     const [open, setOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [scrollProgress, setScrollProgress] = useState(0);
     const [authenticated, setAuthenticated] = useState(isLoggedIn());
     const [profile, setProfile] = useState(null);
 
     useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 12);
+        const handleScroll = () => {
+            const scrollTop = window.scrollY;
+            const scrollRange = Math.max(
+                document.documentElement.scrollHeight - window.innerHeight,
+                1,
+            );
+            setScrolled(scrollTop > 12);
+            setScrollProgress(Math.min(scrollTop / scrollRange, 1));
+        };
         handleScroll();
         window.addEventListener("scroll", handleScroll, { passive: true });
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
+
+    useEffect(() => {
+        setOpen(false);
+    }, [pathname]);
+
+    useEffect(() => {
+        if (!open) return undefined;
+
+        const handleEscape = (event) => {
+            if (event.key === "Escape") setOpen(false);
+        };
+        document.body.style.overflow = "hidden";
+        window.addEventListener("keydown", handleEscape);
+
+        return () => {
+            document.body.style.overflow = "";
+            window.removeEventListener("keydown", handleEscape);
+        };
+    }, [open]);
 
     useEffect(() => {
         let mounted = true;
@@ -175,7 +202,7 @@ export default function PublicLayout({ children }) {
                                     className={navClass}
                                 >
                                     {item.label}
-                        </NavLink>
+                                </NavLink>
                             ))}
                             {authenticated ? (
                                 <>
@@ -213,9 +240,28 @@ export default function PublicLayout({ children }) {
                         </div>
                     </motion.div>
                 )}
+                <span
+                    className="public-scroll-progress"
+                    style={{ transform: `scaleX(${scrollProgress})` }}
+                    aria-hidden="true"
+                />
             </header>
 
             <main id="noi-dung-chinh">{children}</main>
+
+            {scrollProgress > 0.18 && (
+                <motion.button
+                    type="button"
+                    initial={{ opacity: 0, y: 12, scale: 0.9 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                    className="public-back-to-top"
+                    aria-label="Về đầu trang"
+                    title="Về đầu trang"
+                >
+                    <ArrowUp size={19} />
+                </motion.button>
+            )}
 
             {/* FOOTER */}
             <footer className="relative overflow-hidden border-t border-white/10 bg-gradient-to-b from-[#04120d] via-[#04120d] to-[#020617] pt-8 sm:pt-10">
@@ -223,27 +269,28 @@ export default function PublicLayout({ children }) {
                 <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-[#A67C52]/10 blur-[120px]" />
 
                 <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    {/* Newsletter band */}
+                    {/* Consultation band */}
                     <div className="grid gap-6 rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-8 backdrop-blur-md md:grid-cols-[1.1fr_0.9fr] md:items-center md:px-10">
                         <div>
                             <span className="section-tag">
-                                <Send size={12} /> Nhận tin Tây Bắc
+                                <Send size={12} /> Lên kế hoạch chuyến đi
                             </span>
                             <h3 className="mt-3 text-2xl font-black text-white sm:text-3xl">
-                                Đăng ký để nhận lịch tour, ưu đãi và bí kíp đi Tây Bắc.
+                                Tìm hành trình phù hợp với thời gian của bạn.
                             </h3>
+                            <p className="mt-2 text-sm leading-6 text-slate-300">
+                                Xem tour đang mở bán hoặc gửi thông tin để trao đổi qua email.
+                            </p>
                         </div>
-                        <form className="flex flex-col gap-3 sm:flex-row" onSubmit={(e) => e.preventDefault()}>
-                            <input
-                                type="email"
-                                placeholder="Nhập email của bạn"
-                                className="field-input flex-1"
-                            />
-                            <button type="submit" className="btn-primary whitespace-nowrap">
-                                Đăng ký
+                        <div className="flex flex-col gap-3 sm:flex-row md:justify-end">
+                            <Link to="/tours" className="btn-outline whitespace-nowrap">
+                                Xem tour
+                            </Link>
+                            <Link to="/lien-he" className="btn-primary whitespace-nowrap">
+                                Liên hệ tư vấn
                                 <Send size={16} />
-                            </button>
-                        </form>
+                            </Link>
+                        </div>
                     </div>
 
                     <div className="grid gap-12 py-14 md:grid-cols-[1.2fr_0.8fr_0.8fr_0.9fr]">
@@ -261,22 +308,13 @@ export default function PublicLayout({ children }) {
                                 Nền tảng đặt tour du lịch Tây Bắc tập trung vào lịch trình rõ ràng, trải nghiệm
                                 địa phương và dịch vụ đồng hành an toàn cho mỗi hành trình.
                             </p>
-                            <div className="mt-6 flex items-center gap-3">
-                                {[
-                                    { Icon: Globe, label: "Website" },
-                                    { Icon: Share2, label: "Mạng xã hội" },
-                                    { Icon: MessageCircle, label: "Tin nhắn" },
-                                ].map(({ Icon, label }, idx) => (
-                                    <a
-                                        key={idx}
-                                        href="#"
-                                        onClick={(e) => e.preventDefault()}
-                                        aria-label={label}
-                                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 transition-all hover:border-[#7FB77E]/60 hover:bg-[#7FB77E]/10 hover:text-[#9de09c]"
-                                    >
-                                        <Icon size={18} />
-                                    </a>
-                                ))}
+                            <div className="mt-6 flex flex-wrap gap-3">
+                                <a href={`tel:${brand.phone.replace(/\s/g, "")}`} className="btn-outline px-4 text-xs">
+                                    <Phone size={15} /> Gọi tư vấn
+                                </a>
+                                <a href={`mailto:${brand.email}`} className="btn-outline px-4 text-xs">
+                                    <Mail size={15} /> Gửi email
+                                </a>
                             </div>
                         </div>
 
@@ -319,13 +357,13 @@ export default function PublicLayout({ children }) {
                                     <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#7FB77E]/15 text-[#9de09c]">
                                         <Phone size={15} />
                                     </span>
-                                    <span>{brand.phone}</span>
+                                    <a href={`tel:${brand.phone.replace(/\s/g, "")}`} className="hover:text-[#9de09c]">{brand.phone}</a>
                                 </div>
                                 <div className="flex items-start gap-3">
                                     <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#7FB77E]/15 text-[#9de09c]">
                                         <Mail size={15} />
                                     </span>
-                                    <span className="break-all">{brand.email}</span>
+                                    <a href={`mailto:${brand.email}`} className="break-all hover:text-[#9de09c]">{brand.email}</a>
                                 </div>
                                 <div className="flex items-start gap-3">
                                     <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#7FB77E]/15 text-[#9de09c]">

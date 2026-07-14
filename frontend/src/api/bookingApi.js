@@ -29,6 +29,15 @@ export const getAdminBookingDetail = (id) =>
 export const updateAdminBooking = (id, data) =>
   axiosClient.put(`/admin/bookings/${id}`, data);
 
+export const getAdminGroupTours = (params) =>
+  axiosClient.get("/admin/group-tours", { params });
+
+export const assignAdminGroupTourStaff = (departureId, employeeId) =>
+  axiosClient.put(`/admin/group-tours/${departureId}/staff`, { employeeId });
+
+export const confirmAdminGroupTour = (departureId) =>
+  axiosClient.post(`/admin/group-tours/${departureId}/confirm`);
+
 export const employeeApi = {
   getEmployeeBookings: async () => {
     return await axiosClient.get("/employee/bookings");

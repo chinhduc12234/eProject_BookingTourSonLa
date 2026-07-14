@@ -23,6 +23,21 @@ public interface BookingEmployeeRepository extends JpaRepository<BookingEmployee
             @Param("bookingId") Long bookingId);
 
     @Query("""
+            SELECT be FROM BookingEmployee be
+            JOIN FETCH be.employee
+            JOIN be.booking b
+            JOIN b.tourDeparture d
+            WHERE b.deletedAt IS NULL
+              AND b.status <> com.bookingtoursonla.entity.enums.BookingStatus.CANCELLED
+              AND d.id = :departureId
+              AND b.bookingType <> com.bookingtoursonla.entity.enums.BookingType.PRIVATE
+              AND (d.isPrivateDeparture = false OR d.isPrivateDeparture IS NULL)
+            ORDER BY be.assignedAt DESC, be.id DESC
+            """)
+    List<BookingEmployee> findGroupAssignmentsByDepartureId(
+            @Param("departureId") Long departureId);
+
+    @Query("""
             SELECT CASE WHEN COUNT(be) > 0 THEN true ELSE false END
             FROM BookingEmployee be
             WHERE be.booking.id = :bookingId

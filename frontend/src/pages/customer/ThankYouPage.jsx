@@ -4,11 +4,11 @@ import {
   ArrowRight,
   CalendarDays,
   CheckCircle2,
+  CreditCard,
   Headphones,
   Home,
   Info,
   Loader2,
-  Mail,
   ReceiptText,
   ShieldCheck,
   UsersRound,
@@ -84,12 +84,23 @@ export default function ThankYouPage() {
         }).format(new Date(`${value}T00:00:00`))
       : "Đang cập nhật";
 
-  const bookingStatus =
-    booking?.status === "CONFIRMED"
-      ? "Đã được xác nhận"
-      : booking?.status === "CANCELLED"
-        ? "Đã hủy"
-        : "Đang chờ xác nhận";
+  const bookingStatus = ({
+    PENDING: "Đang chờ xác nhận",
+    CONFIRMED: "Đã được xác nhận",
+    IN_PROGRESS: "Đang diễn ra",
+    COMPLETED: "Đã hoàn thành",
+    CANCELLED: "Đã hủy",
+  })[booking?.status] || "Đang chờ xác nhận";
+  const paymentStatus = ({
+    UNPAID: "Chưa thanh toán",
+    PENDING_REVIEW: "Chờ kiểm tra",
+    PARTIAL: "Đã ghi nhận một phần",
+    PAID: "Đã thanh toán",
+    REFUNDED: "Đã hoàn tiền",
+    PARTIALLY_REFUNDED: "Hoàn tiền một phần",
+    FORFEITED: "Đã khấu trừ",
+    FAILED: "Giao dịch lỗi",
+  })[booking?.paymentStatus] || "Chờ kiểm tra";
   
   return (
     <PublicLayout>
@@ -111,7 +122,7 @@ export default function ThankYouPage() {
                   </div>
                   <div>
                     <span className="section-tag">
-                      <ShieldCheck size={12} /> Gửi yêu cầu thành công
+                      <ShieldCheck size={12} /> Đã tạo đơn đặt tour
                     </span>
                     <p className="mt-2 text-sm font-bold text-[#d4a878]">
                       {booking?.bookingCode
@@ -125,8 +136,8 @@ export default function ThankYouPage() {
                   Cảm ơn quý khách!
                 </h1>
                 <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-                  Yêu cầu đặt tour đã được ghi nhận. Đội ngũ điều hành sẽ kiểm tra
-                  thông tin và liên hệ với bạn trong thời gian sớm nhất.
+                  Yêu cầu đặt tour và lựa chọn thanh toán đã được ghi nhận. Đơn vẫn
+                  chờ bộ phận vận hành kiểm tra trước khi được xác nhận.
                 </p>
 
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row">
@@ -183,9 +194,9 @@ export default function ThankYouPage() {
                         : formatCurrency(booking?.totalPrice),
                     },
                     {
-                      Icon: Mail,
-                      label: "Email xác nhận",
-                      value: booking?.email || "Email tài khoản của bạn",
+                      Icon: CreditCard,
+                      label: "Trạng thái thanh toán",
+                      value: paymentStatus,
                     },
                   ].map(({ Icon, label, value }) => (
                     <div
@@ -205,9 +216,9 @@ export default function ThankYouPage() {
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {[
               {
-                Icon: Mail,
-                title: "Kiểm tra hộp thư",
-                text: "Chi tiết đơn và thông tin xác nhận được gửi tới email đăng ký. Vui lòng kiểm tra cả thư rác.",
+                Icon: ReceiptText,
+                title: "Theo dõi trong tài khoản",
+                text: "Mã đơn, trạng thái booking và thanh toán được hiển thị trong lịch sử đặt tour.",
               },
               {
                 Icon: Info,
@@ -216,8 +227,8 @@ export default function ThankYouPage() {
               },
               {
                 Icon: Headphones,
-                title: "Chúng tôi sẽ liên hệ",
-                text: "Nhân viên sẽ gọi điện xác nhận điểm đón, yêu cầu đặc biệt và hướng dẫn các bước tiếp theo.",
+                title: "Chờ cập nhật trạng thái",
+                text: "Khi đơn được xử lý, trạng thái mới sẽ xuất hiện trong trang chi tiết booking của bạn.",
               },
             ].map(({ Icon, title, text }, index) => (
               <article

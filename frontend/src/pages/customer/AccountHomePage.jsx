@@ -9,6 +9,8 @@ import {
   Loader2,
   Mail,
   Phone,
+  RefreshCcw,
+  ShieldAlert,
   UserRound,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -29,6 +31,8 @@ export default function AccountHomePage() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState(null);
   const [bookings, setBookings] = useState([]);
+  const [loadError, setLoadError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -36,6 +40,7 @@ export default function AccountHomePage() {
     const loadAccount = async () => {
       try {
         setLoading(true);
+        setLoadError("");
         const [profileResponse, bookingResponse] = await Promise.all([
           getCurrentUserProfile(),
           getMyBookings(),
@@ -46,9 +51,9 @@ export default function AccountHomePage() {
         setProfile(profileResponse.data);
         setBookings(bookingResponse.data || []);
       } catch (error) {
-        toast.error(
-          error?.response?.data?.message || "Không thể tải thông tin tài khoản",
-        );
+        const message = error?.response?.data?.message || "Không thể tải thông tin tài khoản";
+        setLoadError(message);
+        toast.error(message);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -59,7 +64,7 @@ export default function AccountHomePage() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const summary = useMemo(() => {
     const confirmedBookings = bookings.filter(
@@ -89,6 +94,25 @@ export default function AccountHomePage() {
       <AccountShell title="Tổng quan tài khoản">
         <div className="flex min-h-[360px] items-center justify-center">
           <Loader2 className="h-12 w-12 animate-spin text-[#7FB77E]" />
+        </div>
+      </AccountShell>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <AccountShell title="Tổng quan tài khoản">
+        <div className="mx-auto max-w-2xl rounded-3xl border border-rose-300/25 bg-rose-300/[0.07] p-8 text-center" role="alert">
+          <ShieldAlert className="mx-auto h-11 w-11 text-rose-200" />
+          <h2 className="mt-4 text-xl font-black text-white">Chưa tải được tài khoản</h2>
+          <p className="mt-2 text-sm leading-7 text-slate-300">{loadError}</p>
+          <button
+            type="button"
+            onClick={() => setReloadKey((value) => value + 1)}
+            className="btn-outline mt-5 text-sm"
+          >
+            <RefreshCcw size={16} /> Thử tải lại
+          </button>
         </div>
       </AccountShell>
     );

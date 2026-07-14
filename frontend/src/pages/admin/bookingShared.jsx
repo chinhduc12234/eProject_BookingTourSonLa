@@ -111,7 +111,9 @@ export const bookingTypeText = {
 
 export const getDepartureTypeMeta = (booking) => {
   const privateDeparture = Boolean(
-    booking?.privateDeparture ?? booking?.isPrivateDeparture
+    booking?.bookingType === "PRIVATE" ||
+      booking?.privateDeparture ||
+      booking?.isPrivateDeparture
   );
 
   return privateDeparture

@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import {
   Loader2,
   LogOut,
+  RefreshCcw,
   Save,
+  ShieldAlert,
   UserRound,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -22,6 +24,8 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profileForm, setProfileForm] = useState(emptyProfileForm);
+  const [loadError, setLoadError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -29,15 +33,16 @@ export default function ProfilePage() {
     const loadProfile = async () => {
       try {
         setLoading(true);
+        setLoadError("");
         const response = await getCurrentUserProfile();
 
         if (!mounted) return;
 
         setProfileForm(normalizeProfileForm(response.data));
       } catch (error) {
-        toast.error(
-          error?.response?.data?.message || "Không thể tải thông tin tài khoản",
-        );
+        const message = error?.response?.data?.message || "Không thể tải thông tin tài khoản";
+        setLoadError(message);
+        toast.error(message);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -48,7 +53,7 @@ export default function ProfilePage() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   const updateProfileField = (field, value) => {
     setProfileForm((current) => ({
@@ -109,6 +114,25 @@ export default function ProfilePage() {
     );
   }
 
+  if (loadError) {
+    return (
+      <AccountShell title="Chỉnh sửa thông tin" actions={actions}>
+        <div className="mx-auto max-w-2xl rounded-3xl border border-rose-300/25 bg-rose-300/[0.07] p-8 text-center" role="alert">
+          <ShieldAlert className="mx-auto h-11 w-11 text-rose-200" />
+          <h2 className="mt-4 text-xl font-black text-white">Chưa tải được hồ sơ</h2>
+          <p className="mt-2 text-sm leading-7 text-slate-300">{loadError}</p>
+          <button
+            type="button"
+            onClick={() => setReloadKey((value) => value + 1)}
+            className="btn-outline mt-5 text-sm"
+          >
+            <RefreshCcw size={16} /> Thử tải lại
+          </button>
+        </div>
+      </AccountShell>
+    );
+  }
+
   return (
     <AccountShell
       title="Chỉnh sửa thông tin"
@@ -137,6 +161,9 @@ export default function ProfilePage() {
               Họ và tên
             </label>
             <input
+              name="fullName"
+              autoComplete="name"
+              required
               value={profileForm.fullName}
               onChange={(event) =>
                 updateProfileField("fullName", event.target.value)
@@ -152,7 +179,10 @@ export default function ProfilePage() {
                 Email đăng nhập
               </label>
               <input
+                name="email"
                 type="email"
+                autoComplete="email"
+                required
                 value={profileForm.email}
                 onChange={(event) =>
                   updateProfileField("email", event.target.value)
@@ -167,6 +197,10 @@ export default function ProfilePage() {
                 Số điện thoại
               </label>
               <input
+                name="phone"
+                type="tel"
+                autoComplete="tel"
+                required
                 value={profileForm.phone}
                 onChange={(event) =>
                   updateProfileField("phone", event.target.value)
@@ -183,11 +217,12 @@ export default function ProfilePage() {
                 Giới tính
               </label>
               <select
+                name="gender"
                 value={profileForm.gender}
                 onChange={(event) =>
                   updateProfileField("gender", event.target.value)
                 }
-                className="h-12 w-full rounded-xl border border-white/10 bg-white px-4 text-slate-950 outline-none transition focus:border-[#7FB77E] focus:ring-4 focus:ring-[#7FB77E]/15"
+                className="field-input"
               >
                 <option value="MALE">Nam</option>
                 <option value="FEMALE">Nữ</option>
@@ -200,6 +235,7 @@ export default function ProfilePage() {
                 Ngày sinh
               </label>
               <input
+                name="dateOfBirth"
                 type="date"
                 value={profileForm.dateOfBirth}
                 onChange={(event) =>
@@ -215,6 +251,8 @@ export default function ProfilePage() {
               Địa chỉ
             </label>
             <textarea
+              name="address"
+              autoComplete="street-address"
               rows={3}
               value={profileForm.address}
               onChange={(event) =>

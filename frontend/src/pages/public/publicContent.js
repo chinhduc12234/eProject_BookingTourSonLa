@@ -44,8 +44,6 @@ export const scenicImages = {
         "https://upload.wikimedia.org/wikipedia/commons/d/d2/S%C6%A1n_La_Province.JPG",
     taXuaRidge:
         "https://commons.wikimedia.org/wiki/Special:Redirect/file/S%E1%BB%91ng_l%C6%B0ng_kh%E1%BB%A7ng_long_T%C3%A0_X%C3%B9a.jpg?width=1600",
-    taXuaBlossom:
-        "https://commons.wikimedia.org/wiki/Special:Redirect/file/Prunus_campanulata_01.jpg?width=1400",
 };
 
 export const heroSlides = [
@@ -65,9 +63,9 @@ export const heroSlides = [
         place: "Mường Sang · Mộc Châu",
     },
     {
-        image: scenicImages.taXuaBlossom,
-        alt: "Anh đào hoa chuông nở tại Tà Xùa",
-        place: "Tà Xùa · Sơn La",
+        image: scenicImages.sonLaLandscape,
+        alt: "Cảnh quan núi rừng tại huyện Mường La, Sơn La",
+        place: "Mường La · Sơn La",
     },
 ];
 
@@ -99,10 +97,10 @@ export const scenicGallery = [
         image: scenicImages.mocChauTeaClose,
     },
     {
-        title: "Mùa hoa trên núi",
-        eyebrow: "Tà Xùa",
-        desc: "Sắc hoa chuông dịu nhẹ làm mềm những triền núi cao trong mùa xuân Tây Bắc.",
-        image: scenicImages.taXuaBlossom,
+        title: "Triền chè Mộc Châu",
+        eyebrow: "Nông nghiệp bản địa",
+        desc: "Những luống chè xanh nối nhau tạo nên nhịp cảnh quan đặc trưng của cao nguyên.",
+        image: scenicImages.mocChauTeaClose,
     },
     {
         title: "Núi rừng Sơn La",
@@ -114,23 +112,22 @@ export const scenicGallery = [
 
 export const photoCredits = [
     { label: "Mộc Châu · ToanNguyen (CC0)", url: "https://commons.wikimedia.org/wiki/File:Moc-chau-tea-doi-2094890_960_720.jpg" },
-    { label: "PxHere", url: "https://pxhere.com/en/photo/569124" },
-    { label: "Thác Dải Yếm · Wikimedia Commons", url: "https://commons.wikimedia.org/wiki/File:Thacdaiyem.jpg" },
-    { label: "Sơn La · Wikimedia Commons", url: "https://commons.wikimedia.org/wiki/File:S%C6%A1n_La_Province.JPG" },
+    { label: "Đồi chè Mộc Châu · PxHere (CC0)", url: "https://pxhere.com/en/photo/569124" },
+    { label: "Thác Dải Yếm · ePi.Longo (CC BY-SA 2.0)", url: "https://commons.wikimedia.org/wiki/File:Thacdaiyem.jpg" },
+    { label: "Mường La · Tycho (CC BY-SA 3.0)", url: "https://commons.wikimedia.org/wiki/File:S%C6%A1n_La_Province.JPG" },
     { label: "Tà Xùa · NKSTTSSHNVN (CC BY-SA 4.0)", url: "https://commons.wikimedia.org/wiki/File:S%E1%BB%91ng_l%C6%B0ng_kh%E1%BB%A7ng_long_T%C3%A0_X%C3%B9a.jpg" },
-    { label: "Hoa chuông Tà Xùa · Gió Đông (Public domain)", url: "https://commons.wikimedia.org/wiki/File:Prunus_campanulata_01.jpg" },
 ];
 
-export const heroStats = [
-    { value: "120+", label: "lịch trình Tây Bắc" },
-    { value: "18k+", label: "lượt khách phục vụ" },
-    { value: "4.8/5", label: "đánh giá trung bình" },
+export const heroPromises = [
+    { icon: CalendarDays, title: "Lịch mở bán rõ ràng", label: "Theo dữ liệu tour hiện có" },
+    { icon: ShieldCheck, title: "Đặt tour minh bạch", label: "Giá và trạng thái dễ kiểm tra" },
+    { icon: CheckCircle2, title: "Theo dõi xuyên suốt", label: "Từ mã đơn đến hành trình" },
 ];
 
 export const quickSearch = [
     { icon: MapPin, label: "Điểm đến", value: "Mộc Châu, Tà Xùa, Sơn La" },
     { icon: CalendarDays, label: "Khởi hành", value: "Cuối tuần và ngày lễ" },
-    { icon: Users, label: "Số khách", value: "2 - 20 khách" },
+    { icon: Users, label: "Nhóm khách", value: "Cá nhân, gia đình hoặc đoàn" },
 ];
 
 export const serviceHighlights = [
@@ -148,33 +145,6 @@ export const serviceHighlights = [
         icon: Headphones,
         title: "Hỗ trợ theo hành trình",
         desc: "Tư vấn trước chuyến đi, theo sát lịch trình và xử lý phát sinh trong suốt tour.",
-    },
-];
-
-export const featuredTours = [
-    {
-        title: "Mộc Châu mùa hoa",
-        place: "Sơn La",
-        duration: "3 ngày 2 đêm",
-        price: "2.490.000đ",
-        image: scenicImages.mocChauTea,
-        tags: ["Cao nguyên", "Hoa mùa", "Check-in"],
-    },
-    {
-        title: "Tà Xùa săn mây",
-        place: "Bắc Yên",
-        duration: "2 ngày 1 đêm",
-        price: "1.890.000đ",
-        image: scenicImages.taXuaRidge,
-        tags: ["Săn mây", "Trekking", "Bình minh"],
-    },
-    {
-        title: "Sông Đà - Ngọc Chiến",
-        place: "Sơn La",
-        duration: "4 ngày 3 đêm",
-        price: "3.690.000đ",
-        image: scenicImages.daiYemWaterfall,
-        tags: ["Suối khoáng", "Bản làng", "Cảnh quan"],
     },
 ];
 
@@ -203,10 +173,10 @@ export const whyChooseUs = [
     "Thiết kế tour riêng cho nhóm bạn, công ty, lớp học và gia đình.",
 ];
 
-export const companyStats = [
-    { value: "9 năm", label: "vận hành tour vùng núi" },
-    { value: "35+", label: "đối tác lưu trú và vận chuyển" },
-    { value: "60+", label: "hướng dẫn viên, điều hành, cộng tác viên địa phương" },
+export const companyPillars = [
+    { value: "Thực địa", label: "Lịch trình ưu tiên tính khả thi và an toàn" },
+    { value: "Minh bạch", label: "Giá, dịch vụ và điều kiện được trình bày rõ" },
+    { value: "Bản địa", label: "Tôn trọng cảnh quan và văn hóa địa phương" },
 ];
 
 export const companyValues = [
@@ -247,13 +217,13 @@ export const contactCards = [
         icon: Phone,
         title: "Tổng đài tư vấn",
         value: "1900 6868",
-        desc: "08:00 - 21:00 hằng ngày",
+        desc: "Kênh liên hệ theo thông tin đang công bố",
     },
     {
         icon: Mail,
         title: "Email hỗ trợ",
         value: "support@taybactravel.vn",
-        desc: "Phản hồi trong 24 giờ làm việc",
+        desc: "Gửi nội dung để đội ngũ tiếp nhận và phản hồi",
     },
     {
         icon: MapPin,
@@ -273,11 +243,11 @@ export const supportTopics = [
 export const faqItems = [
     {
         question: "Tôi có thể đặt tour Tây Bắc trước bao lâu?",
-        answer: "Nên đặt trước 7 - 14 ngày để có lựa chọn tốt về xe, phòng và hướng dẫn viên. Với đoàn lớn hoặc đi vào mùa cao điểm, nên đặt trước 3 - 4 tuần.",
+        answer: "Mỗi lịch khởi hành có hạn đặt chỗ riêng. Bạn hãy kiểm tra trạng thái, số chỗ còn lại và hạn booking hiển thị trong chi tiết tour trước khi gửi đơn.",
     },
     {
         question: "Giá tour đã bao gồm những gì?",
-        answer: "Giá niêm yết thông thường gồm xe theo lịch trình, lưu trú, bữa ăn theo chương trình, vé tham quan và hướng dẫn viên. Các chi phí cá nhân sẽ được ghi riêng trong thông tin tour.",
+        answer: "Phạm vi bao gồm và không bao gồm được trình bày riêng trong chi tiết từng tour. Hãy đối chiếu hai mục này trước khi chọn lịch khởi hành.",
     },
     {
         question: "Tour có phù hợp cho gia đình có trẻ nhỏ không?",
@@ -298,7 +268,7 @@ export const faqItems = [
 ];
 
 export const trustBadges = [
-    { icon: Star, label: "Đánh giá thật từ khách hàng" },
-    { icon: Clock, label: "Xác nhận lịch trình nhanh" },
+    { icon: Star, label: "Thông tin tour lấy từ hệ thống" },
+    { icon: Clock, label: "Lịch khởi hành theo dữ liệu mở bán" },
     { icon: ShieldCheck, label: "Quy trình đặt tour rõ ràng" },
 ];

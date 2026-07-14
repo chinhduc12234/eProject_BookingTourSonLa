@@ -15,9 +15,9 @@ import { getCurrentUserProfile, resolveUploadedFileUrl } from "../../api/userApi
 import BookingForm from "../../components/BookingForm";
 import BookingStepBar from "../../components/BookingStepBar";
 import DepartureSelector from "../../components/DepartureSelector";
+import TourImage from "../../components/TourImage";
 import { getBookingDraft, saveBookingDraft } from "../../utils/bookingDraft";
 import PublicLayout from "../public/PublicLayout";
-import { scenicImages } from "../public/publicContent";
 
 const formatCurrency = (value) =>
   Number(value || 0).toLocaleString("vi-VN") + " đ";
@@ -118,9 +118,7 @@ export default function TourBookingPage() {
   }
 
   const { tour, images = [], departures = [] } = detail;
-  const coverImage =
-    resolveUploadedFileUrl(tour.thumbnail || images[0]?.imageUrl) ||
-    scenicImages.taXuaRidge;
+  const coverImage = resolveUploadedFileUrl(tour.thumbnail || images[0]?.imageUrl);
   const storedDraft = getBookingDraft();
   const hasPaymentDraft = Number(storedDraft?.tour?.id) === Number(tour.id);
   const bookingFlowSteps = [
@@ -145,8 +143,8 @@ export default function TourBookingPage() {
     },
     {
       key: "done",
-      label: "Thanh toán thành công",
-      description: "Đơn đặt tour đã được ghi nhận trong lịch sử",
+      label: "Chờ xác nhận",
+      description: "Đơn và giao dịch chờ bộ phận vận hành kiểm tra",
       disabled: true,
     },
   ];
@@ -190,22 +188,15 @@ export default function TourBookingPage() {
               </div>
 
               <div className="overflow-hidden rounded-xl border border-white/10 bg-[#020617]/50">
-                {coverImage ? (
-                  <img
+                <div className="aspect-[16/10] w-full">
+                  <TourImage
                     src={coverImage}
                     alt={tour.title}
-                    decoding="async"
-                    onError={(event) => {
-                      event.currentTarget.onerror = null;
-                      event.currentTarget.src = scenicImages.mocChauTea;
-                    }}
-                    className="aspect-[16/10] w-full object-cover"
+                    loading="eager"
+                    className="h-full w-full object-cover"
+                    placeholderClassName="bg-[#0b1f17]"
                   />
-                ) : (
-                  <div className="flex aspect-[16/10] items-center justify-center text-slate-500">
-                    Chưa có ảnh tour
-                  </div>
-                )}
+                </div>
               </div>
             </div>
           </div>

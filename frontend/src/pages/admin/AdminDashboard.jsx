@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   BarChart3,
+  CalendarRange,
   ChevronRight,
   Compass,
   Loader2,
@@ -15,7 +16,7 @@ import {
   UsersRound,
 } from "lucide-react";
 
-import { getAdminBookings } from "../../api/bookingApi";
+import { getAdminBookings, getAdminGroupTours } from "../../api/bookingApi";
 import { getDistricts } from "../../api/districtApi";
 import { getLocations } from "../../api/locationApi";
 import { getProvinces } from "../../api/provinceApi";
@@ -25,11 +26,19 @@ import { getTours } from "../../api/tourApi";
 const statConfig = [
   {
     key: "bookings",
-    label: "Đơn đặt tour",
-    desc: "Yêu cầu đặt tour",
+    label: "Đơn tour riêng",
+    desc: "Yêu cầu lịch trình riêng",
     Icon: TicketCheck,
     to: "/admin/bookings",
     tone: "bg-fuchsia-50 text-fuchsia-700",
+  },
+  {
+    key: "groupTours",
+    label: "Đoàn tour ghép",
+    desc: "Lịch ghép đang vận hành",
+    Icon: CalendarRange,
+    to: "/admin/group-tours",
+    tone: "bg-teal-50 text-teal-700",
   },
   {
     key: "tours",
@@ -75,8 +84,14 @@ const statConfig = [
 
 const quickActions = [
   {
-    title: "Quản lý đơn đặt tour",
-    desc: "Xác nhận đặt chỗ, cập nhật thanh toán và theo dõi số khách đã giữ chỗ.",
+    title: "Quản lý tour ghép",
+    desc: "Theo dõi tiến độ đủ chỗ, phân công nhân viên chung và xác nhận toàn bộ đoàn.",
+    to: "/admin/group-tours",
+    Icon: CalendarRange,
+  },
+  {
+    title: "Quản lý đơn tour riêng",
+    desc: "Xử lý riêng từng đoàn, cập nhật thanh toán, phân công nhân viên và xác nhận lịch trình.",
     to: "/admin/bookings",
     Icon: TicketCheck,
   },
@@ -116,6 +131,7 @@ const fetchDashboardStats = () =>
   Promise.allSettled([
     getTours({ page: 0, size: 1 }),
     getAdminBookings({ page: 0, size: 1 }),
+    getAdminGroupTours({ page: 0, size: 1 }),
     getAllStaff({ page: 0, size: 1 }),
     getProvinces(0, 1),
     getDistricts({ page: 0, size: 1 }),
@@ -125,10 +141,11 @@ const fetchDashboardStats = () =>
 const parseStats = (results) => ({
   tours: getTotal(results[0]),
   bookings: getTotal(results[1]),
-  staff: getTotal(results[2]),
-  provinces: getTotal(results[3]),
-  districts: getTotal(results[4]),
-  locations: getTotal(results[5]),
+  groupTours: getTotal(results[2]),
+  staff: getTotal(results[3]),
+  provinces: getTotal(results[4]),
+  districts: getTotal(results[5]),
+  locations: getTotal(results[6]),
 });
 
 const countFailed = (results) =>
@@ -138,6 +155,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({
     tours: null,
     bookings: null,
+    groupTours: null,
     staff: null,
     provinces: null,
     districts: null,
@@ -215,7 +233,7 @@ export default function AdminDashboard() {
           </button>
         </div>
 
-        <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+        <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {statConfig.map(({ key, label, desc, Icon, to, tone }) => (
             <Link
               key={key}

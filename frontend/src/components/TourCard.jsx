@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, CalendarDays, Clock3, Users } from "lucide-react";
 import { resolveUploadedFileUrl } from "../api/userApi";
-import { scenicImages } from "../pages/public/publicContent";
+import TourImage from "./TourImage";
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return "Liên hệ";
@@ -21,41 +21,18 @@ export default function TourCard({ tour }) {
   const price = tour.lowestAdultPrice ?? tour.price;
   const hasDeparture = Number(tour.departureCount || 0) > 0;
   const statusLabel = tour.status === "OPEN" ? "Đang mở bán" : tour.status;
-  const fallbackImages = [
-    scenicImages.mocChauTea,
-    scenicImages.taXuaRidge,
-    scenicImages.daiYemWaterfall,
-    scenicImages.taXuaBlossom,
-  ];
-  const fallbackImage = fallbackImages[Number(tour.id || 0) % fallbackImages.length];
-  const handleImageError = (event) => {
-    event.currentTarget.onerror = null;
-    event.currentTarget.src = fallbackImage;
-  };
+  const thumbnail = resolveUploadedFileUrl(tour.thumbnail);
 
   return (
     <article className="tour-card group relative h-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.07] to-white/[0.025] shadow-soft-dark transition-all duration-500 hover:-translate-y-2 hover:border-[#7FB77E]/50 hover:shadow-soft-green">
       <Link to={`/tours/${tour.id}`} className="flex h-full flex-col">
         <div className="relative aspect-[16/11] overflow-hidden bg-slate-800">
-          {tour.thumbnail ? (
-            <img
-              src={resolveUploadedFileUrl(tour.thumbnail)}
-              alt={tour.title}
-              loading="lazy"
-              decoding="async"
-              onError={handleImageError}
-              className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110"
-            />
-          ) : (
-            <img
-              src={fallbackImage}
-              alt={tour.title || "Sơn La"}
-              loading="lazy"
-              decoding="async"
-              onError={handleImageError}
-              className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110"
-            />
-          )}
+          <TourImage
+            src={thumbnail}
+            alt={tour.title}
+            className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+            placeholderClassName="aspect-[16/11] bg-[#102219] text-[#c9e9c7]"
+          />
 
           {/* gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/30 to-transparent opacity-90" />
@@ -64,7 +41,6 @@ export default function TourCard({ tour }) {
           {/* status badge */}
           <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-[#020617]/85 px-3 py-1.5 text-[11px] font-black uppercase tracking-wider text-white backdrop-blur-md ring-1 ring-white/15">
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#9de09c] opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-[#7FB77E]" />
             </span>
             {statusLabel}

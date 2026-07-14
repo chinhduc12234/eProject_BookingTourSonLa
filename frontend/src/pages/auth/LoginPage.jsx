@@ -14,6 +14,7 @@ import {
     ShieldCheck,
     Sparkles,
 } from "lucide-react";
+import { photoCredits, scenicImages } from "../public/publicContent";
 
 const containerVars = {
     hidden: { opacity: 0 },
@@ -132,8 +133,7 @@ export default function LoginPage() {
                 animate={{ scale: 1.05, opacity: 0.95 }}
                 transition={{ duration: 2, ease: "easeOut" }}
                 style={{
-                    backgroundImage:
-                        "url('https://datviettour.com.vn/uploads/images/tin-tuc-SEO/mien-bac/danh-thang/du-lich-son-la-3.jpg')",
+                    backgroundImage: `url('${scenicImages.mocChauTea}')`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                 }}
@@ -209,10 +209,10 @@ export default function LoginPage() {
                         </span>
                         <div>
                             <div className="text-xs font-bold uppercase tracking-widest text-[#d4a878]">
-                                Bảo mật
+                                Phiên đăng nhập
                             </div>
                             <div className="text-sm font-bold text-white">
-                                Thông tin được mã hoá và bảo vệ
+                                Dành cho khách hàng, nhân viên và quản trị viên
                             </div>
                         </div>
                     </motion.div>
@@ -261,6 +261,9 @@ export default function LoginPage() {
                                         <Mail className="absolute left-5 h-5 w-5 text-[#9de09c]" />
                                         <input
                                             type="email"
+                                            name="email"
+                                            autoComplete="email"
+                                            required
                                             placeholder="Email của bạn"
                                             onChange={(e) =>
                                                 setForm({ ...form, email: e.target.value })
@@ -278,6 +281,9 @@ export default function LoginPage() {
                                         <Lock className="absolute left-5 h-5 w-5 text-[#9de09c]" />
                                         <input
                                             type="password"
+                                            name="password"
+                                            autoComplete="current-password"
+                                            required
                                             placeholder="Mật khẩu"
                                             onChange={(e) =>
                                                 setForm({ ...form, password: e.target.value })
@@ -294,7 +300,7 @@ export default function LoginPage() {
                                     disabled={loading}
                                     className="relative mt-2 flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-[#9de09c] via-[#7FB77E] to-[#4f8f4d] bg-[length:200%_200%] bg-[position:0%_50%] py-5 font-black tracking-wider text-[#020617] shadow-[0_10px_30px_rgba(127,183,126,0.4)] transition-all hover:bg-[position:100%_50%] disabled:opacity-50"
                                 >
-                                    {loading ? "ĐANG XỬ LÝ..." : "BẮT ĐẦU TRẢI NGHIỆM"}
+                                    {loading ? "ĐANG ĐĂNG NHẬP..." : "ĐĂNG NHẬP"}
                                     {!loading && <ArrowRight className="h-6 w-6" />}
                                 </motion.button>
                             </form>
@@ -317,6 +323,14 @@ export default function LoginPage() {
                     </motion.div>
                 </div>
             </div>
+            <a
+                href={photoCredits.find((item) => item.label.includes("đồi chè"))?.url}
+                target="_blank"
+                rel="noreferrer"
+                className="absolute bottom-4 left-6 z-20 text-[10px] font-semibold text-white/65 underline-offset-4 hover:text-white hover:underline"
+            >
+                Ảnh: đồi chè Mộc Châu · Wikimedia Commons
+            </a>
         </motion.div>
     );
 }

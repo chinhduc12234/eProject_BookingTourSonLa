@@ -8,11 +8,13 @@ import {
   Grid3X3,
   LogOut,
   MapPin,
+  RefreshCw,
   Search,
   ShieldCheck,
 } from "lucide-react";
 import { employeeApi } from "../../api/bookingApi";
 import { DepartureTypeBadge } from "../admin/bookingShared";
+import { getAuthName, logout } from "../../utils/auth";
 import "./EmployeeDashboard.css";
 
 const getBookingStatusLabel = (status) => {
@@ -43,6 +45,7 @@ export default function EmployeeDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("bookings");
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
   const [bookings, setBookings] = useState([]);
   const [stats, setStats] = useState({
     totalBookings: 0,
@@ -51,30 +54,20 @@ export default function EmployeeDashboard() {
     totalRevenue: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [employeeInfo, setEmployeeInfo] = useState({
-    name: "Nhân viên",
+    name: getAuthName() || "Nhân viên",
     role: "Nhân viên điều hành",
   });
 
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        setEmployeeInfo({
-          name:
-            parsedUser.fullName ||
-            parsedUser.name ||
-            parsedUser.username ||
-            "Nhân viên",
-          role:
-            parsedUser.role === "ROLE_ADMIN"
-              ? "Quản trị viên"
-              : "Nhân viên điều hành",
-        });
-      }
+      setLoadError("");
+      setEmployeeInfo({
+        name: getAuthName() || "Nhân viên",
+        role: "Nhân viên điều hành",
+      });
 
       const [bookingsRes, statsRes] = await Promise.all([
         employeeApi.getEmployeeBookings(),
@@ -85,6 +78,9 @@ export default function EmployeeDashboard() {
       setStats(statsRes.data || statsRes);
     } catch (error) {
       console.error("Lỗi đồng bộ dữ liệu nhân viên:", error);
+      setLoadError(
+        error?.response?.data?.message || "Không thể tải dữ liệu được phân công.",
+      );
     } finally {
       setLoading(false);
     }
@@ -100,19 +96,18 @@ export default function EmployeeDashboard() {
 
   const handleLogout = () => {
     if (window.confirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống điều hành?")) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.href = "/login";
+      logout();
     }
   };
 
   const filteredBookings = bookings.filter((booking) => {
     const keyword = searchTerm.toLowerCase();
     const customerName = booking.customerName || booking.customer || "";
-    return (
+    const matchesStatus = statusFilter === "ALL" || booking.status === statusFilter;
+    return matchesStatus && (
       booking.bookingCode?.toLowerCase().includes(keyword) ||
       customerName.toLowerCase().includes(keyword) ||
-      booking.tourName?.toLowerCase().includes(keyword)
+      (booking.tourName || "").toLowerCase().includes(keyword)
     );
   });
 
@@ -142,12 +137,26 @@ export default function EmployeeDashboard() {
     );
   }
 
+  if (loadError) {
+    return (
+      <div className="loading-screen" role="alert">
+        <ShieldCheck size={44} />
+        <p>{loadError}</p>
+        <button type="button" className="logout-btn" onClick={loadDashboardData}>
+          <RefreshCw size={17} /> Thử tải lại
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="employee-shell">
       <aside className="employee-sidebar">
         <div className="sidebar-top">
-          <div className="brand-logo-area">
-            <div className="logo-box">TB</div>
+            <div className="brand-logo-area">
+            <div className="logo-box">
+              <img src="/logo-main-tay-bac.png" alt="" aria-hidden="true" />
+            </div>
             <div>
               <h1 className="brand-title">Tây Bắc Travel</h1>
               <span className="brand-sub">KHU ĐIỀU HÀNH</span>
@@ -196,8 +205,22 @@ export default function EmployeeDashboard() {
                 : "Danh sách điều hành đơn đặt tour"}
             </h2>
           </div>
-          <div className="header-right-user">
-            Xin chào, <b className="highlight-green">{employeeInfo.name}</b>
+          <div className="employee-header-actions">
+            <span className="employee-data-chip">
+              <span aria-hidden="true" /> Dữ liệu được phân công
+            </span>
+            <button
+              type="button"
+              onClick={loadDashboardData}
+              className="employee-refresh-btn"
+              aria-label="Làm mới dữ liệu điều hành"
+              title="Làm mới dữ liệu"
+            >
+              <RefreshCw size={17} />
+            </button>
+            <div className="header-right-user">
+              Xin chào, <b className="highlight-green">{employeeInfo.name}</b>
+            </div>
           </div>
         </header>
 
@@ -263,8 +286,25 @@ export default function EmployeeDashboard() {
                     className="search-input-field"
                   />
                 </div>
-                <div className="filter-result-count">
-                  Hiển thị kết quả lọc: <b>{filteredBookings.length}</b> đơn đặt
+                <div className="employee-filter-actions">
+                  <label>
+                    <span className="sr-only">Lọc trạng thái booking</span>
+                    <select
+                      value={statusFilter}
+                      onChange={(event) => setStatusFilter(event.target.value)}
+                      className="employee-status-filter"
+                    >
+                      <option value="ALL">Tất cả trạng thái</option>
+                      <option value="PENDING">Chờ xác nhận</option>
+                      <option value="CONFIRMED">Đã xác nhận</option>
+                      <option value="IN_PROGRESS">Đang đi tour</option>
+                      <option value="COMPLETED">Hoàn thành</option>
+                      <option value="CANCELLED">Đã hủy</option>
+                    </select>
+                  </label>
+                  <div className="filter-result-count">
+                    Hiển thị: <b>{filteredBookings.length}</b> đơn
+                  </div>
                 </div>
               </div>
 
@@ -376,6 +416,19 @@ export default function EmployeeDashboard() {
                 phân công để theo dõi timeline tour, ghi nhận thay đổi thực tế và
                 hoàn tất lịch trình sau chuyến đi.
               </p>
+              <div className="employee-workflow-grid">
+                {[
+                  ["01", "Nhận phân công", "Chỉ xử lý các booking được admin giao"],
+                  ["02", "Cập nhật thực tế", "Ghi trạng thái, thời gian và minh chứng"],
+                  ["03", "Hoàn tất tour", "Chỉ hoàn thành khi mọi hoạt động đã xử lý"],
+                ].map(([step, title, description]) => (
+                  <div key={step} className="employee-workflow-step">
+                    <span>{step}</span>
+                    <strong>{title}</strong>
+                    <small>{description}</small>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

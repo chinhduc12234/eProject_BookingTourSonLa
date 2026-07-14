@@ -9,6 +9,7 @@ import com.bookingtoursonla.dto.BookingDetailResponse;
 import com.bookingtoursonla.dto.BookingResponse;
 import com.bookingtoursonla.dto.CancelBookingRequest;
 import com.bookingtoursonla.dto.CreateBookingRequest;
+import com.bookingtoursonla.dto.GroupTourDepartureResponse;
 import com.bookingtoursonla.dto.PayBookingRequest;
 import com.bookingtoursonla.dto.UpdateBookingScheduleActivityRequest;
 import com.bookingtoursonla.dto.UpdateBookingAdminRequest;
@@ -45,6 +46,19 @@ public interface BookingService {
     BookingDetailResponse updateAdminBooking(
             Long id,
             UpdateBookingAdminRequest request,
+            String adminEmail);
+
+    Page<GroupTourDepartureResponse> getAdminGroupTours(
+            int page,
+            int size,
+            String keyword);
+
+    GroupTourDepartureResponse assignGroupTourStaff(
+            Long departureId,
+            Long employeeId);
+
+    GroupTourDepartureResponse confirmGroupTour(
+            Long departureId,
             String adminEmail);
 
     BookingDetailResponse getEmployeeBookingDetail(
