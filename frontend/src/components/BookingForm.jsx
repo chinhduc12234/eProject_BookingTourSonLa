@@ -278,6 +278,43 @@ export default function BookingForm({
     });
   };
 
+  const moveToFirstInvalidField = (nextErrors) => {
+    const firstErrorKey = Object.keys(nextErrors)[0];
+    if (!firstErrorKey) return;
+
+    const stepIndex = firstErrorKey === "departureId" || firstErrorKey === "organizationName"
+      ? 0
+      : ["fullName", "email", "phone"].includes(firstErrorKey)
+        ? 1
+        : 2;
+
+    if (firstErrorKey !== "departureId") {
+      setCurrentFormStep(stepIndex);
+    }
+
+    window.requestAnimationFrame(() => {
+      const target = firstErrorKey === "departureId"
+        ? document.getElementById("departure-selector")
+        : document.querySelector(`[data-validation-key="${firstErrorKey}"]`) ||
+          document.getElementById(`booking-form-step-${stepIndex}`);
+
+      if (!target) return;
+
+      const headerOffset = window.innerWidth < 768 ? 92 : 108;
+      const targetTop = target.getBoundingClientRect().top + window.scrollY - headerOffset - 16;
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      window.scrollTo({
+        top: Math.max(0, targetTop),
+        behavior: reduceMotion ? "auto" : "smooth",
+      });
+
+      if (typeof target.focus === "function") {
+        target.focus({ preventScroll: true });
+      }
+    });
+  };
+
   const validate = () => {
     const nextErrors = {};
     const availableSeats = Number(selectedDeparture?.availableSeats || 0);
@@ -327,13 +364,17 @@ export default function BookingForm({
 
     setErrors(nextErrors);
 
-    return Object.keys(nextErrors).length === 0;
+    return nextErrors;
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (!validate()) return;
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      moveToFirstInvalidField(validationErrors);
+      return;
+    }
 
     try {
       setSubmitting(true);
@@ -414,6 +455,7 @@ export default function BookingForm({
 
   return (
     <form
+      noValidate
       onSubmit={handleSubmit}
       className="booking-dark-panel booking-form-surface rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-5 sm:p-6"
     >
@@ -539,6 +581,7 @@ export default function BookingForm({
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                 />
                 <input
+                  data-validation-key="organizationName"
                   value={form.organizationName}
                   onChange={(event) =>
                     updateField("organizationName", event.target.value)
@@ -579,6 +622,7 @@ export default function BookingForm({
             Họ tên trưởng đoàn
           </label>
           <input
+            data-validation-key="fullName"
             value={form.fullName}
             onChange={(event) => updateField("fullName", event.target.value)}
             className={inputClass}
@@ -595,6 +639,7 @@ export default function BookingForm({
             </label>
             <input
               type="email"
+              data-validation-key="email"
               value={form.email}
               readOnly
               aria-readonly="true"
@@ -614,6 +659,7 @@ export default function BookingForm({
               Số điện thoại
             </label>
             <input
+              data-validation-key="phone"
               value={form.phone}
               onChange={(event) => updateField("phone", event.target.value)}
               className={inputClass}
@@ -651,6 +697,7 @@ export default function BookingForm({
               <input
                 type="number"
                 min="1"
+                data-validation-key="people"
                 value={form.adultCount}
                 onChange={(event) => updateField("adultCount", event.target.value)}
                 className={inputClass}
@@ -731,6 +778,7 @@ export default function BookingForm({
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
                       <div>
                         <input
+                          data-validation-key={`customer_${index}_fullName`}
                           value={customer.fullName}
                           onChange={(event) =>
                             updateCustomer(
@@ -814,6 +862,7 @@ export default function BookingForm({
 
                       <div>
                         <input
+                          data-validation-key={`customer_${index}_email`}
                           value={customer.email}
                           onChange={(event) =>
                             updateCustomer(

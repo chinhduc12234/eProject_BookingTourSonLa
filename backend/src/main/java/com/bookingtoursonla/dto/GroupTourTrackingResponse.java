@@ -16,4 +16,5 @@ public class GroupTourTrackingResponse {
     private Integer completedActivities;
     private Integer progressPercent;
     private List<GroupTourBookingTrackingResponse> bookings;
+    private List<BookingScheduleDayResponse> scheduleDays;
 }

@@ -56,14 +56,14 @@ public class PublicTourServiceImpl implements PublicTourService {
                 size,
                 Sort.by("createdAt").descending());
 
-        Page<Tour> tours = keyword != null && !keyword.trim().isEmpty()
-                ? tourRepository.findByDeletedAtIsNullAndTitleContainingIgnoreCaseAndStatus(
-                        keyword.trim(),
-                        TourStatus.OPEN,
-                        pageable)
-                : tourRepository.findByDeletedAtIsNullAndStatus(
-                        TourStatus.OPEN,
-                        pageable);
+        String normalizedKeyword = keyword != null && !keyword.trim().isEmpty()
+                ? keyword.trim()
+                : null;
+        Page<Tour> tours = tourRepository.findPublicBookableTours(
+                normalizedKeyword,
+                LocalDate.now(),
+                LocalDateTime.now(),
+                pageable);
 
         List<Long> tourIds = tours
                 .stream()
@@ -94,6 +94,10 @@ public class PublicTourServiceImpl implements PublicTourService {
                 .stream()
                 .filter(this::isBookableDeparture)
                 .toList();
+
+        if (visibleDepartures.isEmpty()) {
+            throw new RuntimeException("Tour hiện không còn lịch khởi hành mở bán");
+        }
 
         response.setDepartures(visibleDepartures);
 

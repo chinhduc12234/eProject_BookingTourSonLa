@@ -555,8 +555,22 @@ public class BookingServiceImpl implements BookingService {
             return item;
         }).toList();
 
-        int totalActivities = items.stream().mapToInt(i -> valueOrZero(i.getTotalActivities())).sum();
-        int completedActivities = items.stream().mapToInt(i -> valueOrZero(i.getCompletedActivities())).sum();
+        // Các booking tour ghép đều dùng cùng một lịch trình đã đồng bộ. Chỉ lấy
+        // timeline đại diện để số hoạt động/tiến độ là của cả đoàn, không bị cộng
+        // lặp lại theo số lượng đơn đặt chỗ.
+        List<Booking> activeBookings = loadActiveGroupBookings(departureId);
+        List<BookingScheduleDayResponse> groupScheduleDays = activeBookings.isEmpty()
+                ? List.of()
+                : loadBookingSchedule(activeBookings.get(0));
+        int totalActivities = groupScheduleDays.stream()
+                .mapToInt(day -> day.getActivities().size())
+                .sum();
+        int completedActivities = (int) groupScheduleDays.stream()
+                .flatMap(day -> day.getActivities().stream())
+                .filter(activity -> "DONE".equals(activity.getStatus())
+                        || "CHANGED".equals(activity.getStatus())
+                        || "SKIPPED".equals(activity.getStatus()))
+                .count();
         GroupTourTrackingResponse response = new GroupTourTrackingResponse();
         response.setDepartureId(group.getDepartureId());
         response.setTourName(group.getTourName());
@@ -569,6 +583,7 @@ public class BookingServiceImpl implements BookingService {
         response.setCompletedActivities(completedActivities);
         response.setProgressPercent(totalActivities == 0 ? 0 : Math.round(completedActivities * 100f / totalActivities));
         response.setBookings(items);
+        response.setScheduleDays(groupScheduleDays);
         return response;
     }
 
@@ -645,6 +660,12 @@ public class BookingServiceImpl implements BookingService {
         }
 
         bookingRepository.saveAll(confirmedBookings);
+
+        // Admin xác nhận đoàn nghĩa là chốt danh sách khách cho chuyến này.
+        // Đóng lịch ngay tại nguồn dữ liệu để cả API công khai lẫn API đặt tour
+        // đều không thể nhận thêm booking.
+        departure.setStatus(DepartureStatus.CLOSED);
+        tourDepartureRepository.save(departure);
 
         confirmedBookings.forEach(booking ->
                 eventPublisher.publishEvent(new BookingAdminConfirmedEvent(booking.getId())));

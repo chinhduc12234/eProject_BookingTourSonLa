@@ -36,7 +36,11 @@ export default function DepartureSelector({
   }
 
   return (
-    <div className="departure-selector grid gap-3">
+    <div
+      id="departure-selector"
+      tabIndex="-1"
+      className="departure-selector grid gap-3 outline-none"
+    >
       {departures.map((departure) => {
         const availableSeats = Number(departure.availableSeats || 0);
         const deadlineExpired =
