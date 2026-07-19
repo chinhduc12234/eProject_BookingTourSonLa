@@ -246,7 +246,7 @@ public class TourDepartureServiceImpl implements TourDepartureService {
             return DepartureStatus.CLOSED;
         }
 
-        if (request.getStatus() == DepartureStatus.FULL || current >= max) {
+        if (current >= max) {
             return DepartureStatus.FULL;
         }
 

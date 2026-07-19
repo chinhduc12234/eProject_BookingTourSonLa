@@ -35,6 +35,7 @@ const TourDetailPage = lazy(() => import("./pages/admin/TourDetailPage"));
 const StaffPage = lazy(() => import("./pages/admin/StaffPage"));
 const BookingPage = lazy(() => import("./pages/admin/BookingPage"));
 const GroupTourManagementPage = lazy(() => import("./pages/admin/GroupTourManagementPage"));
+const GroupTourDetailPage = lazy(() => import("./pages/admin/GroupTourDetailPage"));
 const AdminBookingDetailPage = lazy(() => import("./pages/admin/AdminBookingDetailPage"));
 
 function RouteLoading() {
@@ -212,6 +213,7 @@ function AnimatedRoutes() {
           <Route path="tours" element={<TourPage />} />
           <Route path="tours/:id" element={<TourDetailPage />} />
           <Route path="group-tours" element={<GroupTourManagementPage />} />
+          <Route path="group-tours/:departureId" element={<GroupTourDetailPage />} />
           <Route path="bookings" element={<BookingPage />} />
           <Route path="bookings/:bookingId" element={<AdminBookingDetailPage />} />
           <Route path="staff" element={<StaffPage />} />

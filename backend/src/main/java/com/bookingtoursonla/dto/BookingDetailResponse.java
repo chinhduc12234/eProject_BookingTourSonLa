@@ -154,4 +154,15 @@ public class BookingDetailResponse {
     private LocalDateTime scheduleLastUpdatedAt;
 
     private String scheduleLastUpdatedBy;
+
+    // Tóm tắt đoàn để nhân viên điều hành một tour ghép như một chuyến duy nhất.
+    private Boolean groupTourOperation;
+
+    private Integer groupBookingCount;
+
+    private Integer groupTotalPeople;
+
+    private List<String> groupBookingCodes;
+
+    private List<String> groupCustomerNames;
 }

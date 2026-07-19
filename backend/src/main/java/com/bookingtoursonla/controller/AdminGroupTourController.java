@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.bookingtoursonla.dto.AssignGroupTourStaffRequest;
 import com.bookingtoursonla.dto.GroupTourDepartureResponse;
+import com.bookingtoursonla.dto.GroupTourTrackingResponse;
 import com.bookingtoursonla.service.BookingService;
 
 import jakarta.validation.Valid;
@@ -34,6 +35,16 @@ public class AdminGroupTourController {
             @RequestParam(defaultValue = "") String keyword) {
 
         return bookingService.getAdminGroupTours(page, size, keyword);
+    }
+
+    @GetMapping("/{departureId}")
+    public GroupTourDepartureResponse getDetail(@PathVariable Long departureId) {
+        return bookingService.getAdminGroupTourDetail(departureId);
+    }
+
+    @GetMapping("/{departureId}/tracking")
+    public GroupTourTrackingResponse getTracking(@PathVariable Long departureId) {
+        return bookingService.getAdminGroupTourTracking(departureId);
     }
 
     @PutMapping("/{departureId}/staff")

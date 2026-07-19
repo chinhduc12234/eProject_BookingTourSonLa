@@ -153,7 +153,7 @@ export default function TourDetailPublicPage() {
 
         const firstOpenDeparture = (data.departures || []).find(
           (departure) =>
-            departure.status === "OPEN" &&
+            departure.status !== "CLOSED" &&
             Number(departure.availableSeats || 0) > 0 &&
             (!departure.bookingDeadline ||
               new Date(departure.bookingDeadline) > new Date()),
@@ -533,7 +533,7 @@ export default function TourDetailPublicPage() {
                     const isSelected =
                       Number(departure.id) === Number(selectedDepartureId);
                     const isOpen =
-                      departure.status === "OPEN" &&
+                      departure.status !== "CLOSED" &&
                       Number(departure.availableSeats || 0) > 0;
                     const departureType = getDepartureType(departure);
 

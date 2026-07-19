@@ -41,6 +41,60 @@ const getBookingStatusClass = (status) => {
   return classes[status] || "badge-pending";
 };
 
+const getOperationStatus = (bookings) => {
+  const activeBookings = bookings.filter((booking) => booking.status !== "CANCELLED");
+
+  if (activeBookings.length === 0) return "CANCELLED";
+  if (activeBookings.every((booking) => booking.status === "COMPLETED")) return "COMPLETED";
+  if (activeBookings.some((booking) => booking.status === "IN_PROGRESS")) return "IN_PROGRESS";
+  if (activeBookings.some((booking) => booking.status === "CONFIRMED")) return "CONFIRMED";
+  return "PENDING";
+};
+
+const groupBookingsForOperation = (bookings) => {
+  const groups = new Map();
+
+  bookings.forEach((booking) => {
+    const isPrivate = booking.bookingType === "PRIVATE" || booking.privateDeparture;
+    const key = !isPrivate && booking.departureId
+      ? `departure-${booking.departureId}`
+      : `booking-${booking.id}`;
+    groups.set(key, [...(groups.get(key) || []), booking]);
+  });
+
+  return [...groups.values()].map((group) => {
+    const activeBookings = group.filter((booking) => booking.status !== "CANCELLED");
+    const representative = activeBookings[0] || group[0];
+    const isGroupTour = !(
+      representative.bookingType === "PRIVATE" || representative.privateDeparture
+    );
+    const customerNames = [...new Set(group.map((booking) => booking.customer || booking.customerName).filter(Boolean))];
+    const totalPeople = activeBookings.reduce(
+      (sum, booking) => sum + Number(booking.totalPeople || booking.slots || 0),
+      0,
+    );
+
+    return {
+      ...representative,
+      status: getOperationStatus(group),
+      totalPeople,
+      slots: totalPeople,
+      adultCount: activeBookings.reduce((sum, booking) => sum + Number(booking.adultCount || 0), 0),
+      childCount: activeBookings.reduce((sum, booking) => sum + Number(booking.childCount || 0), 0),
+      totalPrice: activeBookings.reduce((sum, booking) => sum + Number(booking.totalPrice || 0), 0),
+      isGroupTour,
+      groupBookingCount: group.length,
+      activeBookingCount: activeBookings.length,
+      customerSummary: customerNames.join(", "),
+      bookingCodes: group.map((booking) => booking.bookingCode).filter(Boolean),
+      customer: customerNames.join(", "),
+      phone: isGroupTour
+        ? group.map((booking) => booking.bookingCode).filter(Boolean).join(" · ")
+        : representative.phone,
+    };
+  });
+};
+
 export default function EmployeeDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("bookings");
@@ -100,11 +154,14 @@ export default function EmployeeDashboard() {
     }
   };
 
-  const filteredBookings = bookings.filter((booking) => {
+  const operationTours = groupBookingsForOperation(bookings);
+
+  const filteredBookings = operationTours.filter((booking) => {
     const keyword = searchTerm.toLowerCase();
-    const customerName = booking.customerName || booking.customer || "";
+    const customerName = booking.customerSummary || booking.customerName || booking.customer || "";
     const matchesStatus = statusFilter === "ALL" || booking.status === statusFilter;
     return matchesStatus && (
+      booking.bookingCodes?.some((code) => code?.toLowerCase().includes(keyword)) ||
       booking.bookingCode?.toLowerCase().includes(keyword) ||
       customerName.toLowerCase().includes(keyword) ||
       (booking.tourName || "").toLowerCase().includes(keyword)
@@ -119,12 +176,12 @@ export default function EmployeeDashboard() {
 
   const completedCount =
     stats.completedBookings ??
-    bookings.filter((booking) => booking.status === "COMPLETED").length;
+    operationTours.filter((booking) => booking.status === "COMPLETED").length;
 
-  const activeCount = bookings.filter((booking) =>
+  const activeCount = operationTours.filter((booking) =>
     ["CONFIRMED", "IN_PROGRESS"].includes(booking.status),
   ).length;
-  const privateDepartureCount = bookings.filter(
+  const privateDepartureCount = operationTours.filter(
     (booking) => booking.privateDeparture,
   ).length;
 
@@ -325,7 +382,11 @@ export default function EmployeeDashboard() {
                       filteredBookings.map((booking) => (
                         <tr key={booking.id}>
                           <td data-label="Đơn & khách">
-                            <div className="font-mono-code">{booking.bookingCode}</div>
+                            <div className="font-mono-code">
+                              {booking.isGroupTour
+                                ? `TOUR GHÉP · ${booking.activeBookingCount}/${booking.groupBookingCount} đơn`
+                                : booking.bookingCode}
+                            </div>
                             <div className="customer-main-name">
                               {booking.customerName || booking.customer || "Khách hàng"}
                             </div>

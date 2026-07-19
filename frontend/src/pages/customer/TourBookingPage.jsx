@@ -29,7 +29,7 @@ const formatDate = (value) => {
 };
 
 const isBookableDeparture = (departure) =>
-  departure?.status === "OPEN" &&
+  departure?.status !== "CLOSED" &&
   Number(departure.availableSeats || 0) > 0 &&
   (!departure.bookingDeadline ||
     new Date(departure.bookingDeadline) > new Date());

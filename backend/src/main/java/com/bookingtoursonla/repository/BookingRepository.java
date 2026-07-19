@@ -154,7 +154,14 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
               b.bookedAt,
               b.totalPeople,
               b.totalPrice,
-              b.status
+              b.status,
+              d.id,
+              d.departureDate,
+              d.departureTime,
+              b.bookingType,
+              d.isPrivateDeparture,
+              b.adultCount,
+              b.childCount
           )
           FROM Booking b
           JOIN b.tourDeparture d

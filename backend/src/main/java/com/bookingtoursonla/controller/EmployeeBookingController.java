@@ -2,6 +2,7 @@ package com.bookingtoursonla.controller;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -101,17 +102,26 @@ public class EmployeeBookingController {
         List<BookingDashboardDTO> allBookings =
                 bookingEmployeeRepository.findDashboardBookingsByEmployeeId(staffId);
 
-        long totalBookings = allBookings.size();
-        long confirmedBookings = allBookings
+        Map<String, List<BookingDashboardDTO>> operationGroups = allBookings.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        this::operationGroupKey,
+                        LinkedHashMap::new,
+                        java.util.stream.Collectors.toList()));
+
+        long totalBookings = operationGroups.size();
+        long confirmedBookings = operationGroups.values()
                 .stream()
-                .filter(booking ->
+                .filter(group -> group.stream().anyMatch(booking ->
                         booking.getStatus() == BookingStatus.PENDING
-                                || booking.getStatus() == BookingStatus.CONFIRMED)
+                                || booking.getStatus() == BookingStatus.CONFIRMED
+                                || booking.getStatus() == BookingStatus.IN_PROGRESS))
                 .count();
 
-        long completedBookings = allBookings
+        long completedBookings = operationGroups.values()
                 .stream()
-                .filter(booking -> booking.getStatus() == BookingStatus.COMPLETED)
+                .filter(group -> !group.isEmpty() && group.stream().allMatch(booking ->
+                        booking.getStatus() == BookingStatus.COMPLETED
+                                || booking.getStatus() == BookingStatus.CANCELLED))
                 .count();
 
         BigDecimal totalRevenue =
@@ -129,6 +139,15 @@ public class EmployeeBookingController {
         stats.put("totalRevenue", totalRevenue);
 
         return ResponseEntity.ok(stats);
+    }
+
+    private String operationGroupKey(BookingDashboardDTO booking) {
+        boolean isPrivate = Boolean.TRUE.equals(booking.getPrivateDeparture())
+                || booking.getBookingType() == com.bookingtoursonla.entity.enums.BookingType.PRIVATE;
+
+        return !isPrivate && booking.getDepartureId() != null
+                ? "departure-" + booking.getDepartureId()
+                : "booking-" + booking.getId();
     }
 
     @PutMapping("/bookings/{id}/status")

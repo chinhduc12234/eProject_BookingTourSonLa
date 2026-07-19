@@ -41,12 +41,13 @@ export default function DepartureSelector({
         const availableSeats = Number(departure.availableSeats || 0);
         const deadlineExpired =
           departure.bookingDeadline && new Date(departure.bookingDeadline) < new Date();
+        const isClosed = departure.status === "CLOSED";
         const disabled =
-          !tourId || departure.status !== "OPEN" || availableSeats <= 0 || deadlineExpired;
+          !tourId || isClosed || availableSeats <= 0 || deadlineExpired;
         const disabledReason =
           !tourId
             ? "Đang tải thông tin tour..."
-            : departure.status !== "OPEN"
+            : isClosed
               ? "Lịch chưa mở đặt"
               : availableSeats <= 0
                 ? "Hết chỗ"

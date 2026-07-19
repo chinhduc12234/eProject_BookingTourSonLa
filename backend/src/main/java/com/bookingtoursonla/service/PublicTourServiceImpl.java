@@ -161,18 +161,22 @@ public class PublicTourServiceImpl implements PublicTourService {
         dto.setMaxPeople(departure.getMaxPeople());
         dto.setCurrentPeople(departure.getCurrentPeople());
         dto.setReservedPeople(departure.getReservedPeople());
-        dto.setAvailableSeats(calculateAvailableSeats(departure));
+        int availableSeats = calculateAvailableSeats(departure);
+        dto.setAvailableSeats(availableSeats);
         dto.setAdultPrice(departure.getAdultPrice());
         dto.setChildPrice(departure.getChildPrice());
         dto.setIsPrivateDeparture(departure.getIsPrivateDeparture());
-        dto.setStatus(departure.getStatus());
+        dto.setStatus(
+                departure.getStatus() != DepartureStatus.CLOSED && availableSeats > 0
+                        ? DepartureStatus.OPEN
+                        : departure.getStatus());
 
         return dto;
     }
 
     private boolean isBookableDeparture(TourDeparture departure) {
 
-        return departure.getStatus() == DepartureStatus.OPEN
+        return departure.getStatus() != DepartureStatus.CLOSED
                 && departure.getDepartureDate() != null
                 && !departure.getDepartureDate().isBefore(LocalDate.now())
                 && (departure.getBookingDeadline() == null
@@ -184,7 +188,7 @@ public class PublicTourServiceImpl implements PublicTourService {
 
         return departure.getDepartureDate() != null
                 && !departure.getDepartureDate().isBefore(LocalDate.now())
-                && departure.getStatus() == DepartureStatus.OPEN
+                && departure.getStatus() != DepartureStatus.CLOSED
                 && departure.getAvailableSeats() != null
                 && departure.getAvailableSeats() > 0
                 && (departure.getBookingDeadline() == null

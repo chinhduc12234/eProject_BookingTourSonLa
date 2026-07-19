@@ -32,6 +32,12 @@ export const updateAdminBooking = (id, data) =>
 export const getAdminGroupTours = (params) =>
   axiosClient.get("/admin/group-tours", { params });
 
+export const getAdminGroupTourDetail = (departureId) =>
+  axiosClient.get(`/admin/group-tours/${departureId}`);
+
+export const getAdminGroupTourTracking = (departureId) =>
+  axiosClient.get(`/admin/group-tours/${departureId}/tracking`);
+
 export const assignAdminGroupTourStaff = (departureId, employeeId) =>
   axiosClient.put(`/admin/group-tours/${departureId}/staff`, { employeeId });
 
