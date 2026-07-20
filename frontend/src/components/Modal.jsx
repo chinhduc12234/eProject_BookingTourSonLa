@@ -1,7 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 
 export default function Modal({ open, onClose, children, className = "" }) {
+  const panelRef = useRef(null);
+
   useEffect(() => {
     if (!open) return undefined;
 
@@ -19,18 +21,28 @@ export default function Modal({ open, onClose, children, className = "" }) {
     };
   }, [open, onClose]);
 
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const focusTimer = window.setTimeout(() => {
+      panelRef.current?.focus();
+    }, 0);
+
+    return () => window.clearTimeout(focusTimer);
+  }, [open]);
+
   if (!open) return null;
 
   return (
     <div
-      onClick={onClose}
       className="admin-modal-overlay fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/50 p-3 backdrop-blur-[8px] sm:p-5 md:p-6"
       role="presentation"
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
+        tabIndex={-1}
         className={`admin-modal-panel
           relative 
           w-full 

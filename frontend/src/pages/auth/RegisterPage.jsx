@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import axiosClient from "../../api/axiosClient";
 import { useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -6,6 +6,8 @@ import { motion, useMotionValue, useMotionTemplate } from "framer-motion";
 import {
     ArrowRight,
     Cloud,
+    Eye,
+    EyeOff,
     Lock,
     Mail,
     Phone,
@@ -37,6 +39,8 @@ const floatAnim = {
     },
 };
 
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function RegisterPage() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
@@ -46,6 +50,19 @@ export default function RegisterPage() {
         phone: "",
         password: "",
     });
+    const [errors, setErrors] = useState({});
+    const [showPassword, setShowPassword] = useState(false);
+
+    const fullNameRef = useRef(null);
+    const emailRef = useRef(null);
+    const phoneRef = useRef(null);
+    const passwordRef = useRef(null);
+    const fieldRefs = {
+        fullName: fullNameRef,
+        email: emailRef,
+        phone: phoneRef,
+        password: passwordRef,
+    };
 
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
@@ -54,6 +71,41 @@ export default function RegisterPage() {
         const { left, top } = currentTarget.getBoundingClientRect();
         mouseX.set(clientX - left);
         mouseY.set(clientY - top);
+    }
+
+    function handleFieldChange(field, value) {
+        setForm((prev) => ({ ...prev, [field]: value }));
+        setErrors((prev) => {
+            if (!prev[field]) return prev;
+            const next = { ...prev };
+            delete next[field];
+            return next;
+        });
+    }
+
+    function validate() {
+        const nextErrors = {};
+        if (!form.fullName.trim()) {
+            nextErrors.fullName = "Vui lòng nhập họ và tên";
+        }
+
+        if (!form.email.trim()) {
+            nextErrors.email = "Vui lòng nhập email";
+        } else if (!emailPattern.test(form.email.trim())) {
+            nextErrors.email = "Email không đúng định dạng";
+        }
+
+        if (!form.phone.trim()) {
+            nextErrors.phone = "Vui lòng nhập số điện thoại";
+        }
+
+        if (!form.password) {
+            nextErrors.password = "Vui lòng nhập mật khẩu";
+        } else if (form.password.length < 6) {
+            nextErrors.password = "Mật khẩu phải ít nhất 6 ký tự";
+        }
+
+        return nextErrors;
     }
 
     const handleSubmit = async (e) => {
@@ -69,6 +121,15 @@ export default function RegisterPage() {
             });
         }
 
+        const nextErrors = validate();
+        if (Object.keys(nextErrors).length > 0) {
+            setErrors(nextErrors);
+            const firstErrorKey = Object.keys(nextErrors)[0];
+            fieldRefs[firstErrorKey]?.current?.focus();
+            return;
+        }
+        setErrors({});
+
         try {
             setLoading(true);
             await axiosClient.post("/auth/register", {
@@ -80,7 +141,7 @@ export default function RegisterPage() {
             await Swal.fire({
                 icon: "success",
                 title: "Đăng ký thành công",
-                text: "Chào mừng bạn gia nhập gia đình Sơn La Travel!",
+                text: "Chào mừng bạn gia nhập gia đình Tây Bắc Travel!",
                 background: "#0b1f17",
                 color: "#fff",
                 confirmButtonColor: "#7FB77E",
@@ -88,8 +149,28 @@ export default function RegisterPage() {
             navigate("/login");
         } catch (err) {
             const responseData = err?.response?.data;
-            const validationMessage = responseData?.errors
-                ? Object.values(responseData.errors).find(Boolean)
+            const backendErrors = responseData?.errors;
+
+            if (backendErrors && typeof backendErrors === "object") {
+                const mappedErrors = {};
+                Object.entries(backendErrors).forEach(([field, message]) => {
+                    if (fieldRefs[field] && message) {
+                        mappedErrors[field] = Array.isArray(message)
+                            ? message[0]
+                            : message;
+                    }
+                });
+
+                if (Object.keys(mappedErrors).length > 0) {
+                    setErrors(mappedErrors);
+                    const firstErrorKey = Object.keys(mappedErrors)[0];
+                    fieldRefs[firstErrorKey]?.current?.focus();
+                    return;
+                }
+            }
+
+            const validationMessage = backendErrors
+                ? Object.values(backendErrors).find(Boolean)
                 : null;
 
             Swal.fire({
@@ -129,7 +210,7 @@ export default function RegisterPage() {
                 animate={{ scale: 1.05, opacity: 0.9 }}
                 transition={{ duration: 2, ease: "easeOut" }}
                 style={{
-                    backgroundImage: `url('${scenicImages.sonLaLandscape}')`,
+                    backgroundImage: `url('${scenicImages.terraces}')`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                 }}
@@ -254,6 +335,8 @@ export default function RegisterPage() {
                             <form onSubmit={handleSubmit} className="mt-8 space-y-4">
                                 {fields.map((field) => {
                                     const Icon = field.icon;
+                                    const isPassword = field.type === "password";
+                                    const hasError = Boolean(errors[field.key]);
                                     return (
                                         <motion.div key={field.key} variants={fadeInUp}>
                                             <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-[#d4a878]">
@@ -262,7 +345,12 @@ export default function RegisterPage() {
                                             <div className="relative flex items-center">
                                                 <Icon className="absolute left-5 h-5 w-5 text-[#d4a878]" />
                                                 <input
-                                                    type={field.type}
+                                                    ref={fieldRefs[field.key]}
+                                                    type={
+                                                        isPassword && showPassword
+                                                            ? "text"
+                                                            : field.type
+                                                    }
                                                     name={field.key}
                                                     autoComplete={{
                                                         fullName: "name",
@@ -272,15 +360,48 @@ export default function RegisterPage() {
                                                     }[field.key]}
                                                     required
                                                     placeholder={field.placeholder}
+                                                    value={form[field.key]}
+                                                    aria-invalid={hasError}
                                                     onChange={(e) =>
-                                                        setForm({
-                                                            ...form,
-                                                            [field.key]: e.target.value,
-                                                        })
+                                                        handleFieldChange(
+                                                            field.key,
+                                                            e.target.value
+                                                        )
                                                     }
-                                                    className="w-full rounded-2xl border border-white/15 bg-white/[0.06] py-4 pl-14 pr-5 text-white outline-none transition-all placeholder:text-white/40 focus:border-[#A67C52] focus:bg-[#A67C52]/10 focus:ring-4 focus:ring-[#A67C52]/15"
+                                                    className={`w-full rounded-2xl border bg-white/[0.06] py-4 pl-14 text-white outline-none transition-all placeholder:text-white/40 focus:bg-[#A67C52]/10 focus:ring-4 ${
+                                                        isPassword ? "pr-12" : "pr-5"
+                                                    } ${
+                                                        hasError
+                                                            ? "border-rose-400 focus:border-rose-400 focus:ring-rose-400/20"
+                                                            : "border-white/15 focus:border-[#A67C52] focus:ring-[#A67C52]/15"
+                                                    }`}
                                                 />
+                                                {isPassword && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setShowPassword((prev) => !prev)
+                                                        }
+                                                        aria-label={
+                                                            showPassword
+                                                                ? "Ẩn mật khẩu"
+                                                                : "Hiện mật khẩu"
+                                                        }
+                                                        className="absolute right-5 text-white/50 transition hover:text-[#d4a878]"
+                                                    >
+                                                        {showPassword ? (
+                                                            <EyeOff className="h-5 w-5" />
+                                                        ) : (
+                                                            <Eye className="h-5 w-5" />
+                                                        )}
+                                                    </button>
+                                                )}
                                             </div>
+                                            {hasError && (
+                                                <p className="mt-1.5 text-xs text-rose-300">
+                                                    {errors[field.key]}
+                                                </p>
+                                            )}
                                         </motion.div>
                                     );
                                 })}

@@ -6,7 +6,8 @@ import { faqItems, scenicImages } from "./publicContent";
 
 export default function FaqPage() {
     const [query, setQuery] = useState("");
-    const [openIndex, setOpenIndex] = useState(0);
+    // Dùng chính câu hỏi làm khóa mở/đóng để không mở nhầm khi kết quả lọc đổi.
+    const [openKey, setOpenKey] = useState(faqItems[0]?.question ?? null);
 
     const filteredItems = useMemo(() => {
         const keyword = query.trim().toLowerCase();
@@ -104,7 +105,9 @@ export default function FaqPage() {
                 <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
                     <div className="space-y-3">
                         {filteredItems.map((item, index) => {
-                            const expanded = openIndex === index;
+                            const expanded = openKey === item.question;
+                            const panelId = `faq-panel-${index}`;
+                            const buttonId = `faq-button-${index}`;
                             return (
                                 <motion.article
                                     key={item.question}
@@ -121,7 +124,12 @@ export default function FaqPage() {
                                 >
                                     <button
                                         type="button"
-                                        onClick={() => setOpenIndex(expanded ? -1 : index)}
+                                        id={buttonId}
+                                        aria-expanded={expanded}
+                                        aria-controls={panelId}
+                                        onClick={() =>
+                                            setOpenKey(expanded ? null : item.question)
+                                        }
                                         className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
                                     >
                                         <span className="flex items-center gap-4">
@@ -152,6 +160,9 @@ export default function FaqPage() {
                                         {expanded && (
                                             <motion.div
                                                 key="content"
+                                                id={panelId}
+                                                role="region"
+                                                aria-labelledby={buttonId}
                                                 initial={{ height: 0, opacity: 0 }}
                                                 animate={{ height: "auto", opacity: 1 }}
                                                 exit={{ height: 0, opacity: 0 }}

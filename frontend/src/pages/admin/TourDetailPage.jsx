@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Swal from "sweetalert2";
 
 import useTourWizard from "../../hooks/useTourWizard";
 
@@ -44,13 +45,26 @@ export default function TourWizardPage() {
     setStep((s) => Math.max(s - 1, 0));
   };
 
-  const handleDiscard = () => {
+  const handleDiscard = async () => {
 
     if (!isDirty) return;
 
-    if (!window.confirm(
-      "Hủy mọi thay đổi và tải lại dữ liệu từ database?",
-    )) return;
+    const result = await Swal.fire({
+      title: "Hủy thay đổi?",
+      text: "Hủy mọi thay đổi và tải lại dữ liệu từ database?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Hủy thay đổi",
+      cancelButtonText: "Đóng",
+      confirmButtonColor: "#dc2626",
+      customClass: {
+        popup: "rounded-3xl",
+        confirmButton: "rounded-xl px-6 py-2",
+        cancelButton: "rounded-xl px-6 py-2",
+      },
+    });
+
+    if (!result.isConfirmed) return;
 
     void reload();
   };

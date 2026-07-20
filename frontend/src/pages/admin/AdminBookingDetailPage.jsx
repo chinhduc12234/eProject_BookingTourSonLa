@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
+import Swal from "sweetalert2";
 import {
   Activity,
   AlertTriangle,
@@ -1000,7 +1001,26 @@ export default function AdminBookingDetailPage() {
 
                 <button
                   type="button"
-                  onClick={() => handleAdminAction({ confirm: true })}
+                  onClick={async () => {
+                    const result = await Swal.fire({
+                      title: "Xác nhận tour?",
+                      text: "Tour sẽ được xác nhận và gán cho nhân viên đã chọn.",
+                      icon: "question",
+                      showCancelButton: true,
+                      confirmButtonText: "Xác nhận",
+                      cancelButtonText: "Hủy",
+                      confirmButtonColor: "#2f7d55",
+                      customClass: {
+                        popup: "rounded-3xl",
+                        confirmButton: "rounded-xl px-6 py-2",
+                        cancelButton: "rounded-xl px-6 py-2",
+                      },
+                    });
+
+                    if (result.isConfirmed) {
+                      handleAdminAction({ confirm: true });
+                    }
+                  }}
                   disabled={actionLoading || isTourConfirmed || isCancelled}
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 text-sm font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300"
                 >
@@ -1110,7 +1130,26 @@ export default function AdminBookingDetailPage() {
                     </p>
                     <button
                       type="button"
-                      onClick={() => handleAdminAction({ confirmPayment: true })}
+                      onClick={async () => {
+                        const result = await Swal.fire({
+                          title: "Xác nhận thanh toán?",
+                          text: "Đơn sẽ được chuyển sang trạng thái đã thanh toán/đã cọc.",
+                          icon: "question",
+                          showCancelButton: true,
+                          confirmButtonText: "Xác nhận",
+                          cancelButtonText: "Hủy",
+                          confirmButtonColor: "#2f7d55",
+                          customClass: {
+                            popup: "rounded-3xl",
+                            confirmButton: "rounded-xl px-6 py-2",
+                            cancelButton: "rounded-xl px-6 py-2",
+                          },
+                        });
+
+                        if (result.isConfirmed) {
+                          handleAdminAction({ confirmPayment: true });
+                        }
+                      }}
                       disabled={actionLoading || isCancelled}
                       className="mt-3 inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 text-sm font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300"
                     >
@@ -1123,7 +1162,26 @@ export default function AdminBookingDetailPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleAdminAction({ paymentStatus: "FAILED" })}
+                      onClick={async () => {
+                        const result = await Swal.fire({
+                          title: "Từ chối thanh toán?",
+                          text: "Đơn sẽ được đánh dấu thanh toán thất bại.",
+                          icon: "warning",
+                          showCancelButton: true,
+                          confirmButtonText: "Từ chối",
+                          cancelButtonText: "Hủy",
+                          confirmButtonColor: "#dc2626",
+                          customClass: {
+                            popup: "rounded-3xl",
+                            confirmButton: "rounded-xl px-6 py-2",
+                            cancelButton: "rounded-xl px-6 py-2",
+                          },
+                        });
+
+                        if (result.isConfirmed) {
+                          handleAdminAction({ paymentStatus: "FAILED" });
+                        }
+                      }}
                       disabled={actionLoading || isCancelled}
                       className="ml-2 mt-3 inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-white px-4 text-sm font-black text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >

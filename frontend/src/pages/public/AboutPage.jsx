@@ -137,17 +137,18 @@ export default function AboutPage() {
                                 transition={{ duration: 0.5, delay: idx * 0.07 }}
                                 className={[
                                     "group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]",
-                                    idx === 0 ? "md:col-span-2" : "",
+                                    idx === 0 || idx === 3 ? "md:col-span-2" : "",
                                 ].join(" ")}
                             >
                                 <img
                                     src={item.image}
                                     alt={item.title}
                                     loading="lazy"
+                                    decoding="async"
                                     className="h-72 w-full object-cover transition-transform duration-[1300ms] group-hover:scale-110"
                                 />
                                 <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#020617]/90 to-transparent p-5">
-                                    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#d4a878]">
+                                    <div className="text-xs font-black uppercase tracking-[0.2em] text-[#f4c27a]">
                                         {item.eyebrow}
                                     </div>
                                     <div className="mt-1 text-lg font-black text-white">

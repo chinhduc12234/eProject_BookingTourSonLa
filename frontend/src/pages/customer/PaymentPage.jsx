@@ -55,8 +55,6 @@ export default function PaymentPage() {
       if (hasRedirected.current) return;
 
       try {
-        console.log("PaymentPage - Loading data from localStorage");
-
         const tempDeparture = localStorage.getItem("booking_temp_departure");
         const tempComplete = localStorage.getItem("booking_temp_complete");
 
@@ -73,7 +71,7 @@ export default function PaymentPage() {
         try {
           departure = JSON.parse(tempDeparture);
           complete = JSON.parse(tempComplete);
-        } catch (parseError) {
+        } catch {
           if (!hasRedirected.current) {
             hasRedirected.current = true;
             toast.error("Dữ liệu không hợp lệ, vui lòng thử lại");
@@ -102,16 +100,14 @@ export default function PaymentPage() {
             setTourData(tourResponse.data);
             setLoading(false);
           }
-        } catch (apiError) {
-          console.error("PaymentPage - Error fetching tour details:", apiError);
+        } catch {
           if (isMounted && !hasRedirected.current) {
             hasRedirected.current = true;
             toast.error("Không thể tải thông tin tour");
             setTimeout(() => { if (isMounted) navigate("/"); }, 1500);
           }
         }
-      } catch (error) {
-        console.error("PaymentPage - Unexpected error:", error);
+      } catch {
         if (isMounted && !hasRedirected.current) {
           hasRedirected.current = true;
           toast.error("Không thể tải trang thanh toán");
@@ -153,7 +149,6 @@ export default function PaymentPage() {
       toast.success("Đơn và lựa chọn thanh toán đã được ghi nhận, đang chờ kiểm tra.");
       navigate(`/thank-you?bookingId=${bookingId}`);
     } catch (error) {
-      console.error("Booking Error:", error);
       toast.error(
         error?.response?.data?.message || "Không thể xác nhận đặt tour"
       );

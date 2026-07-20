@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
+  AlertTriangle,
   ArrowLeft,
   CalendarDays,
   Loader2,
   MapPin,
+  RefreshCcw,
   ShieldCheck,
   Users,
 } from "lucide-react";
@@ -43,6 +45,8 @@ export default function TourBookingPage() {
   const [detail, setDetail] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [selectedDepartureId, setSelectedDepartureId] = useState("");
+  const [loadError, setLoadError] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -50,6 +54,7 @@ export default function TourBookingPage() {
     const loadBookingPage = async () => {
       try {
         setLoading(true);
+        setLoadError(null);
         const [detailResponse, profileResponse] = await Promise.all([
           getPublicTourDetail(id),
           getCurrentUserProfile(),
@@ -71,9 +76,12 @@ export default function TourBookingPage() {
           requestedDeparture?.id || firstOpenDeparture?.id || "",
         );
       } catch (error) {
-        toast.error(
-          error?.response?.data?.message || "Không thể tải trang đặt tour",
-        );
+        if (!mounted) return;
+        const status = error?.response?.status;
+        const message =
+          error?.response?.data?.message || "Không thể tải trang đặt tour";
+        setLoadError({ status, message });
+        toast.error(message);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -84,7 +92,7 @@ export default function TourBookingPage() {
     return () => {
       mounted = false;
     };
-  }, [id, requestedDepartureId]);
+  }, [id, requestedDepartureId, reloadKey]);
 
   const selectedDeparture = useMemo(() => {
     return (detail?.departures || []).find(
@@ -101,6 +109,51 @@ export default function TourBookingPage() {
             <p className="text-sm font-bold text-slate-300">
               Đang tải trang đặt tour...
             </p>
+          </div>
+        </div>
+      </PublicLayout>
+    );
+  }
+
+  if (loadError) {
+    const notFound = loadError.status === 404;
+
+    return (
+      <PublicLayout>
+        <div className="flex min-h-[calc(100vh-80px)] items-center justify-center bg-[#020617] px-4 py-16">
+          <div className="mx-auto max-w-lg rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center">
+            {notFound ? (
+              <>
+                <MapPin className="mx-auto h-12 w-12 text-slate-400" />
+                <h1 className="mt-4 text-2xl font-black text-white">
+                  Không tìm thấy tour
+                </h1>
+                <p className="mt-2 text-sm leading-7 text-slate-300">
+                  Tour này có thể đã ngừng bán hoặc đường dẫn không còn hợp lệ.
+                </p>
+                <Link to="/tours" className="btn-primary mt-6 text-sm">
+                  Xem các tour khác
+                </Link>
+              </>
+            ) : (
+              <>
+                <AlertTriangle className="mx-auto h-12 w-12 text-rose-200" />
+                <h1 className="mt-4 text-2xl font-black text-white">
+                  Không tải được, thử lại
+                </h1>
+                <p className="mt-2 text-sm leading-7 text-slate-300">
+                  {loadError.message}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setReloadKey((value) => value + 1)}
+                  className="btn-primary mt-6 text-sm"
+                >
+                  <RefreshCcw size={17} />
+                  Thử lại
+                </button>
+              </>
+            )}
           </div>
         </div>
       </PublicLayout>

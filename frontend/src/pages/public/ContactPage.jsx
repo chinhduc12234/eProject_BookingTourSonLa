@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { MessageSquare, Send, Sparkles } from "lucide-react";
+import { CheckCircle2, MessageSquare, Send, Sparkles } from "lucide-react";
 import PublicLayout from "./PublicLayout";
 import { brand, contactCards, scenicImages, supportTopics } from "./publicContent";
 
@@ -13,6 +14,8 @@ const fadeUp = {
 };
 
 export default function ContactPage() {
+    const [submitted, setSubmitted] = useState(false);
+
     function handleSubmit(event) {
         event.preventDefault();
         const form = new FormData(event.currentTarget);
@@ -27,6 +30,7 @@ export default function ContactPage() {
         ].join("\n"));
 
         window.location.href = `mailto:${brand.email}?subject=${subject}&body=${body}`;
+        setSubmitted(true);
     }
 
     return (
@@ -84,11 +88,8 @@ export default function ContactPage() {
                                         whileHover={{ x: 6 }}
                                         className="group flex items-start gap-4 rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] p-5 transition-all hover:border-[#7FB77E]/50"
                                     >
-                                        <span
-                                            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c] transition-all group-hover:bg-[#7FB77E]/25"
-                                            style={{ animationDelay: `${idx * 0.2}s` }}
-                                        >
-                                            <Icon size={22} />
+                                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c] transition-all group-hover:bg-[#7FB77E]/25">
+                                            <Icon size={22} aria-hidden="true" />
                                         </span>
                                         <div className="min-w-0">
                                             <h2 className="text-[11px] font-black uppercase tracking-widest text-[#d4a878]">
@@ -193,6 +194,27 @@ export default function ContactPage() {
                             Mở email để gửi
                             <Send size={16} />
                         </button>
+
+                        {submitted && (
+                            <div
+                                role="status"
+                                aria-live="polite"
+                                className="relative mt-5 flex items-start gap-3 rounded-xl border border-[#7FB77E]/40 bg-[#edf7ec] px-4 py-3 text-sm text-[#2f6c46]"
+                            >
+                                <CheckCircle2 size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
+                                <span>
+                                    Đã mở ứng dụng email của bạn với nội dung điền sẵn. Nếu email
+                                    không tự mở, bạn có thể gửi trực tiếp tới{" "}
+                                    <a
+                                        href={`mailto:${brand.email}`}
+                                        className="font-black underline"
+                                    >
+                                        {brand.email}
+                                    </a>
+                                    .
+                                </span>
+                            </div>
+                        )}
                     </motion.form>
 
                     <motion.div
@@ -230,6 +252,8 @@ export default function ContactPage() {
 
                         <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-[#0b1f17] shadow-sm">
                             <div
+                                role="img"
+                                aria-label="Cảnh quan núi rừng Sơn La"
                                 className="relative h-72 bg-cover bg-center transition-transform duration-1000 group-hover:scale-105"
                                 style={{
                                     backgroundImage: `url('${scenicImages.sonLaLandscape}')`,

@@ -30,6 +30,7 @@ import {
     BadgeDollarSign,
     Upload,
     Link2,
+    AlertTriangle,
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -71,8 +72,14 @@ export default function TourPage() {
     const [search, setSearch] =
         useState("");
 
+    const [debouncedSearch, setDebouncedSearch] =
+        useState("");
+
     const [statusFilter, setStatusFilter] =
         useState("");
+
+    const [loadError, setLoadError] =
+        useState(false);
 
     // ================= IMAGE =================
 
@@ -127,10 +134,12 @@ export default function TourPage() {
 
             setTableLoading(true);
 
+            setLoadError(false);
+
             const res = await getTours({
                 page,
                 size: pageSize,
-                keyword: search,
+                keyword: debouncedSearch,
                 status: statusFilter,
             });
 
@@ -143,6 +152,8 @@ export default function TourPage() {
             );
 
         } catch (err) {
+
+            setLoadError(true);
 
             toast.error(
                 "Không thể tải danh sách tour"
@@ -158,15 +169,25 @@ export default function TourPage() {
 
     useEffect(() => {
 
+        const timer = setTimeout(() => {
+            setDebouncedSearch(search);
+        }, 400);
+
+        return () => clearTimeout(timer);
+
+    }, [search]);
+
+    useEffect(() => {
+
         loadData();
 
-    }, [page, search, statusFilter]);
+    }, [page, debouncedSearch, statusFilter]);
 
     useEffect(() => {
 
         setPage(0);
 
-    }, [search, statusFilter]);
+    }, [debouncedSearch, statusFilter]);
 
     // ================= RESET FORM =================
 
@@ -426,6 +447,11 @@ export default function TourPage() {
             confirmButtonText: "Xóa",
             cancelButtonText: "Hủy",
             confirmButtonColor: "#ef4444",
+            customClass: {
+                popup: "rounded-3xl",
+                confirmButton: "rounded-xl px-6 py-2",
+                cancelButton: "rounded-xl px-6 py-2",
+            },
         });
 
         if (result.isConfirmed) {
@@ -621,6 +647,25 @@ export default function TourPage() {
                         <Loader2 className="animate-spin text-amber-500 w-12 h-12" />
                     </div>
 
+                ) : loadError ? (
+
+                    <div className="bg-white rounded-3xl py-20 text-center border border-slate-100">
+
+                        <AlertTriangle className="mx-auto mb-4 text-rose-500" size={40} />
+
+                        <p className="text-[#16231b] font-semibold">
+                            Không tải được dữ liệu. Vui lòng thử lại.
+                        </p>
+
+                        <button
+                            onClick={loadData}
+                            className="mt-5 inline-flex items-center gap-2 h-11 px-6 rounded-2xl bg-[#2f7d55] hover:bg-[#26643f] text-white font-bold transition-all"
+                        >
+                            <RefreshCcw size={16} />
+                            Thử lại
+                        </button>
+                    </div>
+
                 ) : data.length === 0 ? (
 
                     <div className="bg-white rounded-3xl py-24 text-center text-slate-400 border border-slate-100">
@@ -730,6 +775,8 @@ export default function TourPage() {
                                     <div className="flex gap-2 mt-6">
                                         <button
                                             onClick={() => navigate(`/admin/tours/${tour.id}`)}
+                                            aria-label={`Chi tiết tour ${tour.title}`}
+                                            title="Chi tiết tour"
                                             className="flex-1 h-11 rounded-xl bg-slate-100 hover:bg-slate-900 hover:text-white text-slate-700 font-bold transition-all flex items-center justify-center gap-2"
                                         >
                                             Chi tiết
@@ -751,6 +798,8 @@ export default function TourPage() {
                                                 setImageMode("url");
                                                 setOpen(true);
                                             }}
+                                            aria-label={`Sửa tour ${tour.title}`}
+                                            title="Sửa tour"
                                             className="h-11 px-4 rounded-xl bg-amber-50 hover:bg-amber-500 hover:text-white text-amber-600 font-bold transition-all flex items-center justify-center gap-2"
                                         >
                                             <Edit3 size={17} />
@@ -758,6 +807,8 @@ export default function TourPage() {
 
                                         <button
                                             onClick={() => handleDelete(tour.id)}
+                                            aria-label={`Xóa tour ${tour.title}`}
+                                            title="Xóa tour"
                                             className="w-11 h-11 rounded-xl bg-rose-50 hover:bg-rose-500 hover:text-white text-rose-600 flex items-center justify-center transition-all"
                                         >
                                             <Trash2 size={17} />

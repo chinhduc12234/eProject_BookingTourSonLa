@@ -8,7 +8,7 @@
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(16, 185, 129, 0.12), transparent),
     linear-gradient(180deg, #f0f4f8 0%, #e8f0eb 100%);
   color: #0f172a;
-  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family: "Be Vietnam Pro", system-ui, -apple-system, sans-serif;
 }
 
 /* ── Header ── */
@@ -17,7 +17,9 @@
   top: 0;
   z-index: 40;
   border-bottom: 1px solid rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.82);
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 48%, rgba(236, 253, 245, 0.86) 100%),
+    url("/images/taybac/ta-xua-cloud.jpg") center 32% / cover no-repeat;
   backdrop-filter: blur(20px) saturate(1.4);
   box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
 }
@@ -123,12 +125,26 @@
 }
 
 .tl-progress-card {
+  position: relative;
+  overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.92);
   padding: 20px;
   box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
   text-align: center;
+}
+
+.tl-progress-card::before {
+  content: "";
+  position: absolute;
+  top: -45%;
+  left: -25%;
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.16), transparent 70%);
+  pointer-events: none;
 }
 
 .tl-progress-ring-wrap {
@@ -1222,7 +1238,9 @@
   border-radius: 18px;
   padding: 28px;
   text-align: center;
-  background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+  background:
+    linear-gradient(135deg, rgba(240, 253, 244, 0.95), rgba(236, 253, 245, 0.92)),
+    url("/images/taybac/son-la-landscape.jpg") center 70% / cover no-repeat;
   border: 1px solid #bbf7d0;
 }
 
@@ -1465,5 +1483,30 @@
 
   .tl-hero-stats {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Accessibility: honor reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .tl-activity.is-active .tl-activity-dot,
+  .tl-loading-spinner,
+  .spin-icon {
+    animation: none !important;
+  }
+
+  .tl-back-btn,
+  .tl-quick-btn,
+  .tl-save-btn,
+  .tl-complete-btn,
+  .tl-step-icon,
+  .tl-step-btn.is-selected .tl-step-icon {
+    transition: none !important;
+  }
+
+  .tl-back-btn:hover,
+  .tl-quick-btn:hover,
+  .tl-save-btn:hover:not(:disabled),
+  .tl-complete-btn:hover:not(:disabled) {
+    transform: none !important;
   }
 }

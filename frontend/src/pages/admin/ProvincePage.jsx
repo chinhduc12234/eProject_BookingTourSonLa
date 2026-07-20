@@ -8,21 +8,22 @@ import {
 import Modal from "../../components/Modal";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
-import { 
-  Plus, Search, RefreshCcw, Edit3, Trash2, 
-  MapPin, ChevronLeft, ChevronRight, Loader2 
+import {
+  Plus, Search, RefreshCcw, Edit3, Trash2,
+  MapPin, ChevronLeft, ChevronRight, Loader2, AlertTriangle
 } from "lucide-react";
 
 export default function ProvincePage() {
   const [data, setData] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
   const [name, setName] = useState("");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [errors, setErrors] = useState({});
 
   const [page, setPage] = useState(0);
@@ -33,46 +34,39 @@ export default function ProvincePage() {
   const loadData = async () => {
     try {
       setTableLoading(true);
+      setLoadError(false);
       const res = await getProvinces({
         page,
         size: pageSize,
-        keyword: search,
+        keyword: debouncedSearch,
         direction: sortOrder,
       });
       setData(res.data.content || []);
       setTotalPages(res.data.totalPages || 0);
       setTotalElements(res.data.totalElements || 0);
     } catch (err) {
-      toast.error("Không thể tải danh sách tỉnh thành", {
-        style: { borderRadius: '12px', background: '#333', color: '#fff' }
-      });
+      setLoadError(true);
+      toast.error("Không thể tải danh sách tỉnh thành");
     } finally {
       setTableLoading(false);
     }
   };
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
     loadData();
-  }, [page, search, sortOrder]);
+  }, [page, debouncedSearch, sortOrder]);
 
   useEffect(() => {
     setPage(0);
-  }, [search, sortOrder]);
-
-  useEffect(() => {
-    let temp = [...data];
-    if (search.trim()) {
-      temp = temp.filter((item) =>
-        item.name.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-    temp.sort((a, b) => {
-      return sortOrder === "asc" 
-        ? a.name.localeCompare(b.name) 
-        : b.name.localeCompare(a.name);
-    });
-    setFilteredData(temp);
-  }, [data, search, sortOrder]);
+  }, [debouncedSearch, sortOrder]);
 
   const handleResetFilter = () => {
     setSearch("");
@@ -94,10 +88,10 @@ export default function ProvincePage() {
       setLoading(true);
       if (editId) {
         await updateProvince(editId, { name });
-        toast.success("Cập nhật thành công!", { icon: '⛰️' });
+        toast.success("Cập nhật thành công!");
       } else {
         await createProvince({ name });
-        toast.success("Thêm tỉnh mới thành công!", { icon: '🍀' });
+        toast.success("Thêm tỉnh mới thành công!");
       }
       setName("");
       setEditId(null);
@@ -224,14 +218,30 @@ export default function ProvincePage() {
                       <p className="mt-4 text-slate-400 font-medium">Đang tải dữ liệu vùng cao...</p>
                     </td>
                   </tr>
-                ) : filteredData.length === 0 ? (
+                ) : loadError ? (
+                  <tr>
+                    <td colSpan={3} className="py-20 text-center">
+                      <AlertTriangle className="mx-auto mb-4 text-rose-500" size={36} />
+                      <p className="text-[#16231b] font-semibold">
+                        Không tải được dữ liệu. Vui lòng thử lại.
+                      </p>
+                      <button
+                        onClick={loadData}
+                        className="mt-5 inline-flex items-center gap-2 h-11 px-6 rounded-2xl bg-[#2f7d55] hover:bg-[#26643f] text-white font-bold transition-all"
+                      >
+                        <RefreshCcw size={16} />
+                        Thử lại
+                      </button>
+                    </td>
+                  </tr>
+                ) : data.length === 0 ? (
                   <tr>
                     <td colSpan={3} className="py-20 text-center text-slate-400 font-medium italic">
                       Không tìm thấy dữ liệu phù hợp
                     </td>
                   </tr>
                 ) : (
-                  filteredData.map((p, index) => (
+                  data.map((p, index) => (
                     <tr key={p.id} className="group hover:bg-slate-50/80 transition-all duration-300">
                       <td data-label="Số thứ tự" className="px-8 py-5 font-bold text-slate-400 text-sm">
                         #{(page * pageSize + index + 1).toString().padStart(2, '0')}
