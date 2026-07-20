@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axiosClient from "../../api/axiosClient";
 import { saveAuth } from "../../utils/auth";
 import { useNavigate, Link, useLocation } from "react-router-dom";
@@ -7,6 +7,8 @@ import { motion, useMotionValue, useMotionTemplate } from "framer-motion";
 import {
     ArrowRight,
     Droplets,
+    Eye,
+    EyeOff,
     Leaf,
     Lock,
     Mail,
@@ -37,11 +39,19 @@ const floatAnim = {
     },
 };
 
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function LoginPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const [loading, setLoading] = useState(false);
     const [form, setForm] = useState({ email: "", password: "" });
+    const [errors, setErrors] = useState({});
+    const [showPassword, setShowPassword] = useState(false);
+
+    const emailRef = useRef(null);
+    const passwordRef = useRef(null);
+    const fieldRefs = { email: emailRef, password: passwordRef };
 
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
@@ -68,6 +78,31 @@ export default function LoginPage() {
         mouseY.set(clientY - top);
     }
 
+    function handleFieldChange(field, value) {
+        setForm((prev) => ({ ...prev, [field]: value }));
+        setErrors((prev) => {
+            if (!prev[field]) return prev;
+            const next = { ...prev };
+            delete next[field];
+            return next;
+        });
+    }
+
+    function validate() {
+        const nextErrors = {};
+        if (!form.email.trim()) {
+            nextErrors.email = "Vui lòng nhập email";
+        } else if (!emailPattern.test(form.email.trim())) {
+            nextErrors.email = "Email không đúng định dạng";
+        }
+
+        if (!form.password) {
+            nextErrors.password = "Vui lòng nhập mật khẩu";
+        }
+
+        return nextErrors;
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!form.email || !form.password) {
@@ -80,6 +115,15 @@ export default function LoginPage() {
                 confirmButtonColor: "#7FB77E",
             });
         }
+
+        const nextErrors = validate();
+        if (Object.keys(nextErrors).length > 0) {
+            setErrors(nextErrors);
+            const firstErrorKey = Object.keys(nextErrors)[0];
+            fieldRefs[firstErrorKey]?.current?.focus();
+            return;
+        }
+        setErrors({});
 
         try {
             setLoading(true);
@@ -133,7 +177,7 @@ export default function LoginPage() {
                 animate={{ scale: 1.05, opacity: 0.95 }}
                 transition={{ duration: 2, ease: "easeOut" }}
                 style={{
-                    backgroundImage: `url('${scenicImages.mocChauTea}')`,
+                    backgroundImage: `url('${scenicImages.taXuaCloud}')`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                 }}
@@ -260,17 +304,29 @@ export default function LoginPage() {
                                     <div className="relative flex items-center">
                                         <Mail className="absolute left-5 h-5 w-5 text-[#9de09c]" />
                                         <input
+                                            ref={emailRef}
                                             type="email"
                                             name="email"
                                             autoComplete="email"
                                             required
                                             placeholder="Email của bạn"
+                                            value={form.email}
+                                            aria-invalid={Boolean(errors.email)}
                                             onChange={(e) =>
-                                                setForm({ ...form, email: e.target.value })
+                                                handleFieldChange("email", e.target.value)
                                             }
-                                            className="w-full rounded-2xl border border-white/15 bg-white/[0.08] py-4 pl-14 pr-5 text-white outline-none transition-all placeholder:text-white/45 focus:border-[#7FB77E] focus:bg-[#7FB77E]/10 focus:ring-4 focus:ring-[#7FB77E]/20"
+                                            className={`w-full rounded-2xl border bg-white/[0.08] py-4 pl-14 pr-5 text-white outline-none transition-all placeholder:text-white/45 focus:bg-[#7FB77E]/10 focus:ring-4 ${
+                                                errors.email
+                                                    ? "border-rose-400 focus:border-rose-400 focus:ring-rose-400/20"
+                                                    : "border-white/15 focus:border-[#7FB77E] focus:ring-[#7FB77E]/20"
+                                            }`}
                                         />
                                     </div>
+                                    {errors.email && (
+                                        <p className="mt-1.5 text-xs text-rose-300">
+                                            {errors.email}
+                                        </p>
+                                    )}
                                 </motion.div>
 
                                 <motion.div variants={fadeInUp} className="relative">
@@ -280,17 +336,43 @@ export default function LoginPage() {
                                     <div className="relative flex items-center">
                                         <Lock className="absolute left-5 h-5 w-5 text-[#9de09c]" />
                                         <input
-                                            type="password"
+                                            ref={passwordRef}
+                                            type={showPassword ? "text" : "password"}
                                             name="password"
                                             autoComplete="current-password"
                                             required
                                             placeholder="Mật khẩu"
+                                            value={form.password}
+                                            aria-invalid={Boolean(errors.password)}
                                             onChange={(e) =>
-                                                setForm({ ...form, password: e.target.value })
+                                                handleFieldChange("password", e.target.value)
                                             }
-                                            className="w-full rounded-2xl border border-white/15 bg-white/[0.08] py-4 pl-14 pr-5 text-white outline-none transition-all placeholder:text-white/45 focus:border-[#7FB77E] focus:bg-[#7FB77E]/10 focus:ring-4 focus:ring-[#7FB77E]/20"
+                                            className={`w-full rounded-2xl border bg-white/[0.08] py-4 pl-14 pr-12 text-white outline-none transition-all placeholder:text-white/45 focus:bg-[#7FB77E]/10 focus:ring-4 ${
+                                                errors.password
+                                                    ? "border-rose-400 focus:border-rose-400 focus:ring-rose-400/20"
+                                                    : "border-white/15 focus:border-[#7FB77E] focus:ring-[#7FB77E]/20"
+                                            }`}
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword((prev) => !prev)}
+                                            aria-label={
+                                                showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
+                                            }
+                                            className="absolute right-5 text-white/50 transition hover:text-[#9de09c]"
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff className="h-5 w-5" />
+                                            ) : (
+                                                <Eye className="h-5 w-5" />
+                                            )}
+                                        </button>
                                     </div>
+                                    {errors.password && (
+                                        <p className="mt-1.5 text-xs text-rose-300">
+                                            {errors.password}
+                                        </p>
+                                    )}
                                 </motion.div>
 
                                 <motion.button

@@ -26,6 +26,7 @@ import {
   ChevronRight,
   Loader2,
   ArrowUpAZ,
+  AlertTriangle,
 } from "lucide-react";
 
 export default function LocationPage() {
@@ -56,6 +57,9 @@ export default function LocationPage() {
 
   const [search, setSearch] = useState("");
 
+  const [debouncedSearch, setDebouncedSearch] =
+    useState("");
+
   const [selectedDistrict, setSelectedDistrict] =
     useState("");
 
@@ -78,6 +82,9 @@ export default function LocationPage() {
 
   const [errors, setErrors] = useState({});
 
+  const [loadError, setLoadError] =
+    useState(false);
+
   const [page, setPage] = useState(0);
 
   const [totalPages, setTotalPages] =
@@ -96,10 +103,12 @@ export default function LocationPage() {
 
       setTableLoading(true);
 
+      setLoadError(false);
+
       const res = await getLocations({
         page,
         size: pageSize,
-        keyword: search,
+        keyword: debouncedSearch,
         districtId: selectedDistrict,
         provinceId: selectedProvince,
         sortBy,
@@ -115,6 +124,8 @@ export default function LocationPage() {
       );
 
     } catch (err) {
+
+      setLoadError(true);
 
       toast.error(
         "Không thể tải danh sách địa điểm"
@@ -187,11 +198,21 @@ export default function LocationPage() {
 
   useEffect(() => {
 
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+
+    return () => clearTimeout(timer);
+
+  }, [search]);
+
+  useEffect(() => {
+
     loadData();
 
   }, [
     page,
-    search,
+    debouncedSearch,
     selectedDistrict,
     selectedProvince,
     sortBy,
@@ -203,7 +224,7 @@ export default function LocationPage() {
     setPage(0);
 
   }, [
-    search,
+    debouncedSearch,
     selectedDistrict,
     selectedProvince,
     sortBy,
@@ -336,6 +357,12 @@ export default function LocationPage() {
       confirmButtonColor: "#ef4444",
 
       cancelButtonColor: "#64748b",
+
+      customClass: {
+        popup: "rounded-3xl",
+        confirmButton: "rounded-xl px-6 py-2",
+        cancelButton: "rounded-xl px-6 py-2",
+      },
     });
 
     if (result.isConfirmed) {
@@ -571,6 +598,27 @@ export default function LocationPage() {
                       <p className="mt-4 text-slate-400">
                         Đang tải dữ liệu...
                       </p>
+                    </td>
+                  </tr>
+
+                ) : loadError ? (
+
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="py-20 text-center"
+                    >
+                      <AlertTriangle className="mx-auto mb-4 text-rose-500" size={36} />
+                      <p className="text-[#16231b] font-semibold">
+                        Không tải được dữ liệu. Vui lòng thử lại.
+                      </p>
+                      <button
+                        onClick={loadData}
+                        className="mt-5 inline-flex items-center gap-2 h-11 px-6 rounded-2xl bg-[#2f7d55] hover:bg-[#26643f] text-white font-bold transition-all"
+                      >
+                        <RefreshCcw size={16} />
+                        Thử lại
+                      </button>
                     </td>
                   </tr>
 

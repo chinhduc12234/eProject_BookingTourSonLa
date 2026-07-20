@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, CalendarDays, Clock3, Users } from "lucide-react";
+import { ArrowRight, CalendarDays, Clock3, MapPin, Users } from "lucide-react";
 import { resolveUploadedFileUrl } from "../api/userApi";
+import { getTourStatusDisplay } from "../utils/tourStatus";
 import TourImage from "./TourImage";
 
 const formatCurrency = (value) => {
@@ -20,8 +21,12 @@ const formatDate = (value) => {
 export default function TourCard({ tour }) {
   const price = tour.lowestAdultPrice ?? tour.price;
   const hasDeparture = Number(tour.departureCount || 0) > 0;
-  const statusLabel = tour.status === "OPEN" ? "Đang mở bán" : tour.status;
+  const status = getTourStatusDisplay(tour.status);
   const thumbnail = resolveUploadedFileUrl(tour.thumbnail);
+  const duration =
+    tour.durationDays != null && tour.durationNights != null
+      ? `${tour.durationDays}N ${tour.durationNights}Đ`
+      : "Đang cập nhật";
 
   return (
     <article className="tour-card group relative h-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.07] to-white/[0.025] shadow-soft-dark transition-all duration-500 hover:-translate-y-2 hover:border-[#7FB77E]/50 hover:shadow-soft-green">
@@ -39,11 +44,11 @@ export default function TourCard({ tour }) {
           <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-transparent to-[#7FB77E]/0 transition-opacity duration-500 group-hover:to-[#7FB77E]/20" />
 
           {/* status badge */}
-          <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-[#020617]/85 px-3 py-1.5 text-[11px] font-black uppercase tracking-wider text-white backdrop-blur-md ring-1 ring-white/15">
+          <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-[#020617]/85 px-3 py-1.5 text-xs font-black uppercase tracking-wider text-white backdrop-blur-md ring-1 ring-white/15">
             <span className="relative flex h-2 w-2">
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#7FB77E]" />
+              <span className={`relative inline-flex h-2 w-2 rounded-full ${status.dotClass}`} />
             </span>
-            {statusLabel}
+            {status.label}
           </div>
 
           {/* code badge */}
@@ -72,9 +77,7 @@ export default function TourCard({ tour }) {
                 <Clock3 size={14} />
                 Thời lượng
               </span>
-              <span className="font-bold text-white">
-                {tour.durationDays}N {tour.durationNights}Đ
-              </span>
+              <span className="font-bold text-white">{duration}</span>
             </div>
 
             <div className="flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-white/[0.03] px-3 py-2">
@@ -86,6 +89,18 @@ export default function TourCard({ tour }) {
                 {formatDate(tour.firstDepartureDate)}
               </span>
             </div>
+
+            {tour.departureLocation && (
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-white/[0.03] px-3 py-2">
+                <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#9de09c]">
+                  <MapPin size={14} />
+                  Điểm đón
+                </span>
+                <span className="truncate font-bold text-white">
+                  {tour.departureLocation}
+                </span>
+              </div>
+            )}
 
             <div className="flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-white/[0.03] px-3 py-2">
               <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#9de09c]">

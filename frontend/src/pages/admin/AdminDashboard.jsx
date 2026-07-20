@@ -22,6 +22,7 @@ import { getLocations } from "../../api/locationApi";
 import { getProvinces } from "../../api/provinceApi";
 import { getAllStaff } from "../../api/staffApi";
 import { getTours } from "../../api/tourApi";
+import { getAuthName } from "../../utils/auth";
 
 const statConfig = [
   {
@@ -199,6 +200,26 @@ export default function AdminDashboard() {
     [stats],
   );
 
+  const adminName = getAuthName() || "Quản trị viên";
+
+  const todayLabel = useMemo(
+    () =>
+      new Intl.DateTimeFormat("vi-VN", {
+        weekday: "long",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      }).format(new Date()),
+    [],
+  );
+
+  const heroChips = [
+    { label: "Tổng dữ liệu quản lý", value: loading ? "--" : totalManaged },
+    { label: "Tour", value: loading ? "--" : stats.tours ?? "Lỗi" },
+    { label: "Đơn tour riêng", value: loading ? "--" : stats.bookings ?? "Lỗi" },
+    { label: "Đoàn tour ghép", value: loading ? "--" : stats.groupTours ?? "Lỗi" },
+  ];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -207,16 +228,52 @@ export default function AdminDashboard() {
       className="min-h-full bg-[#f8fafc] p-5 text-slate-900 md:p-8"
     >
       <div className="mx-auto max-w-7xl">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
-              <ShieldCheck size={14} />
-              Quản trị viên
+        <div className="relative mb-8 min-h-[260px] overflow-hidden rounded-3xl shadow-xl shadow-slate-900/15 md:min-h-[320px]">
+          <img
+            src="/images/taybac/son-la-landscape.jpg"
+            alt="Toàn cảnh núi rừng Sơn La, Tây Bắc"
+            loading="eager"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/65 to-slate-950/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+
+          <div className="relative flex h-full flex-col justify-center gap-5 px-6 py-9 md:px-10 md:py-12">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-white backdrop-blur-sm">
+                <ShieldCheck size={14} />
+                Xin chào, {adminName}
+              </div>
+              <h1 className="mt-4 max-w-2xl text-3xl font-black tracking-tight text-white drop-shadow-md md:text-4xl">
+                Trung tâm điều hành Tây Bắc Travel
+              </h1>
+              <p className="mt-3 max-w-xl text-sm font-semibold capitalize leading-6 text-slate-100/95 md:text-base">
+                {todayLabel}
+              </p>
             </div>
-            <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950 md:text-4xl">
-              Bảng điều khiển quản trị
-            </h1>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
+
+            <div className="flex flex-wrap gap-3">
+              {heroChips.map((chip) => (
+                <div
+                  key={chip.label}
+                  className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 backdrop-blur-sm"
+                >
+                  <div className="text-2xl font-black text-white">{chip.value}</div>
+                  <div className="mt-0.5 text-[11px] font-bold uppercase tracking-wide text-slate-200">
+                    {chip.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-black tracking-tight text-slate-950">
+              Tổng quan số liệu vận hành
+            </h2>
+            <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
               Theo dõi nhanh dữ liệu vận hành và đi tới các khu vực quản lý tour,
               nhân viên, tỉnh huyện và địa điểm.
             </p>
@@ -238,15 +295,20 @@ export default function AdminDashboard() {
             <Link
               key={key}
               to={to}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-100"
+              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1.5 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-100"
             >
               <div className="flex items-start justify-between gap-3">
-                <span className={`flex h-12 w-12 items-center justify-center rounded-xl ${tone}`}>
+                <span
+                  className={`flex h-12 w-12 items-center justify-center rounded-2xl ring-1 ring-inset ring-black/5 transition-transform duration-200 group-hover:scale-105 ${tone}`}
+                >
                   <Icon size={22} />
                 </span>
-                <ChevronRight size={18} className="text-slate-300" />
+                <ChevronRight
+                  size={18}
+                  className="text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-emerald-500"
+                />
               </div>
-              <div className="mt-5 text-3xl font-black text-slate-950">
+              <div className="mt-5 text-3xl font-black tracking-tight text-slate-950">
                 {loading ? "--" : stats[key] ?? "Lỗi"}
               </div>
               <div className="mt-1 text-sm font-black text-slate-700">{label}</div>

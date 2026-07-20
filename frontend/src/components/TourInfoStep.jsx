@@ -1,3 +1,4 @@
+import { Users, CalendarDays, Clock3 } from "lucide-react";
 import { resolveUploadedFileUrl } from "../api/userApi";
 
 function normalizeMoneyInput(value) {
@@ -42,7 +43,7 @@ export default function TourInfoStep({
 
         <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
           <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-600">
-            <span className="font-bold text-lg">👤</span>
+            <Users size={14} />
           </div>
           <div>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Người tạo</p>
@@ -52,7 +53,7 @@ export default function TourInfoStep({
 
         <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
           <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-600">
-            <span className="font-bold text-lg">📅</span>
+            <CalendarDays size={14} />
           </div>
           <div>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tạo lúc</p>
@@ -62,7 +63,7 @@ export default function TourInfoStep({
 
         <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
           <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-600">
-            <span className="font-bold text-lg">⏱️</span>
+            <Clock3 size={14} />
           </div>
           <div>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Cập nhật</p>

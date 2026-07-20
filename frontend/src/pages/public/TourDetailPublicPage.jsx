@@ -15,7 +15,9 @@ import {
   LogIn,
   Maximize2,
   MapPin,
+  RefreshCw,
   Route,
+  ServerCrash,
   ShieldCheck,
   Sparkles,
   Tag,
@@ -23,10 +25,9 @@ import {
   Users,
   X,
 } from "lucide-react";
-import toast from "react-hot-toast";
-
 import { getPublicTourDetail } from "../../api/publicTourApi";
 import { resolveUploadedFileUrl } from "../../api/userApi";
+import { getTourStatusDisplay } from "../../utils/tourStatus";
 import DepartureSelector from "../../components/DepartureSelector";
 import TourImage from "../../components/TourImage";
 import PublicLayout from "./PublicLayout";
@@ -137,16 +138,22 @@ export default function TourDetailPublicPage() {
   const { id } = useParams();
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const [selectedDepartureId, setSelectedDepartureId] = useState("");
   const [lightboxImage, setLightboxImage] = useState(null);
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
 
   useEffect(() => {
+    let active = true;
+
     const loadDetail = async () => {
       try {
         setLoading(true);
+        setLoadError(null);
 
         const response = await getPublicTourDetail(id);
+        if (!active) return;
         const data = response.data;
 
         setDetail(data);
@@ -163,16 +170,27 @@ export default function TourDetailPublicPage() {
           setSelectedDepartureId(firstOpenDeparture.id);
         }
       } catch (error) {
-        toast.error(
-          error?.response?.data?.message || "Không thể tải chi tiết tour",
-        );
+        if (!active) return;
+        const status = error?.response?.status;
+        // 404 = tour không tồn tại; còn lại coi là lỗi tải để hiện nút thử lại.
+        setLoadError({
+          notFound: status === 404,
+          message:
+            error?.response?.data?.message ||
+            (status === 404
+              ? "Tour này không tồn tại hoặc đã ngừng hiển thị."
+              : "Không thể tải chi tiết tour. Vui lòng thử lại."),
+        });
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
     loadDetail();
-  }, [id]);
+    return () => {
+      active = false;
+    };
+  }, [id, reloadKey]);
 
   const authenticated = isLoggedIn();
   const role = getRole();
@@ -193,11 +211,39 @@ export default function TourDetailPublicPage() {
     );
   }
 
-  if (!detail?.tour) {
+  if (loadError || !detail?.tour) {
+    const notFound = loadError?.notFound || !detail?.tour;
     return (
       <PublicLayout>
-        <div className="bg-[#020617] px-4 py-24 text-center text-slate-300">
-          Không tìm thấy tour.
+        <div className="tour-detail-page flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-24">
+          <div className="mx-auto max-w-md text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-[#9de09c]">
+              {notFound ? <BadgeInfo size={30} /> : <ServerCrash size={30} />}
+            </div>
+            <h1 className="mt-6 text-2xl font-black text-white">
+              {notFound ? "Không tìm thấy tour" : "Không tải được dữ liệu"}
+            </h1>
+            <p className="mt-3 text-sm leading-7 text-slate-300">
+              {loadError?.message ||
+                "Tour này không tồn tại hoặc đã ngừng hiển thị."}
+            </p>
+            <div className="mt-7 flex flex-wrap justify-center gap-3">
+              {!notFound && (
+                <button
+                  type="button"
+                  onClick={() => setReloadKey((value) => value + 1)}
+                  className="btn-primary text-sm"
+                >
+                  <RefreshCw size={16} />
+                  Thử lại
+                </button>
+              )}
+              <Link to="/tours" className="btn-outline text-sm">
+                <ArrowLeft size={16} />
+                Danh sách tour
+              </Link>
+            </div>
+          </div>
         </div>
       </PublicLayout>
     );
@@ -258,9 +304,9 @@ export default function TourDetailPublicPage() {
               className="max-w-4xl"
             >
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#9de09c] to-[#4f8f4d] px-3 py-1.5 text-[11px] font-black uppercase tracking-widest text-[#020617]">
+                <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#9de09c] to-[#4f8f4d] px-3 py-1.5 text-xs font-black uppercase tracking-widest text-[#020617]">
                   <Sparkles size={12} />
-                  {tour.status === "OPEN" ? "Đang mở bán" : tour.status}
+                  {getTourStatusDisplay(tour.status).label}
                 </span>
                 {tour.tourCode && (
                   <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-bold text-white backdrop-blur-md">
@@ -573,17 +619,17 @@ export default function TourDetailPublicPage() {
                           </span>
                         </div>
                         <div>
-                          <div className="text-xs font-black uppercase tracking-widest text-slate-500">
+                          <div className="text-xs font-black uppercase tracking-widest text-slate-400">
                             Giá người lớn / trẻ em
                           </div>
                           <div className="mt-1 text-sm font-black text-slate-200">
                             {formatCurrency(departure.adultPrice || tour.price)}
-                            <span className="text-slate-500"> / </span>
+                            <span className="text-slate-400"> / </span>
                             {formatCurrency(departure.childPrice || departure.adultPrice || tour.price)}
                           </div>
                         </div>
                         <div>
-                          <div className="text-xs font-black uppercase tracking-widest text-slate-500">
+                          <div className="text-xs font-black uppercase tracking-widest text-slate-400">
                             Hạn đặt
                           </div>
                           <div className="mt-1 text-sm font-bold text-slate-200">

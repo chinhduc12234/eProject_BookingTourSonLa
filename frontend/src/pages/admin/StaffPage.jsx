@@ -30,6 +30,7 @@ import {
   CheckCircle,
   XCircle,
   UploadCloud,
+  AlertTriangle,
 } from "lucide-react";
 
 const formatDate = (value) =>
@@ -47,6 +48,9 @@ export default function StaffPage() {
     useState(false);
 
   const [tableLoading, setTableLoading] =
+    useState(false);
+
+  const [loadError, setLoadError] =
     useState(false);
 
   const [uploadingAvatar, setUploadingAvatar] =
@@ -98,6 +102,9 @@ export default function StaffPage() {
   const [search, setSearch] =
     useState("");
 
+  const [debouncedSearch, setDebouncedSearch] =
+    useState("");
+
   const [filterGender, setFilterGender] =
     useState("");
 
@@ -118,6 +125,8 @@ export default function StaffPage() {
 
       setTableLoading(true);
 
+      setLoadError(false);
+
       const params = {
         page,
         size: pageSize,
@@ -125,8 +134,8 @@ export default function StaffPage() {
         direction,
       };
 
-      if (search.trim()) {
-        params.keyword = search.trim();
+      if (debouncedSearch.trim()) {
+        params.keyword = debouncedSearch.trim();
       }
 
       if (filterGender) {
@@ -153,6 +162,8 @@ export default function StaffPage() {
 
     } catch (err) {
 
+      setLoadError(true);
+
       toast.error(
         "Không thể tải danh sách nhân viên"
       );
@@ -167,11 +178,21 @@ export default function StaffPage() {
 
   useEffect(() => {
 
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+
+    return () => clearTimeout(timer);
+
+  }, [search]);
+
+  useEffect(() => {
+
     loadData();
 
   }, [
     page,
-    search,
+    debouncedSearch,
     filterGender,
     filterActive,
     sortBy,
@@ -183,7 +204,7 @@ export default function StaffPage() {
     setPage(0);
 
   }, [
-    search,
+    debouncedSearch,
     filterGender,
     filterActive,
     sortBy,
@@ -443,6 +464,12 @@ export default function StaffPage() {
       confirmButtonColor: "#ef4444",
 
       cancelButtonColor: "#64748b",
+
+      customClass: {
+        popup: "rounded-3xl",
+        confirmButton: "rounded-xl px-6 py-2",
+        cancelButton: "rounded-xl px-6 py-2",
+      },
     });
 
     if (result.isConfirmed) {
@@ -763,6 +790,28 @@ export default function StaffPage() {
                       <p className="mt-4 text-slate-400">
                         Đang tải dữ liệu...
                       </p>
+                    </td>
+                  </tr>
+
+                ) : loadError ? (
+
+                  <tr>
+
+                    <td
+                      colSpan={7}
+                      className="py-20 text-center"
+                    >
+                      <AlertTriangle className="mx-auto mb-4 text-rose-500" size={36} />
+                      <p className="text-[#16231b] font-semibold">
+                        Không tải được dữ liệu. Vui lòng thử lại.
+                      </p>
+                      <button
+                        onClick={loadData}
+                        className="mt-5 inline-flex items-center gap-2 h-11 px-6 rounded-2xl bg-[#2f7d55] hover:bg-[#26643f] text-white font-bold transition-all"
+                      >
+                        <RefreshCcw size={16} />
+                        Thử lại
+                      </button>
                     </td>
                   </tr>
 

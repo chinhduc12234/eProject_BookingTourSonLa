@@ -25,6 +25,7 @@ import {
   ChevronRight,
   Loader2,
   ArrowUpAZ,
+  AlertTriangle,
 } from "lucide-react";
 
 export default function DistrictPage() {
@@ -39,6 +40,9 @@ export default function DistrictPage() {
     useState("");
 
   const [search, setSearch] = useState("");
+
+  const [debouncedSearch, setDebouncedSearch] =
+    useState("");
 
   const [selectedProvince, setSelectedProvince] =
     useState("");
@@ -62,6 +66,9 @@ export default function DistrictPage() {
 
   const [errors, setErrors] = useState({});
 
+  const [loadError, setLoadError] =
+    useState(false);
+
   const [page, setPage] = useState(0);
 
   const [totalPages, setTotalPages] =
@@ -80,10 +87,12 @@ export default function DistrictPage() {
 
       setTableLoading(true);
 
+      setLoadError(false);
+
       const res = await getDistricts({
         page,
         size: pageSize,
-        keyword: search,
+        keyword: debouncedSearch,
         provinceId: selectedProvince,
         sortBy,
         direction,
@@ -99,15 +108,10 @@ export default function DistrictPage() {
 
     } catch (err) {
 
+      setLoadError(true);
+
       toast.error(
-        "Không thể tải danh sách quận huyện",
-        {
-          style: {
-            borderRadius: "12px",
-            background: "#334155",
-            color: "#fff",
-          },
-        }
+        "Không thể tải danh sách quận huyện"
       );
 
     } finally {
@@ -139,10 +143,18 @@ export default function DistrictPage() {
   }, []);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
     loadData();
   }, [
     page,
-    search,
+    debouncedSearch,
     selectedProvince,
     sortBy,
     direction,
@@ -153,7 +165,7 @@ export default function DistrictPage() {
     setPage(0);
 
   }, [
-    search,
+    debouncedSearch,
     selectedProvince,
     sortBy,
     direction,
@@ -216,10 +228,7 @@ export default function DistrictPage() {
         await updateDistrict(editId, payload);
 
         toast.success(
-          "Cập nhật quận huyện thành công!",
-          {
-            icon: "🗺️",
-          }
+          "Cập nhật quận huyện thành công!"
         );
 
       } else {
@@ -227,10 +236,7 @@ export default function DistrictPage() {
         await createDistrict(payload);
 
         toast.success(
-          "Thêm quận huyện thành công!",
-          {
-            icon: "🏔️",
-          }
+          "Thêm quận huyện thành công!"
         );
       }
 
@@ -537,6 +543,27 @@ export default function DistrictPage() {
                       <p className="mt-4 text-slate-400 font-medium">
                         Đang tải dữ liệu...
                       </p>
+                    </td>
+                  </tr>
+
+                ) : loadError ? (
+
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="py-20 text-center"
+                    >
+                      <AlertTriangle className="mx-auto mb-4 text-rose-500" size={36} />
+                      <p className="text-[#16231b] font-semibold">
+                        Không tải được dữ liệu. Vui lòng thử lại.
+                      </p>
+                      <button
+                        onClick={loadData}
+                        className="mt-5 inline-flex items-center gap-2 h-11 px-6 rounded-2xl bg-[#2f7d55] hover:bg-[#26643f] text-white font-bold transition-all"
+                      >
+                        <RefreshCcw size={16} />
+                        Thử lại
+                      </button>
                     </td>
                   </tr>
 

@@ -48,8 +48,10 @@ const percentOf = (value, total) => (total ? Math.round((value / total) * 100) :
 
 function MetricCard({ Icon, label, value, desc, tone = "text-emerald-700 bg-emerald-50" }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <span className={`flex h-12 w-12 items-center justify-center rounded-xl ${tone}`}>
+    <div className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-100">
+      <span
+        className={`flex h-12 w-12 items-center justify-center rounded-2xl ring-1 ring-inset ring-black/5 transition-transform duration-200 group-hover:scale-105 ${tone}`}
+      >
         <Icon size={22} />
       </span>
       <div className="mt-5 text-3xl font-black tracking-tight text-slate-950">{value}</div>
@@ -66,9 +68,9 @@ function ProgressRow({ label, value, amount, percent, tone = "bg-emerald-600", s
         <span className="font-black text-slate-800">{label}</span>
         <span className="font-black text-slate-950">{percent || 0}%</span>
       </div>
-      <div className="mt-2 h-3 overflow-hidden rounded-full bg-slate-100">
+      <div className="mt-2 h-3 overflow-hidden rounded-full bg-slate-100 shadow-inner">
         <div
-          className={`h-full rounded-full ${tone}`}
+          className={`h-full rounded-full ${tone} transition-[width] duration-500`}
           style={{ width: `${percentValue(percent)}%` }}
         />
       </div>
@@ -82,8 +84,10 @@ function ProgressRow({ label, value, amount, percent, tone = "bg-emerald-600", s
 
 function SummaryTile({ label, value, desc, tone = "bg-slate-50", dark = false }) {
   return (
-    <div className={`rounded-xl border border-slate-200 p-4 ${tone}`}>
-      <div className={`text-2xl font-black ${dark ? "text-white" : "text-slate-950"}`}>{value}</div>
+    <div
+      className={`rounded-xl border p-4 transition ${dark ? "border-white/10" : "border-slate-200 hover:border-emerald-200"} ${tone}`}
+    >
+      <div className={`text-2xl font-black tracking-tight ${dark ? "text-white" : "text-slate-950"}`}>{value}</div>
       <div className={`mt-1 text-sm font-black ${dark ? "text-slate-200" : "text-slate-700"}`}>{label}</div>
       {desc && <div className={`mt-1 text-xs font-semibold ${dark ? "text-slate-400" : "text-slate-500"}`}>{desc}</div>}
     </div>
@@ -177,13 +181,16 @@ export default function AdminStatisticsPage() {
       className="min-h-screen bg-[#f8fafc] p-4 text-slate-900 md:p-8"
     >
       <div className="mx-auto max-w-7xl">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between md:p-6">
           <div className="flex items-center gap-4">
-            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg ring-1 ring-inset ring-white/10">
               <ChartPie size={27} />
             </span>
             <div>
-              <h1 className="text-3xl font-black tracking-tight">Thống kê vận hành</h1>
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-[0.16em] text-emerald-700">
+                {selectedMonthLabel}
+              </div>
+              <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">Thống kê vận hành</h1>
               <p className="mt-1 text-sm font-semibold text-slate-500">
                 Đối soát doanh thu, thanh toán, khách, booking và lịch khởi hành theo tháng.
               </p>

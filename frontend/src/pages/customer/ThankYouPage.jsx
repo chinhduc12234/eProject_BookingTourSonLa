@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
+  AlertTriangle,
   ArrowRight,
   CalendarDays,
   CheckCircle2,
@@ -10,6 +11,7 @@ import {
   Info,
   Loader2,
   ReceiptText,
+  RefreshCcw,
   ShieldCheck,
   UsersRound,
 } from "lucide-react";
@@ -17,6 +19,7 @@ import toast from "react-hot-toast";
 
 import { getBookingDetail } from "../../api/bookingApi";
 import PublicLayout from "../public/PublicLayout";
+import { bookingStatusMeta, getMeta, paymentStatusMeta } from "./accountShared";
 
 export default function ThankYouPage() {
   const navigate = useNavigate();
@@ -24,10 +27,17 @@ export default function ThankYouPage() {
   const bookingId = searchParams.get("bookingId");
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(null);
+  const [loadError, setLoadError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    let mounted = true;
+
     const loadBooking = async () => {
       try {
+        setLoading(true);
+        setLoadError("");
+
         if (!bookingId) {
           toast.error("Không tìm thấy thông tin đặt tour");
           navigate("/");
@@ -37,20 +47,24 @@ export default function ThankYouPage() {
         const response = await getBookingDetail(bookingId);
         // Đảm bảo lấy đúng bọc dữ liệu từ axios response (thường là response.data hoặc response.data.data)
         const bookingData = response?.data?.data ? response.data.data : response?.data;
-        setBooking(bookingData);
+        if (mounted) setBooking(bookingData);
       } catch (error) {
-        toast.error(
-          error?.response?.data?.message ||
-            "Không thể tải thông tin đơn đặt tour"
-        );
+        const message =
+          error?.response?.data?.message || "Không thể tải thông tin đơn đặt tour";
         console.error("Lỗi tải thông tin đơn đặt tour:", error);
+        if (mounted) setLoadError(message);
+        toast.error(message);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
 
     loadBooking();
-  }, [bookingId, navigate]);
+
+    return () => {
+      mounted = false;
+    };
+  }, [bookingId, navigate, reloadKey]);
 
   if (loading) {
     return (
@@ -67,13 +81,49 @@ export default function ThankYouPage() {
     );
   }
 
+  if (loadError) {
+    return (
+      <PublicLayout>
+        <div className="flex min-h-[calc(100vh-80px)] items-center justify-center bg-[#020617] px-4 py-16">
+          <div className="mx-auto max-w-lg rounded-3xl border border-rose-300/25 bg-rose-300/[0.07] p-8 text-center">
+            <AlertTriangle className="mx-auto h-12 w-12 text-rose-200" />
+            <h1 className="mt-4 text-2xl font-black text-white">
+              Không tải được thông tin đơn
+            </h1>
+            <p className="mt-2 text-sm leading-7 text-slate-300">{loadError}</p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <button
+                type="button"
+                onClick={() => setReloadKey((value) => value + 1)}
+                className="btn-primary text-sm"
+              >
+                <RefreshCcw size={17} />
+                Thử lại
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/tai-khoan/booking")}
+                className="btn-outline text-sm"
+              >
+                Xem đơn của tôi
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/")}
+                className="btn-outline text-sm"
+              >
+                <Home size={17} />
+                Về trang chủ
+              </button>
+            </div>
+          </div>
+        </div>
+      </PublicLayout>
+    );
+  }
+
   const isDeposit = booking?.paymentPlan === "DEPOSIT";
-  const formatCurrency = (value) =>
-    new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      maximumFractionDigits: 0,
-    }).format(Number(value || 0));
+  const formatCurrency = (value) => Number(value || 0).toLocaleString("vi-VN") + " đ";
 
   const formatDate = (value) =>
     value
@@ -84,24 +134,9 @@ export default function ThankYouPage() {
         }).format(new Date(`${value}T00:00:00`))
       : "Đang cập nhật";
 
-  const bookingStatus = ({
-    PENDING: "Đang chờ xác nhận",
-    CONFIRMED: "Đã được xác nhận",
-    IN_PROGRESS: "Đang diễn ra",
-    COMPLETED: "Đã hoàn thành",
-    CANCELLED: "Đã hủy",
-  })[booking?.status] || "Đang chờ xác nhận";
-  const paymentStatus = ({
-    UNPAID: "Chưa thanh toán",
-    PENDING_REVIEW: "Chờ kiểm tra",
-    PARTIAL: "Đã ghi nhận một phần",
-    PAID: "Đã thanh toán",
-    REFUNDED: "Đã hoàn tiền",
-    PARTIALLY_REFUNDED: "Hoàn tiền một phần",
-    FORFEITED: "Đã khấu trừ",
-    FAILED: "Giao dịch lỗi",
-  })[booking?.paymentStatus] || "Chờ kiểm tra";
-  
+  const bookingStatus = getMeta(bookingStatusMeta, booking?.status).label;
+  const paymentStatus = getMeta(paymentStatusMeta, booking?.paymentStatus).label;
+
   return (
     <PublicLayout>
       <section className="thank-you-page relative min-h-[calc(100vh-80px)] overflow-hidden bg-[#020617] py-10 text-slate-100 selection:bg-[#7FB77E]/30 sm:py-14 lg:py-16">

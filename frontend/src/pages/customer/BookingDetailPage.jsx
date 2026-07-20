@@ -16,6 +16,7 @@ import {
   Phone,
   QrCode,
   ReceiptText,
+  RefreshCcw,
   ShieldCheck,
   UserRound,
   Users,
@@ -23,6 +24,7 @@ import {
   XCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import Swal from "sweetalert2";
 
 import {
   cancelBooking,
@@ -216,6 +218,8 @@ export default function BookingDetailPage() {
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(null);
+  const [loadError, setLoadError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
   const [paying, setPaying] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
@@ -224,6 +228,7 @@ export default function BookingDetailPage() {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [lightboxImage, setLightboxImage] = useState("");
   const paymentSectionRef = useRef(null);
+  const lightboxCloseButtonRef = useRef(null);
   const stage = searchParams.get("stage");
 
   useEffect(() => {
@@ -232,14 +237,16 @@ export default function BookingDetailPage() {
     const loadBooking = async () => {
       try {
         setLoading(true);
+        setLoadError("");
         const response = await getBookingDetail(bookingId);
         if (mounted) {
           setBooking(response.data);
         }
       } catch (error) {
-        toast.error(
-          error?.response?.data?.message || "Không thể tải chi tiết đơn đặt tour",
-        );
+        const message =
+          error?.response?.data?.message || "Không thể tải chi tiết đơn đặt tour";
+        if (mounted) setLoadError(message);
+        toast.error(message);
       } finally {
         if (mounted) {
           setLoading(false);
@@ -252,7 +259,7 @@ export default function BookingDetailPage() {
     return () => {
       mounted = false;
     };
-  }, [bookingId]);
+  }, [bookingId, reloadKey]);
 
   useEffect(() => {
     if (!booking) return;
@@ -296,6 +303,24 @@ export default function BookingDetailPage() {
 
     setActiveImageIndex(thumbnailIndex >= 0 ? thumbnailIndex : 0);
   }, [booking?.id]);
+
+  useEffect(() => {
+    if (!lightboxImage) return;
+
+    lightboxCloseButtonRef.current?.focus();
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setLightboxImage("");
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [lightboxImage]);
 
   const statusMeta = getMeta(bookingStatusMeta, booking?.status);
   const paymentMeta = getMeta(paymentStatusMeta, booking?.paymentStatus);
@@ -375,17 +400,31 @@ export default function BookingDetailPage() {
   const handleCancelBooking = async () => {
     if (!booking) return;
 
-    const confirmed = window.confirm(
-      "Bạn chắc chắn muốn hủy đặt lịch này? Hệ thống sẽ áp dụng chính sách hoàn tiền theo ngày khởi hành.",
-    );
+    const { value: reasonInput, isConfirmed } = await Swal.fire({
+      title: "Xác nhận hủy đặt lịch",
+      text: "Hệ thống sẽ áp dụng chính sách hoàn tiền theo ngày khởi hành.",
+      icon: "warning",
+      input: "textarea",
+      inputLabel: "Lý do hủy (không bắt buộc)",
+      inputPlaceholder: "Nhập lý do hủy...",
+      showCancelButton: true,
+      confirmButtonColor: "#dc2626",
+      confirmButtonText: "Xác nhận hủy",
+      cancelButtonText: "Đóng",
+      customClass: {
+        popup: "rounded-3xl",
+        confirmButton: "rounded-xl px-6 py-2",
+        cancelButton: "rounded-xl px-6 py-2",
+      },
+    });
 
-    if (!confirmed) return;
+    if (!isConfirmed) return;
+
+    const reason = (reasonInput || "").trim() || "Khách yêu cầu hủy đặt lịch trên website";
 
     try {
       setCancelling(true);
-      const response = await cancelBooking(booking.id, {
-        reason: "Khách yêu cầu hủy đặt lịch trên website",
-      });
+      const response = await cancelBooking(booking.id, { reason });
 
       setBooking(response.data);
       toast.success("Đã hủy đặt lịch và cập nhật chính sách thanh toán");
@@ -489,6 +528,21 @@ export default function BookingDetailPage() {
       {loading ? (
         <div className="flex min-h-[360px] items-center justify-center">
           <Loader2 className="h-12 w-12 animate-spin text-[#7FB77E]" />
+        </div>
+      ) : loadError ? (
+        <div className="mx-auto max-w-2xl rounded-3xl border border-rose-300/25 bg-rose-300/[0.07] p-8 text-center">
+          <AlertTriangle className="mx-auto h-11 w-11 text-rose-200" />
+          <h2 className="mt-4 text-xl font-black text-white">
+            Không tải được chi tiết đơn đặt tour
+          </h2>
+          <p className="mt-2 text-sm leading-7 text-slate-300">{loadError}</p>
+          <button
+            type="button"
+            onClick={() => setReloadKey((value) => value + 1)}
+            className="btn-outline mt-5 text-sm"
+          >
+            <RefreshCcw size={16} /> Thử tải lại
+          </button>
         </div>
       ) : booking ? (
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px] 2xl:grid-cols-[minmax(0,1fr)_440px]">
@@ -1483,6 +1537,7 @@ export default function BookingDetailPage() {
           onClick={() => setLightboxImage("")}
         >
           <button
+            ref={lightboxCloseButtonRef}
             type="button"
             aria-label="Đóng ảnh"
             onClick={() => setLightboxImage("")}

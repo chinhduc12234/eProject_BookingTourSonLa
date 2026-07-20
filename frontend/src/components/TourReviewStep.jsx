@@ -145,9 +145,13 @@ export default function TourReviewStep({
             </dt>
 
             <dd className="mt-2 text-emerald-700 font-black text-lg">
-              {tour.price != null
-                ? `₫${tour.price.toLocaleString()}`
-                : "—"}
+              {(() => {
+                if (tour.price == null || tour.price === "") return "—";
+                const numericPrice = Number(tour.price);
+                return Number.isNaN(numericPrice)
+                  ? tour.price
+                  : `${numericPrice.toLocaleString()} đ`;
+              })()}
             </dd>
           </div>
 

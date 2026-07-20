@@ -375,7 +375,7 @@ export default function PublicLayout({ children }) {
                         </div>
                     </div>
 
-                    <div className="flex flex-col items-center justify-between gap-3 border-t border-white/10 py-6 text-xs text-slate-400 md:flex-row">
+                    <div className="flex flex-col items-center justify-between gap-3 border-t border-white/10 py-6 text-xs text-slate-300 md:flex-row">
                         <p>© {new Date().getFullYear()} {brand.displayName}. Tất cả các quyền được bảo lưu.</p>
                         <div className="flex max-w-3xl flex-wrap items-center justify-center gap-x-2 gap-y-1 md:justify-end">
                             <span className="font-bold text-[#d4a878]">Nguồn ảnh:</span>

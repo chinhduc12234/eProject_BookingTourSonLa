@@ -253,20 +253,24 @@ export default function HomePage() {
                                     aria-label={`Hiển thị ảnh: ${slide.alt}`}
                                     aria-pressed={idx === heroIndex}
                                     onClick={() => setHeroIndex(idx)}
-                                    className={[
-                                        "relative h-1.5 overflow-hidden rounded-full transition-all",
-                                        idx === heroIndex
-                                            ? "w-10 bg-white/25"
-                                            : "w-4 bg-white/25 hover:bg-white/40",
-                                    ].join(" ")}
+                                    className="group/dot flex h-11 items-center px-1"
                                 >
-                                    {idx === heroIndex && (
-                                        <span
-                                            key={`${heroIndex}-${heroPaused}`}
-                                            className="hero-progress absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#9de09c] to-[#A67C52]"
-                                            data-paused={heroPaused || reduceMotion ? "true" : "false"}
-                                        />
-                                    )}
+                                    <span
+                                        className={[
+                                            "relative block h-1.5 overflow-hidden rounded-full transition-all",
+                                            idx === heroIndex
+                                                ? "w-10 bg-white/25"
+                                                : "w-4 bg-white/25 group-hover/dot:bg-white/40",
+                                        ].join(" ")}
+                                    >
+                                        {idx === heroIndex && (
+                                            <span
+                                                key={`${heroIndex}-${heroPaused}`}
+                                                className="hero-progress absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#9de09c] to-[#A67C52]"
+                                                data-paused={heroPaused || reduceMotion ? "true" : "false"}
+                                            />
+                                        )}
+                                    </span>
                                 </button>
                             ))}
                             </div>
@@ -367,7 +371,10 @@ export default function HomePage() {
             </section>
 
             {/* DESTINATION MARQUEE */}
-            <section className="home-marquee-section relative overflow-hidden border-y border-white/5 bg-[#04120d] py-6">
+            <section
+                className="home-marquee-section relative overflow-hidden border-y border-white/5 bg-[#04120d] py-6"
+                aria-hidden="true"
+            >
                 <div className="home-marquee-track marquee-track gap-12 text-2xl font-black uppercase tracking-widest">
                     {[...marqueeWords, ...marqueeWords].map((word, idx) => (
                         <span key={idx} className="flex items-center gap-12 whitespace-nowrap">
@@ -655,20 +662,32 @@ export default function HomePage() {
                                     viewport={{ once: true }}
                                     transition={{ duration: 0.55, delay: idx * 0.1 }}
                                     whileHover={{ y: -8 }}
-                                    className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.01] p-6 transition-all hover:border-[#7FB77E]/50"
+                                    className="group relative flex min-h-[19rem] flex-col justify-end overflow-hidden rounded-2xl border border-white/10 transition-all hover:border-[#7FB77E]/50"
                                 >
-                                    <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-gradient-to-br from-[#7FB77E]/25 via-[#A67C52]/15 to-transparent blur-2xl transition-all duration-500 group-hover:scale-150" />
-                                    <span className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
-                                        <Icon size={26} />
-                                    </span>
-                                    <h3 className="relative mt-6 text-xl font-black text-white">
-                                        {item.title}
-                                    </h3>
-                                    <p className="relative mt-3 text-sm leading-6 text-slate-300">
-                                        {item.desc}
-                                    </p>
-                                    <div className="relative mt-6 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#d4a878] transition-all group-hover:translate-x-1">
-                                        Khám phá <ArrowRight size={14} />
+                                    {item.image && (
+                                        <img
+                                            src={item.image}
+                                            alt={item.title}
+                                            loading="lazy"
+                                            decoding="async"
+                                            className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110"
+                                        />
+                                    )}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/70 to-[#020617]/20" />
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent to-[#7FB77E]/0 transition-colors duration-500 group-hover:to-[#7FB77E]/20" />
+                                    <div className="relative p-6">
+                                        <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#7FB77E]/25 text-[#9de09c] ring-1 ring-white/15 backdrop-blur-md">
+                                            <Icon size={26} />
+                                        </span>
+                                        <h3 className="mt-5 text-xl font-black text-white drop-shadow-lg">
+                                            {item.title}
+                                        </h3>
+                                        <p className="mt-2 text-sm leading-6 text-slate-200">
+                                            {item.desc}
+                                        </p>
+                                        <div className="mt-5 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#f4c27a] transition-all group-hover:translate-x-1">
+                                            Khám phá <ArrowRight size={14} />
+                                        </div>
                                     </div>
                                 </motion.div>
                             );

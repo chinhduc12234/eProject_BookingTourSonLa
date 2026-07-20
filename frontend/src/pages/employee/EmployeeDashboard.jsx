@@ -12,6 +12,7 @@ import {
   Search,
   ShieldCheck,
 } from "lucide-react";
+import Swal from "sweetalert2";
 import { employeeApi } from "../../api/bookingApi";
 import { DepartureTypeBadge } from "../admin/bookingShared";
 import { getAuthName, logout } from "../../utils/auth";
@@ -95,9 +96,17 @@ const groupBookingsForOperation = (bookings) => {
   });
 };
 
+const getTodayLabel = () =>
+  new Intl.DateTimeFormat("vi-VN", {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(new Date());
+
 export default function EmployeeDashboard() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("bookings");
+  const [activeTab, setActiveTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [bookings, setBookings] = useState([]);
@@ -148,8 +157,18 @@ export default function EmployeeDashboard() {
     return () => window.clearTimeout(timeoutId);
   }, []);
 
-  const handleLogout = () => {
-    if (window.confirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống điều hành?")) {
+  const handleLogout = async () => {
+    const result = await Swal.fire({
+      icon: "question",
+      title: "Đăng xuất khỏi hệ thống điều hành?",
+      text: "Bạn có chắc chắn muốn đăng xuất khỏi hệ thống điều hành?",
+      showCancelButton: true,
+      confirmButtonText: "Đăng xuất",
+      cancelButtonText: "Ở lại",
+      confirmButtonColor: "#2f7d55",
+    });
+
+    if (result.isConfirmed) {
       logout();
     }
   };
@@ -199,7 +218,7 @@ export default function EmployeeDashboard() {
       <div className="loading-screen" role="alert">
         <ShieldCheck size={44} />
         <p>{loadError}</p>
-        <button type="button" className="logout-btn" onClick={loadDashboardData}>
+        <button type="button" className="logout-btn retry-btn" onClick={loadDashboardData}>
           <RefreshCw size={17} /> Thử tải lại
         </button>
       </div>
@@ -282,8 +301,29 @@ export default function EmployeeDashboard() {
         </header>
 
         <div className="main-body-container">
+          <section className="employee-hero" aria-label="Lời chào nhân viên điều hành">
+            <img
+              className="employee-hero-img"
+              src="/images/taybac/moc-chau-hills.jpg"
+              alt="Đồi chè Mộc Châu, Tây Bắc"
+            />
+            <div className="employee-hero-overlay" aria-hidden="true" />
+            <div className="employee-hero-content">
+              <span className="employee-hero-date">
+                <Calendar size={14} /> {getTodayLabel()}
+              </span>
+              <h2 className="employee-hero-title">
+                Xin chào, <span>{employeeInfo.name}</span>
+              </h2>
+              <p className="employee-hero-desc">
+                Công việc hôm nay: theo dõi các đơn được phân công và cập nhật
+                timeline tour theo thời gian thực cho khách hàng.
+              </p>
+            </div>
+          </section>
+
           <div className="stats-grid">
-            <div className="stat-card">
+            <div className="stat-card" data-accent="blue">
               <div>
                 <span className="stat-label">Tổng đơn được gán</span>
                 <span className="stat-value text-white">{stats.totalBookings}</span>
@@ -293,7 +333,7 @@ export default function EmployeeDashboard() {
               </div>
             </div>
 
-            <div className="stat-card">
+            <div className="stat-card" data-accent="amber">
               <div>
                 <span className="stat-label">Cần theo dõi</span>
                 <span className="stat-value text-amber">
@@ -305,7 +345,7 @@ export default function EmployeeDashboard() {
               </div>
             </div>
 
-            <div className="stat-card">
+            <div className="stat-card" data-accent="green">
               <div>
                 <span className="stat-label">Tour riêng</span>
                 <span className="stat-value text-green">
@@ -317,7 +357,7 @@ export default function EmployeeDashboard() {
               </div>
             </div>
 
-            <div className="stat-card">
+            <div className="stat-card" data-accent="emerald">
               <div>
                 <span className="stat-label">Đã hoàn thành</span>
                 <span className="stat-value text-green">

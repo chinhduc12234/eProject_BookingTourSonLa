@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import toast from "react-hot-toast";
+import Swal from "sweetalert2";
 import {
   ArrowLeft,
   Banknote,
@@ -205,6 +206,14 @@ export default function EmployeeTimelinePage() {
   const progress = useMemo(() => getScheduleProgress(detail), [detail]);
   const pendingActivities = useMemo(() => getPendingActivities(detail), [detail]);
   const departureTypeMeta = useMemo(() => getDepartureTypeMeta(detail), [detail]);
+  const firstPendingActivityId = useMemo(() => {
+    for (const day of detail?.scheduleDays || []) {
+      for (const activity of day.activities || []) {
+        if (activity.status === "PENDING") return activity.id;
+      }
+    }
+    return null;
+  }, [detail]);
 
   const loadDetail = useCallback(async () => {
     try {
@@ -403,7 +412,16 @@ export default function EmployeeTimelinePage() {
       toast.error("Còn hoạt động chưa cập nhật. Vui lòng hoàn tất trước.");
       return;
     }
-    if (!window.confirm("Xác nhận đánh dấu tour này đã hoàn thành?")) return;
+    const result = await Swal.fire({
+      icon: "question",
+      title: "Xác nhận hoàn thành tour?",
+      text: "Xác nhận đánh dấu tour này đã hoàn thành?",
+      showCancelButton: true,
+      confirmButtonText: "Hoàn thành",
+      cancelButtonText: "Ở lại",
+      confirmButtonColor: "#2f7d55",
+    });
+    if (!result.isConfirmed) return;
 
     try {
       setCompletingTour(true);
@@ -433,12 +451,12 @@ export default function EmployeeTimelinePage() {
     return activity.status === "PENDING";
   };
 
-  const getActivityClass = (status) => {
+  const getActivityClass = (status, activityId) => {
     const s = (status || "PENDING").toLowerCase();
     if (s === "done") return "is-done";
     if (s === "changed") return "is-changed";
     if (s === "skipped") return "is-skipped";
-    if (s === "pending") return "is-active";
+    if (s === "pending") return activityId === firstPendingActivityId ? "is-active" : "";
     return "";
   };
 
@@ -735,22 +753,26 @@ export default function EmployeeTimelinePage() {
               </label>
               <small>Ảnh JPG, PNG, WEBP hoặc GIF, tối đa 10MB.</small>
             </div>
-            {String(form.attachmentUrl || "").startsWith("/uploads/") && (
-              <div className="tl-report-preview">
-                <Image />
-                <img
-                  src={resolveUploadedFileUrl(form.attachmentUrl)}
-                  alt="Ảnh báo cáo hoạt động"
-                />
-                <a
-                  href={resolveUploadedFileUrl(form.attachmentUrl)}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Xem ảnh báo cáo
-                </a>
-              </div>
-            )}
+            {(() => {
+              const attachmentUrl = String(form.attachmentUrl || "");
+              const isUploadsPath = attachmentUrl.startsWith("/uploads/");
+              const isHttpUrl = /^https?:\/\//i.test(attachmentUrl);
+              if (!isUploadsPath && !isHttpUrl) return null;
+
+              const previewUrl = isUploadsPath
+                ? resolveUploadedFileUrl(attachmentUrl)
+                : attachmentUrl;
+
+              return (
+                <div className="tl-report-preview">
+                  <Image />
+                  <img src={previewUrl} alt="Ảnh báo cáo hoạt động" />
+                  <a href={previewUrl} target="_blank" rel="noreferrer">
+                    Xem ảnh báo cáo
+                  </a>
+                </div>
+              );
+            })()}
           </div>
         </div>
 
@@ -798,7 +820,7 @@ export default function EmployeeTimelinePage() {
               return (
                 <div
                   key={activity.id}
-                  className={`tl-activity ${getActivityClass(activity.status)}`}
+                  className={`tl-activity ${getActivityClass(activity.status, activity.id)}`}
                 >
                   <div className="tl-activity-rail">
                     <div className="tl-activity-dot">
@@ -811,9 +833,14 @@ export default function EmployeeTimelinePage() {
                     <div
                       className="tl-activity-head"
                       onClick={() => toggleActivity(activity.id, activity.status)}
-                      onKeyDown={(e) =>
-                        e.key === "Enter" && toggleActivity(activity.id, activity.status)
-                      }
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          toggleActivity(activity.id, activity.status);
+                        } else if (e.key === " ") {
+                          e.preventDefault();
+                          toggleActivity(activity.id, activity.status);
+                        }
+                      }}
                       role="button"
                       tabIndex={0}
                     >

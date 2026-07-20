@@ -33,38 +33,53 @@ export const navLinks = [
     { label: "Liên hệ", to: "/lien-he" },
 ];
 
+// Ảnh thật về Sơn La / Tây Bắc, tải sẵn trong /public/images/taybac (giấy phép CC0 / Public domain / CC BY-SA).
+// Chỉ dùng để trang trí website; ảnh của từng tour vẫn lấy từ dữ liệu backend.
 export const scenicImages = {
-    mocChauTea:
-        "https://upload.wikimedia.org/wikipedia/commons/7/71/Moc-chau-tea-doi-2094890_960_720.jpg",
-    mocChauTeaClose:
-        "https://c.pxhere.com/photos/b2/ea/moc_chau_son_la_vietnam_plantation_tea_field_agriculture-569124.jpg!d",
-    daiYemWaterfall:
-        "https://upload.wikimedia.org/wikipedia/commons/e/e9/Thacdaiyem.jpg",
-    sonLaLandscape:
-        "https://upload.wikimedia.org/wikipedia/commons/d/d2/S%C6%A1n_La_Province.JPG",
-    taXuaRidge:
-        "https://commons.wikimedia.org/wiki/Special:Redirect/file/S%E1%BB%91ng_l%C6%B0ng_kh%E1%BB%A7ng_long_T%C3%A0_X%C3%B9a.jpg?width=1600",
+    // Cao nguyên & đồi
+    mocChauHills: "/images/taybac/moc-chau-hills.jpg",
+    mocChauTown: "/images/taybac/moc-chau-town.jpg",
+    terraces: "/images/taybac/terraces.jpg",
+    muCangChai: "/images/taybac/mu-cang-chai.jpg",
+    // Tà Xùa & Bắc Yên
+    taXuaRidge: "/images/taybac/ta-xua-ridge.jpg",
+    taXuaCloud: "/images/taybac/ta-xua-cloud.jpg",
+    taXuaMountains: "/images/taybac/ta-xua-mountains.jpg",
+    bacYen: "/images/taybac/bac-yen.jpg",
+    // Sơn La
+    sonLaLandscape: "/images/taybac/son-la-landscape.jpg",
+    sonLaReservoir: "/images/taybac/son-la-reservoir.jpg",
+    daiYemWaterfall: "/images/taybac/dai-yem-waterfall.jpg",
 };
+
+// Bí danh tương thích ngược cho các trang đang tham chiếu tên cũ.
+scenicImages.mocChauTea = scenicImages.mocChauHills;
+scenicImages.mocChauTeaClose = scenicImages.terraces;
 
 export const heroSlides = [
     {
-        image: scenicImages.mocChauTea,
-        alt: "Đồi chè Mộc Châu trong sương sớm",
+        image: scenicImages.mocChauHills,
+        alt: "Cao nguyên Mộc Châu với những triền đồi xanh mướt",
         place: "Mộc Châu · Sơn La",
     },
     {
-        image: scenicImages.taXuaRidge,
-        alt: "Sống lưng khủng long Tà Xùa giữa núi rừng",
+        image: scenicImages.taXuaCloud,
+        alt: "Săn biển mây trên đỉnh Tà Xùa lúc bình minh",
         place: "Tà Xùa · Bắc Yên",
     },
     {
-        image: scenicImages.daiYemWaterfall,
-        alt: "Thác Dải Yếm giữa màu xanh Mộc Châu",
-        place: "Mường Sang · Mộc Châu",
+        image: scenicImages.taXuaRidge,
+        alt: "Sống lưng khủng long Tà Xùa nổi giữa biển mây",
+        place: "Tà Xùa · Bắc Yên",
+    },
+    {
+        image: scenicImages.terraces,
+        alt: "Ruộng bậc thang vàng óng mùa lúa chín ở Tây Bắc",
+        place: "Ruộng bậc thang · Tây Bắc",
     },
     {
         image: scenicImages.sonLaLandscape,
-        alt: "Cảnh quan núi rừng tại huyện Mường La, Sơn La",
+        alt: "Cảnh quan núi rừng hùng vĩ tỉnh Sơn La",
         place: "Mường La · Sơn La",
     },
 ];
@@ -73,49 +88,50 @@ export const heroBackdrops = heroSlides.map((slide) => slide.image);
 
 export const scenicGallery = [
     {
-        title: "Đồi chè Mộc Châu",
+        title: "Cao nguyên Mộc Châu",
         eyebrow: "Cao nguyên",
-        desc: "Những triền chè uốn lượn trong sương sớm, hợp với lịch trình nghỉ dưỡng và check-in nhẹ.",
-        image: scenicImages.mocChauTea,
+        desc: "Những triền đồi xanh mướt trải dài trong sương sớm, hợp với lịch trình nghỉ dưỡng và check-in nhẹ nhàng.",
+        image: scenicImages.mocChauHills,
     },
     {
         title: "Thác Dải Yếm",
         eyebrow: "Mường Sang",
-        desc: "Điểm dừng thiên nhiên mát lành cho các tuyến Mộc Châu cuối tuần.",
+        desc: "Dòng thác trắng xóa giữa màu xanh núi rừng, điểm dừng thiên nhiên mát lành cho tuyến Mộc Châu cuối tuần.",
         image: scenicImages.daiYemWaterfall,
     },
     {
-        title: "Sống lưng Tà Xùa",
+        title: "Sống lưng khủng long Tà Xùa",
         eyebrow: "Bắc Yên",
-        desc: "Cung núi nổi tiếng giữa biển mây, dành cho hành trình săn bình minh và khám phá thiên nhiên.",
+        desc: "Cung sống núi nổi tiếng giữa biển mây, dành cho hành trình săn bình minh và khám phá thiên nhiên.",
         image: scenicImages.taXuaRidge,
     },
     {
-        title: "Nếp sống cao nguyên",
-        eyebrow: "Bản địa",
-        desc: "Nhịp sống xanh giữa vườn chè, bản làng và những cung đường chậm.",
-        image: scenicImages.mocChauTeaClose,
+        title: "Săn mây Tà Xùa",
+        eyebrow: "Biển mây",
+        desc: "Khoảnh khắc mây trời bồng bềnh dưới chân, trải nghiệm khó quên của những sớm mai Tây Bắc.",
+        image: scenicImages.taXuaCloud,
     },
     {
-        title: "Triền chè Mộc Châu",
-        eyebrow: "Nông nghiệp bản địa",
-        desc: "Những luống chè xanh nối nhau tạo nên nhịp cảnh quan đặc trưng của cao nguyên.",
-        image: scenicImages.mocChauTeaClose,
+        title: "Ruộng bậc thang Tây Bắc",
+        eyebrow: "Mùa lúa chín",
+        desc: "Những thửa ruộng bậc thang vàng óng nối nhau, tạo nên nhịp cảnh quan đặc trưng của vùng cao.",
+        image: scenicImages.terraces,
     },
     {
         title: "Núi rừng Sơn La",
         eyebrow: "Tây Bắc",
-        desc: "Những lớp núi nối nhau mở ra nhịp hành trình khoáng đạt và nhiều điểm dừng giàu bản sắc.",
+        desc: "Những lớp núi nối nhau mở ra hành trình khoáng đạt và nhiều điểm dừng giàu bản sắc.",
         image: scenicImages.sonLaLandscape,
     },
 ];
 
 export const photoCredits = [
-    { label: "Mộc Châu · ToanNguyen (CC0)", url: "https://commons.wikimedia.org/wiki/File:Moc-chau-tea-doi-2094890_960_720.jpg" },
-    { label: "Đồi chè Mộc Châu · PxHere (CC0)", url: "https://pxhere.com/en/photo/569124" },
+    { label: "Mộc Châu · Unsplash (CC0)", url: "https://commons.wikimedia.org/wiki/File:M%E1%BB%99c_Ch%C3%A2u_District,_Vietnam_(Unsplash).jpg" },
     { label: "Thác Dải Yếm · ePi.Longo (CC BY-SA 2.0)", url: "https://commons.wikimedia.org/wiki/File:Thacdaiyem.jpg" },
-    { label: "Mường La · Tycho (CC BY-SA 3.0)", url: "https://commons.wikimedia.org/wiki/File:S%C6%A1n_La_Province.JPG" },
-    { label: "Tà Xùa · NKSTTSSHNVN (CC BY-SA 4.0)", url: "https://commons.wikimedia.org/wiki/File:S%E1%BB%91ng_l%C6%B0ng_kh%E1%BB%A7ng_long_T%C3%A0_X%C3%B9a.jpg" },
+    { label: "Tà Xùa · NKS (CC BY-SA 4.0)", url: "https://commons.wikimedia.org/wiki/File:S%E1%BB%91ng_l%C6%B0ng_kh%E1%BB%A7ng_long_T%C3%A0_X%C3%B9a.jpg" },
+    { label: "Săn mây Tà Xùa · Unsplash (CC0)", url: "https://commons.wikimedia.org/wiki/File:Man_alone_in_T%E1%BA%A3_X%C3%B9a_03-03-2017.jpg" },
+    { label: "Ruộng bậc thang Mù Cang Chải · Unsplash (CC0)", url: "https://commons.wikimedia.org/wiki/File:Terraces_in_Che_Cu_Nha_commune,_Mu_Cang_Chai_(Unsplash).jpg" },
+    { label: "Sơn La · Tycho (CC BY-SA 3.0)", url: "https://commons.wikimedia.org/wiki/File:S%C6%A1n_La_Province.JPG" },
 ];
 
 export const heroPromises = [
@@ -153,16 +169,19 @@ export const destinationGroups = [
         title: "Núi rừng và cao nguyên",
         desc: "Mộc Châu, Tà Xùa, Pha Luông, Mường La.",
         icon: Mountain,
+        image: scenicImages.taXuaMountains,
     },
     {
         title: "Văn hóa bản địa",
         desc: "Bản Thái, bản Mông, ẩm thực địa phương và nghề thủ công.",
         icon: Sparkles,
+        image: scenicImages.mocChauTown,
     },
     {
         title: "Nghỉ dưỡng thiên nhiên",
         desc: "Suối khoáng, homestay núi, hồ thủy điện và những cung đường chậm.",
         icon: Leaf,
+        image: scenicImages.sonLaReservoir,
     },
 ];
 
