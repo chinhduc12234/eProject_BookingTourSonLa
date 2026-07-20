@@ -25,6 +25,19 @@ public interface BookingEmployeeRepository extends JpaRepository<BookingEmployee
     @Query("""
             SELECT be FROM BookingEmployee be
             JOIN FETCH be.employee
+            JOIN FETCH be.booking b
+            JOIN FETCH b.tourDeparture d
+            JOIN FETCH d.tour
+            WHERE b.deletedAt IS NULL
+              AND b.id IN :bookingIds
+            ORDER BY be.id ASC
+            """)
+    List<BookingEmployee> findStatisticsAssignments(
+            @Param("bookingIds") List<Long> bookingIds);
+
+    @Query("""
+            SELECT be FROM BookingEmployee be
+            JOIN FETCH be.employee
             JOIN be.booking b
             JOIN b.tourDeparture d
             WHERE b.deletedAt IS NULL

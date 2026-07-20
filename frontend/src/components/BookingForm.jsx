@@ -32,8 +32,6 @@ const emptyCustomer = {
 
 const bookingTypes = [
   { value: "INDIVIDUAL", label: "Cá nhân" },
-  { value: "GROUP", label: "Theo đoàn" },
-  { value: "PRIVATE", label: "Tour riêng" },
 ];
 
 const genderOptions = [
@@ -66,8 +64,8 @@ const toNumber = (value) => {
 };
 
 const formStepItems = [
-  { label: "Hình thức đặt", description: "Cá nhân, nhóm hoặc tour riêng" },
-  { label: "Liên hệ", description: "Thông tin trưởng đoàn và điểm đón" },
+  { label: "Hình thức đặt", description: "Cá nhân" },
+  { label: "Liên hệ", description: "Thông tin người đặt và điểm đón" },
   { label: "Hành khách", description: "Số lượng và hồ sơ người đi cùng" },
   { label: "Xác nhận", description: "Ghi chú, tổng tiền và chuyển thanh toán" },
 ];
@@ -110,7 +108,7 @@ const readStoredBookingState = (userProfile, tourId) => {
     return {
       form: {
         ...defaultForm,
-        bookingType: tempForm.bookingType || defaultForm.bookingType,
+        bookingType: "INDIVIDUAL",
         organizationName:
           tempForm.organizationName || defaultForm.organizationName,
         contactPerson: tempForm.contactPerson || defaultForm.contactPerson,
@@ -179,8 +177,7 @@ export default function BookingForm({
   const childCount = toNumber(form.childCount);
   const adultCompanionCount = Math.max(0, adultCount - 1);
   const companionCount = adultCompanionCount + Math.max(0, childCount);
-  const requiresOrganization =
-    form.bookingType === "GROUP" || form.bookingType === "PRIVATE";
+  const requiresOrganization = false;
 
   const customers = useMemo(() => {
     const adultCustomers = Array.from(
@@ -466,7 +463,7 @@ export default function BookingForm({
         <div>
           <h2 className="text-lg font-black text-white">Thông tin đặt tour</h2>
           <p className="text-sm leading-6 text-slate-300">
-            Thông tin liên hệ được lưu vào đơn đặt tour và hồ sơ trưởng đoàn.
+            Thông tin liên hệ được lưu vào đơn đặt tour và hồ sơ người đặt.
           </p>
         </div>
       </div>
@@ -541,7 +538,7 @@ export default function BookingForm({
           <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
             Hình thức đặt tour
           </label>
-          <div className="grid gap-2 sm:grid-cols-3">
+          <div className="grid gap-2 sm:grid-cols-1">
             {bookingTypes.map((item) => {
               const active = form.bookingType === item.value;
 
@@ -557,11 +554,7 @@ export default function BookingForm({
                       : "border-white/10 bg-white/[0.06] text-white hover:border-[#7FB77E]/50",
                   ].join(" ")}
                 >
-                  {item.value === "INDIVIDUAL" ? (
-                    <UserRound size={16} />
-                  ) : (
-                    <UsersRound size={16} />
-                  )}
+                  <UserRound size={16} />
                   {item.label}
                 </button>
               );
@@ -619,7 +612,7 @@ export default function BookingForm({
           className="booking-form-step rounded-2xl border border-white/10 bg-white/[0.035] p-4 outline-none"
         >
           <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
-            Họ tên trưởng đoàn
+            Họ tên người đặt tour
           </label>
           <input
             data-validation-key="fullName"

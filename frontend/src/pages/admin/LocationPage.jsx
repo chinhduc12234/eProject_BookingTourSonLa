@@ -9,7 +9,6 @@ import {
 
 import { getAllDistricts } from "../../api/districtApi";
 import { getAllProvinces } from "../../api/provinceApi";
-import { resolveUploadedFileUrl } from "../../api/userApi";
 
 import Modal from "../../components/Modal";
 
@@ -27,7 +26,6 @@ import {
   ChevronRight,
   Loader2,
   ArrowUpAZ,
-  Image as ImageIcon,
 } from "lucide-react";
 
 export default function LocationPage() {
@@ -55,8 +53,6 @@ export default function LocationPage() {
 
   const [description, setDescription] =
     useState("");
-
-  const [image, setImage] = useState("");
 
   const [search, setSearch] = useState("");
 
@@ -241,8 +237,6 @@ export default function LocationPage() {
 
     setDescription("");
 
-    setImage("");
-
     setEditId(null);
 
     setErrors({});
@@ -282,7 +276,6 @@ export default function LocationPage() {
         districtId,
         address,
         description,
-        image,
       };
 
       if (editId) {
@@ -546,10 +539,6 @@ export default function LocationPage() {
                   </th>
 
                   <th className="px-6 py-5 text-xs font-bold uppercase text-slate-400">
-                    Hình ảnh
-                  </th>
-
-                  <th className="px-6 py-5 text-xs font-bold uppercase text-slate-400">
                     Địa điểm
                   </th>
 
@@ -573,7 +562,7 @@ export default function LocationPage() {
 
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={5}
                       className="py-20 text-center"
                     >
 
@@ -589,7 +578,7 @@ export default function LocationPage() {
 
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={5}
                       className="py-20 text-center text-slate-400 italic"
                     >
                       Không có dữ liệu
@@ -618,29 +607,6 @@ export default function LocationPage() {
                         )
                           .toString()
                           .padStart(2, "0")}
-                      </td>
-
-                      {/* IMAGE */}
-
-                      <td data-label="Hình ảnh" className="px-6 py-5">
-
-                        {l.image ? (
-
-                          <img
-                            src={resolveUploadedFileUrl(l.image)}
-                            alt={l.name}
-                            className="w-24 h-16 object-cover rounded-2xl border border-slate-100"
-                          />
-
-                        ) : (
-
-                          <div className="w-24 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
-
-                            <ImageIcon
-                              size={22}
-                            />
-                          </div>
-                        )}
                       </td>
 
                       {/* LOCATION */}
@@ -707,11 +673,6 @@ export default function LocationPage() {
 
                               setDescription(
                                 l.description ||
-                                ""
-                              );
-
-                              setImage(
-                                l.image ||
                                 ""
                               );
 
@@ -855,27 +816,12 @@ export default function LocationPage() {
                 </div>
               </div>
 
-              {/* CỘT PHẢI: HÌNH ẢNH & MÔ TẢ */}
+              {/* CỘT PHẢI: MÔ TẢ */}
               <div className="space-y-5">
-                <div>
-                  <label className="text-sm font-bold text-slate-700 mb-2 block ml-1">Đường dẫn hình ảnh</label>
-                  <input
-                    value={image}
-                    onChange={(e) => setImage(e.target.value)}
-                    placeholder="Dán URL hình ảnh vào đây..."
-                    className="w-full h-[56px] px-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-amber-500 focus:bg-white outline-none transition-all shadow-sm"
-                  />
-                  {image && (
-                    <div className="mt-4 rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 shadow-inner h-[140px]">
-                      <img src={resolveUploadedFileUrl(image)} alt="Xem trước hình ảnh" className="w-full h-full object-cover" />
-                    </div>
-                  )}
-                </div>
-
                 <div>
                   <label className="text-sm font-bold text-slate-700 mb-2 block ml-1">Mô tả</label>
                   <textarea
-                    rows={image ? 2 : 8} // Tự động co giãn nếu có ảnh preview
+                    rows={8}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Mô tả ngắn gọn về địa điểm..."

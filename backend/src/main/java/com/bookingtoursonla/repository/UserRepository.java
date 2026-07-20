@@ -1,6 +1,7 @@
 package com.bookingtoursonla.repository;
 
 import java.util.Optional;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +13,9 @@ import com.bookingtoursonla.entity.User;
 import com.bookingtoursonla.entity.enums.Gender;
 
 public interface UserRepository extends JpaRepository<User, Long> {
+
+        @Query("SELECT u FROM User u WHERE u.deletedAt IS NULL AND u.role.id = 2 AND u.isActive = true ORDER BY u.fullName ASC")
+        List<User> findAllActiveStaff();
 
         Optional<User> findByEmail(String email);
 
