@@ -14,7 +14,13 @@ export default function ProtectedRoute({
     const role = getRole();
 
     if (!allowRoles.includes(role)) {
-        return <Navigate to="/login" replace state={{ from: location }} />;
+        return (
+            <Navigate
+                to="/khong-co-quyen"
+                replace
+                state={{ from: location }}
+            />
+        );
     }
 
     return children;

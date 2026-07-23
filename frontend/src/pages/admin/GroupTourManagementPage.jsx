@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { CalendarDays, Eye, Loader2, RefreshCcw, Search, ShieldCheck, TicketCheck, Users } from "lucide-react";
@@ -8,32 +8,237 @@ import { Badge, formatDate, formatTime, getMeta } from "./bookingShared";
 const groupStatusMeta = {
   WAITING: { label: "Đang ghép khách", className: "border-amber-200 bg-amber-50 text-amber-800" },
   CONFIRMED: { label: "Đã xác nhận đoàn", className: "border-emerald-200 bg-emerald-50 text-emerald-800" },
-  IN_PROGRESS: { label: "Đang khởi hành", className: "border-sky-200 bg-sky-50 text-sky-800" },
+  IN_PROGRESS: { label: "Đang khởi hành", className: "border-blue-200 bg-blue-50 text-blue-800" },
   COMPLETED: { label: "Đã hoàn thành", className: "border-slate-200 bg-slate-100 text-slate-700" },
   CANCELLED: { label: "Không còn booking", className: "border-rose-200 bg-rose-50 text-rose-800" },
 };
 
 const statusOptions = [
-  ["", "Tất cả trạng thái đoàn"], ["WAITING", "Đang ghép khách"], ["CONFIRMED", "Đã xác nhận đoàn"],
-  ["IN_PROGRESS", "Đang khởi hành"], ["COMPLETED", "Đã hoàn thành"], ["CANCELLED", "Không còn booking"],
+  ["", "Tất cả trạng thái đoàn"],
+  ["WAITING", "Đang ghép khách"],
+  ["CONFIRMED", "Đã xác nhận đoàn"],
+  ["IN_PROGRESS", "Đang khởi hành"],
+  ["COMPLETED", "Đã hoàn thành"],
+  ["CANCELLED", "Không còn booking"],
 ];
 
 export default function GroupTourManagementPage() {
-  const [tours, setTours] = useState([]); const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState(""); const [keyword, setKeyword] = useState(""); const [status, setStatus] = useState("");
-  const [page, setPage] = useState(0); const [totalPages, setTotalPages] = useState(0); const [total, setTotal] = useState(0);
+  const [tours, setTours] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [keyword, setKeyword] = useState("");
+  const [status, setStatus] = useState("");
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [total, setTotal] = useState(0);
   const pageSize = 10;
-  const load = async () => { try { setLoading(true); const r = await getAdminGroupTours({ page, size: pageSize, keyword }); setTours(r.data?.content || r.data || []); setTotalPages(r.data?.totalPages || 0); setTotal(r.data?.totalElements || 0); } catch (e) { toast.error(e?.response?.data?.message || "Không thể tải danh sách tour ghép"); } finally { setLoading(false); } };
-  useEffect(() => { load(); }, [page, keyword]);
-  const visible = useMemo(() => status ? tours.filter(t => t.groupStatus === status) : tours, [status, tours]);
-  const summary = useMemo(() => ({ waiting: tours.filter(t => t.groupStatus === "WAITING").length, confirmed: tours.filter(t => t.groupStatus === "CONFIRMED").length, people: tours.reduce((n, t) => n + Number(t.occupiedPeople || 0), 0) }), [tours]);
-  const submit = (e) => { e.preventDefault(); setPage(0); setKeyword(search.trim()); };
 
-  return <div className="min-h-screen bg-[#f8fafc] p-4 text-slate-900 md:p-8"><div className="mx-auto max-w-7xl">
-    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between"><div className="flex items-center gap-4"><span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg"><Users size={26}/></span><div><h1 className="text-3xl font-black tracking-tight">Quản lý tour ghép</h1><p className="mt-1 text-sm font-semibold text-slate-500">Theo dõi từng đoàn ghép, số khách, trạng thái và các đơn tham gia.</p></div></div><button onClick={load} disabled={loading} className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-black shadow-sm">{loading ? <Loader2 size={18} className="animate-spin"/> : <RefreshCcw size={18}/>} Làm mới</button></div>
-    <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{[["Tổng đoàn ghép", total, TicketCheck],["Đang chờ đủ khách", summary.waiting, Users],["Đã xác nhận", summary.confirmed, ShieldCheck],["Khách trong trang", summary.people, CalendarDays]].map(([label, value, Icon]) => <div key={label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><Icon size={22} className="text-emerald-700"/><div className="mt-4 text-3xl font-black">{value}</div><div className="mt-1 text-sm font-bold text-slate-500">{label}</div></div>)}</div>
-    <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><form onSubmit={submit} className="grid gap-3 lg:grid-cols-[1fr_250px_auto]"><div className="relative"><Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Tìm tên tour, mã booking hoặc khách hàng..." className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 font-semibold outline-none focus:border-emerald-500 focus:bg-white"/></div><select value={status} onChange={e=>{setPage(0);setStatus(e.target.value)}} className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold outline-none focus:border-emerald-500 focus:bg-white">{statusOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select><button className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 text-sm font-black text-white hover:bg-emerald-700"><Search size={17}/> Tìm đoàn</button></form></div>
-    <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">{loading ? <div className="flex min-h-[360px] items-center justify-center"><Loader2 className="animate-spin text-emerald-600" size={40}/></div> : visible.length === 0 ? <div className="py-20 text-center font-semibold text-slate-500">Chưa có tour ghép phù hợp.</div> : <div className="overflow-x-auto"><table className="admin-responsive-table admin-wide-table w-full text-left text-sm"><thead className="bg-slate-50 text-xs font-black uppercase tracking-wider text-slate-500"><tr><th className="px-5 py-4">Đoàn ghép</th><th className="px-5 py-4">Tour & lịch khởi hành</th><th className="px-5 py-4">Số khách</th><th className="px-5 py-4">Đơn tham gia</th><th className="px-5 py-4">Trạng thái</th><th className="px-5 py-4">Thao tác</th></tr></thead><tbody className="divide-y divide-slate-100">{visible.map(t => <tr key={t.departureId} className="align-top transition hover:bg-slate-50"><td data-label="Đoàn ghép" className="px-5 py-4"><div className="font-black text-slate-950">Lịch ghép #{t.departureId}</div><div className="mt-1 text-xs font-semibold text-slate-500">Còn {t.availableSeats || 0} chỗ trống</div></td><td data-label="Tour & lịch khởi hành" className="px-5 py-4"><div className="max-w-[300px] font-bold text-slate-900">{t.tourName}</div><div className="mt-2 inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-black text-slate-700">{formatDate(t.departureDate)} · {formatTime(t.departureTime)}</div></td><td data-label="Số khách" className="px-5 py-4"><div className="font-black">{t.occupiedPeople || 0} / {t.maxPeople || 0}</div><div className="mt-2 h-2 w-28 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500" style={{width: `${t.maxPeople ? Math.min(100, Math.round((t.occupiedPeople / t.maxPeople) * 100)) : 0}%`}}/></div></td><td data-label="Đơn tham gia" className="px-5 py-4"><div className="font-black">{t.bookingCount || 0} đơn</div><div className="mt-1 text-xs font-semibold text-slate-500">{t.pendingBookingCount || 0} đang chờ · {t.confirmedBookingCount || 0} xác nhận</div></td><td data-label="Trạng thái" className="px-5 py-4"><Badge meta={getMeta(groupStatusMeta, t.groupStatus)}/></td><td data-label="Thao tác" className="px-5 py-4"><Link to={`/admin/group-tours/${t.departureId}`} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border-2 border-emerald-300 bg-white px-4 py-2 text-sm font-extrabold text-emerald-950 shadow-sm hover:bg-emerald-50"><Eye size={17}/> Chi tiết</Link></td></tr>)}</tbody></table></div>}</div>
-    <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div className="text-sm font-bold text-slate-500">Hiển thị {visible.length} / {total} đoàn ghép</div><div className="flex items-center gap-3"><button disabled={page===0} onClick={()=>setPage(p=>Math.max(0,p-1))} className="h-10 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold disabled:opacity-40">Trước</button><span className="text-sm font-black">{page+1} / {totalPages || 1}</span><button disabled={page+1>=totalPages} onClick={()=>setPage(p=>p+1)} className="h-10 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold disabled:opacity-40">Sau</button></div></div>
-  </div></div>;
+  const load = useCallback(async () => {
+    try {
+      setLoading(true);
+      const r = await getAdminGroupTours({ page, size: pageSize, keyword });
+      setTours(r.data?.content || r.data || []);
+      setTotalPages(r.data?.totalPages || 0);
+      setTotal(r.data?.totalElements || 0);
+    } catch (e) {
+      toast.error(e?.response?.data?.message || "Không thể tải danh sách tour ghép");
+    } finally {
+      setLoading(false);
+    }
+  }, [keyword, page]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const visible = useMemo(
+    () => (status ? tours.filter((t) => t.groupStatus === status) : tours),
+    [status, tours]
+  );
+
+  const summary = useMemo(
+    () => ({
+      waiting: tours.filter((t) => t.groupStatus === "WAITING").length,
+      confirmed: tours.filter((t) => t.groupStatus === "CONFIRMED").length,
+      people: tours.reduce((n, t) => n + Number(t.occupiedPeople || 0), 0),
+    }),
+    [tours]
+  );
+
+  const submit = (e) => {
+    e.preventDefault();
+    setPage(0);
+    setKeyword(search.trim());
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f8fafc] p-4 text-slate-900 md:p-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-4">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg">
+              <Users size={26} />
+            </span>
+            <div>
+              <h1 className="text-3xl font-black tracking-tight">Quản lý tour ghép</h1>
+              <p className="mt-1 text-sm font-semibold text-slate-500">
+                Theo dõi từng đoàn ghép, số khách, trạng thái và các đơn tham gia.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={load}
+            disabled={loading}
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-black shadow-sm"
+          >
+            {loading ? <Loader2 size={18} className="animate-spin" /> : <RefreshCcw size={18} />} Làm mới
+          </button>
+        </div>
+
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {[
+            ["Tổng đoàn ghép", total, TicketCheck],
+            ["Đang chờ đủ khách", summary.waiting, Users],
+            ["Đã xác nhận", summary.confirmed, ShieldCheck],
+            ["Khách trong trang", summary.people, CalendarDays],
+          ].map(([label, value, Icon]) => (
+            <div key={label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <Icon size={22} className="text-emerald-700" />
+              <div className="mt-4 text-3xl font-black">{value}</div>
+              <div className="mt-1 text-sm font-bold text-slate-500">{label}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <form onSubmit={submit} className="grid gap-3 lg:grid-cols-[1fr_250px_auto]">
+            <div className="relative">
+              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Tìm tên tour, mã booking hoặc khách hàng..."
+                className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 font-semibold outline-none focus:border-emerald-500 focus:bg-white"
+              />
+            </div>
+            <select
+              value={status}
+              onChange={(e) => {
+                setPage(0);
+                setStatus(e.target.value);
+              }}
+              className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold outline-none focus:border-emerald-500 focus:bg-white"
+            >
+              {statusOptions.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <button className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 text-sm font-black text-white hover:bg-emerald-700">
+              <Search size={17} /> Tìm đoàn
+            </button>
+          </form>
+        </div>
+
+        <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          {loading ? (
+            <div className="flex min-h-[360px] items-center justify-center">
+              <Loader2 className="animate-spin text-emerald-600" size={40} />
+            </div>
+          ) : visible.length === 0 ? (
+            <div className="py-20 text-center font-semibold text-slate-500">Chưa có tour ghép phù hợp.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="admin-responsive-table admin-wide-table w-full text-left text-sm">
+                <thead className="bg-slate-50 text-xs font-black uppercase tracking-wider text-slate-500">
+                  <tr>
+                    <th className="px-5 py-4">Đoàn ghép</th>
+                    <th className="px-5 py-4">Tour & lịch khởi hành</th>
+                    <th className="px-5 py-4">Số khách</th>
+                    <th className="px-5 py-4">Đơn tham gia</th>
+                    <th className="px-5 py-4">Trạng thái</th>
+                    <th className="px-5 py-4">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {visible.map((t) => (
+                    <tr key={t.departureId} className="align-top transition hover:bg-slate-50">
+                      <td data-label="Đoàn ghép" className="px-5 py-4">
+                        <div className="font-black text-slate-950">Lịch ghép #{t.departureId}</div>
+                        <div className="mt-1 text-xs font-semibold text-slate-500">
+                          Còn {t.availableSeats || 0} chỗ trống
+                        </div>
+                      </td>
+                      <td data-label="Tour & lịch khởi hành" className="px-5 py-4">
+                        <div className="max-w-[300px] font-bold text-slate-900">{t.tourName}</div>
+                        <div className="mt-2 inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-black text-slate-700">
+                          {formatDate(t.departureDate)} · {formatTime(t.departureTime)}
+                        </div>
+                      </td>
+                      <td data-label="Số khách" className="px-5 py-4">
+                        <div className="font-black">
+                          {t.occupiedPeople || 0} / {t.maxPeople || 0}
+                        </div>
+                        <div className="mt-2 h-2 w-28 overflow-hidden rounded-full bg-slate-100">
+                          <div
+                            className="h-full rounded-full bg-emerald-500"
+                            style={{
+                              width: `${t.maxPeople ? Math.min(100, Math.round((t.occupiedPeople / t.maxPeople) * 100)) : 0}%`,
+                            }}
+                          />
+                        </div>
+                      </td>
+                      <td data-label="Đơn tham gia" className="px-5 py-4">
+                        <div className="font-black">{t.bookingCount || 0} đơn</div>
+                        <div className="mt-1 text-xs font-semibold text-slate-500">
+                          {t.pendingBookingCount || 0} đang chờ · {t.confirmedBookingCount || 0} xác nhận
+                        </div>
+                      </td>
+                      <td data-label="Trạng thái" className="px-5 py-4">
+                        <Badge meta={getMeta(groupStatusMeta, t.groupStatus)} />
+                      </td>
+                      <td data-label="Thao tác" className="px-5 py-4">
+                        <Link
+                          to={`/admin/group-tours/${t.departureId}`}
+                          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border-2 border-emerald-300 bg-white px-4 py-2 text-sm font-extrabold text-emerald-950 shadow-sm hover:bg-emerald-50"
+                        >
+                          <Eye size={17} /> Chi tiết
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm font-bold text-slate-500">
+            Hiển thị {visible.length} / {total} đoàn ghép
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              disabled={page === 0}
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold disabled:opacity-40"
+            >
+              Trước
+            </button>
+            <span className="text-sm font-black">
+              {page + 1} / {totalPages || 1}
+            </span>
+            <button
+              disabled={page + 1 >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+              className="h-10 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold disabled:opacity-40"
+            >
+              Sau
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
     getTours,
@@ -121,7 +121,7 @@ export default function TourPage() {
 
     // ================= LOAD DATA =================
 
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
 
         try {
 
@@ -142,7 +142,7 @@ export default function TourPage() {
                 res.data.totalElements
             );
 
-        } catch (err) {
+        } catch {
 
             toast.error(
                 "Không thể tải danh sách tour"
@@ -152,7 +152,7 @@ export default function TourPage() {
 
             setTableLoading(false);
         }
-    };
+    }, [page, search, statusFilter]);
 
     // ================= EFFECT =================
 
@@ -160,7 +160,7 @@ export default function TourPage() {
 
         loadData();
 
-    }, [page, search, statusFilter]);
+    }, [loadData]);
 
     useEffect(() => {
 
@@ -217,7 +217,7 @@ export default function TourPage() {
             setSlug(generated);
         }
 
-    }, [title]);
+    }, [editId, title]);
 
     // ================= UPLOAD IMAGE =================
 
@@ -499,7 +499,7 @@ export default function TourPage() {
 
                     <div className="flex items-center gap-4">
 
-                        <div className="w-16 h-16 rounded-3xl bg-slate-900 flex items-center justify-center text-white shadow-lg">
+                        <div className="w-16 h-16 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-lg">
 
                             <MapPinned size={30} />
 
@@ -522,7 +522,7 @@ export default function TourPage() {
                             resetForm();
                             setOpen(true);
                         }}
-                        className="h-14 px-6 rounded-2xl bg-slate-900 hover:bg-amber-500 text-white font-bold flex items-center gap-2 transition-all"
+                        className="h-14 px-6 rounded-xl bg-slate-900 hover:bg-amber-500 text-white font-bold flex items-center gap-2 transition-all"
                     >
 
                         <Plus size={20} />
@@ -533,7 +533,7 @@ export default function TourPage() {
 
                 {/* FILTER */}
 
-                <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm mb-8">
+                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-8">
 
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
 
@@ -550,7 +550,7 @@ export default function TourPage() {
                                     setSearch(e.target.value)
                                 }
                                 placeholder="Tìm kiếm tour..."
-                                className="w-full h-12 pl-11 pr-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-amber-500 outline-none"
+                                className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 border-2 border-transparent focus:border-amber-500 outline-none"
                             />
                         </div>
 
@@ -563,7 +563,7 @@ export default function TourPage() {
                                         e.target.value
                                     )
                                 }
-                                className="w-full h-12 px-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-amber-500 outline-none"
+                                className="w-full h-12 px-4 rounded-xl bg-slate-50 border-2 border-transparent focus:border-amber-500 outline-none"
                             >
 
                                 <option value="">
@@ -586,7 +586,7 @@ export default function TourPage() {
 
                         <div className="md:col-span-2">
 
-                            <div className="h-12 rounded-2xl bg-slate-50 flex items-center justify-center font-bold text-slate-700">
+                            <div className="h-12 rounded-xl bg-slate-50 flex items-center justify-center font-bold text-slate-700">
 
                                 {totalElements} tour
                             </div>
@@ -601,7 +601,7 @@ export default function TourPage() {
 
                                     setStatusFilter("");
                                 }}
-                                className="w-full h-12 rounded-2xl bg-slate-100 hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
+                                className="w-full h-12 rounded-xl bg-slate-100 hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
                             >
 
                                 <RefreshCcw size={18} />
@@ -623,7 +623,7 @@ export default function TourPage() {
 
                 ) : data.length === 0 ? (
 
-                    <div className="bg-white rounded-3xl py-24 text-center text-slate-400 border border-slate-100">
+                    <div className="bg-white rounded-2xl py-24 text-center text-slate-400 border border-slate-100">
 
                         Không có tour nào
                     </div>
@@ -864,7 +864,7 @@ export default function TourPage() {
                                                 e.target.value
                                             )
                                         }
-                                        className="w-full h-14 px-5 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
+                                        className="w-full h-14 px-5 rounded-xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
                                     />
                                     <ErrorMessage>{errors.title}</ErrorMessage>
                                 </div>
@@ -881,7 +881,7 @@ export default function TourPage() {
                                                 e.target.value
                                             )
                                         }
-                                        className="w-full h-14 px-5 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
+                                        className="w-full h-14 px-5 rounded-xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
                                     />
                                     <ErrorMessage>{errors.slug}</ErrorMessage>
                                 </div>
@@ -901,7 +901,7 @@ export default function TourPage() {
                                             onClick={() =>
                                                 setImageMode("url")
                                             }
-                                            className={`flex items-center gap-2 px-5 h-12 rounded-2xl font-bold transition-all ${imageMode === "url"
+                                            className={`flex items-center gap-2 px-5 h-12 rounded-xl font-bold transition-all ${imageMode === "url"
                                                 ? "bg-slate-900 text-white"
                                                 : "bg-slate-100 text-slate-600"
                                                 }`}
@@ -917,7 +917,7 @@ export default function TourPage() {
                                             onClick={() =>
                                                 setImageMode("upload")
                                             }
-                                            className={`flex items-center gap-2 px-5 h-12 rounded-2xl font-bold transition-all ${imageMode === "upload"
+                                            className={`flex items-center gap-2 px-5 h-12 rounded-xl font-bold transition-all ${imageMode === "upload"
                                                 ? "bg-slate-900 text-white"
                                                 : "bg-slate-100 text-slate-600"
                                                 }`}
@@ -939,7 +939,7 @@ export default function TourPage() {
                                                 )
                                             }
                                             placeholder="https://example.com/image.jpg"
-                                            className="w-full h-14 px-5 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
+                                            className="w-full h-14 px-5 rounded-xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
                                         />
 
                                     ) : (
@@ -947,7 +947,7 @@ export default function TourPage() {
                                         <label className="
                       w-full
                       min-h-[180px]
-                      rounded-3xl
+                      rounded-2xl
                       border-2
                       border-dashed
                       border-slate-300
@@ -1005,7 +1005,7 @@ export default function TourPage() {
 
                                         <div className="mt-5">
 
-                                            <div className="relative w-full h-64 rounded-3xl overflow-hidden bg-slate-100 border border-slate-200">
+                                            <div className="relative w-full h-64 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
 
                                                 <img
                                                     src={resolveUploadedFileUrl(thumbnail)}
@@ -1032,7 +1032,7 @@ export default function TourPage() {
                                                 e.target.value
                                             )
                                         }
-                                        className="w-full h-14 px-5 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
+                                        className="w-full h-14 px-5 rounded-xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
                                     />
                                     <ErrorMessage>{errors.durationDays}</ErrorMessage>
                                 </div>
@@ -1050,7 +1050,7 @@ export default function TourPage() {
                                                 e.target.value
                                             )
                                         }
-                                        className="w-full h-14 px-5 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
+                                        className="w-full h-14 px-5 rounded-xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
                                     />
                                     <ErrorMessage>{errors.durationNights}</ErrorMessage>
                                 </div>
@@ -1067,7 +1067,7 @@ export default function TourPage() {
                                                 e.target.value
                                             )
                                         }
-                                        className="w-full h-14 px-5 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
+                                        className="w-full h-14 px-5 rounded-xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
                                     />
                                 </div>
 
@@ -1084,7 +1084,7 @@ export default function TourPage() {
                                                 e.target.value
                                             )
                                         }
-                                        className="w-full h-14 px-5 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
+                                        className="w-full h-14 px-5 rounded-xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
                                     />
                                     <ErrorMessage>{errors.maxPeople}</ErrorMessage>
                                 </div>
@@ -1103,7 +1103,7 @@ export default function TourPage() {
                                                 normalizeMoneyInput(e.target.value)
                                             )
                                         }
-                                        className="w-full h-14 px-5 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
+                                        className="w-full h-14 px-5 rounded-xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
                                     />
                                     <ErrorMessage>{errors.price}</ErrorMessage>
                                 </div>
@@ -1120,7 +1120,7 @@ export default function TourPage() {
                                                 e.target.value
                                             )
                                         }
-                                        className="w-full h-14 px-5 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
+                                        className="w-full h-14 px-5 rounded-xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500"
                                     >
 
                                         <option value="DRAFT">
@@ -1151,7 +1151,7 @@ export default function TourPage() {
                                                 e.target.value
                                             )
                                         }
-                                        className="w-full px-5 py-4 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500 resize-none"
+                                        className="w-full px-5 py-4 rounded-xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500 resize-none"
                                     />
                                 </div>
 
@@ -1177,7 +1177,7 @@ export default function TourPage() {
                                     setOpen(false);
                                     resetForm();
                                 }}
-                                className="h-14 px-8 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold"
+                                className="h-14 px-8 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold"
                             >
 
                                 Hủy
@@ -1186,7 +1186,7 @@ export default function TourPage() {
                             <button
                                 onClick={handleSave}
                                 disabled={loading || uploadingImage}
-                                className="min-w-[180px] h-14 px-8 rounded-2xl bg-slate-900 hover:bg-amber-500 text-white font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+                                className="min-w-[180px] h-14 px-8 rounded-xl bg-slate-900 hover:bg-amber-500 text-white font-bold flex items-center justify-center gap-2 disabled:opacity-50"
                             >
 
                                 {(loading || uploadingImage) && (

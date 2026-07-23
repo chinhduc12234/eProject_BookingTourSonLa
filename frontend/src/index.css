@@ -844,6 +844,198 @@ button, input, select, textarea {
     -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 88%);
 }
 
+.admin-mobile-header,
+.admin-mobile-close,
+.admin-sidebar-backdrop {
+    display: none;
+}
+
+.admin-nav {
+    gap: 0.4rem !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(127, 183, 126, 0.35) transparent;
+}
+
+.admin-nav::-webkit-scrollbar {
+    width: 5px;
+}
+
+.admin-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.admin-nav::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(127, 183, 126, 0.35);
+}
+
+.admin-nav-group {
+    border: 1px solid transparent;
+    border-radius: 1rem;
+    padding: 0.3rem;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.admin-nav-group.is-active {
+    border-color: rgba(127, 183, 126, 0.16);
+    background: rgba(255, 255, 255, 0.035);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.admin-nav-group-heading {
+    display: flex;
+    min-height: 2.15rem;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.25rem 0.5rem 0.35rem;
+}
+
+.admin-nav-group-marker {
+    display: block;
+    width: 3px;
+    height: 1.7rem;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.32);
+    transition:
+        height 0.2s ease,
+        background-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.admin-nav-group.is-active .admin-nav-group-marker {
+    height: 2rem;
+    background: #d4a878;
+    box-shadow: 0 0 0 4px rgba(212, 168, 120, 0.08);
+}
+
+.admin-nav-group-heading strong,
+.admin-nav-group-heading small {
+    display: block;
+}
+
+.admin-nav-group-heading strong {
+    color: #f8fafc;
+    font-size: 0.7rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    line-height: 1.15;
+    text-transform: uppercase;
+}
+
+.admin-nav-group-heading small {
+    margin-top: 0.2rem;
+    color: #91a197;
+    font-size: 0.59rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.admin-nav-group.is-active .admin-nav-group-heading strong {
+    color: #f0c28e;
+}
+
+.admin-nav-group-items {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.admin-nav-link svg {
+    flex: 0 0 auto;
+    opacity: 0.78;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.admin-nav-link:hover svg,
+.admin-nav-link.is-active svg {
+    opacity: 1;
+}
+
+.admin-nav-link.is-active::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 0.45rem;
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: #12351f;
+    transform: translateY(-50%);
+    box-shadow: 0 0 0 4px rgba(18, 53, 31, 0.1);
+}
+
+.admin-nav-link:focus-visible {
+    outline: 2px solid #d4a878;
+    outline-offset: 2px;
+}
+
+.admin-dashboard-section {
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-dashboard-section::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: linear-gradient(90deg, #2f7d55, #7fb77e);
+}
+
+.admin-dashboard-section.is-catalog::before {
+    background: linear-gradient(90deg, #a66f35, #d4a878);
+}
+
+.admin-dashboard-section.is-organization::before {
+    background: linear-gradient(90deg, #315746, #7fb77e, #d4a878);
+}
+
+.admin-dashboard-section-icon {
+    display: inline-flex;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.85rem;
+    background: var(--admin-accent-soft);
+    color: var(--admin-accent);
+}
+
+.admin-dashboard-section.is-catalog .admin-dashboard-section-icon {
+    background: #fdf4e8;
+    color: #9a622c;
+}
+
+.admin-dashboard-section.is-organization .admin-dashboard-section-icon {
+    background: #eaf1eb;
+    color: #315746;
+}
+
+.admin-dashboard-module {
+    position: relative;
+    isolation: isolate;
+}
+
+.admin-dashboard-module::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(105deg, rgba(127, 183, 126, 0.08), transparent 48%);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.admin-dashboard-module:hover::before,
+.admin-dashboard-module:focus-visible::before {
+    opacity: 1;
+}
+
 .admin-main {
     background:
         radial-gradient(circle at 84% 0%, rgba(127, 183, 126, 0.24), transparent 28rem),
@@ -958,8 +1150,37 @@ button, input, select, textarea {
     color: var(--admin-muted) !important;
 }
 
-.admin-shell :where(.text-blue-500, .text-blue-600, .text-emerald-600, .text-emerald-700) {
+.admin-shell :where(.text-blue-500, .text-blue-600, .text-blue-700, .text-emerald-600, .text-emerald-700) {
     color: var(--admin-accent) !important;
+}
+
+/* Off-brand accent safety net: Tây Bắc admin uses ONE accent family (green + gold).
+   Any stray rainbow Tailwind tone (fuchsia/teal/sky/violet/cyan/indigo/purple) falls
+   back to the brand palette instead of clashing with the sidebar/nav green. */
+.admin-shell :where(
+    .bg-fuchsia-50, .bg-teal-50, .bg-sky-50, .bg-violet-50, .bg-cyan-50, .bg-indigo-50, .bg-purple-50, .bg-blue-50
+) {
+    background-color: var(--admin-accent-soft) !important;
+}
+
+.admin-shell :where(
+    .text-fuchsia-600, .text-fuchsia-700,
+    .text-teal-600, .text-teal-700,
+    .text-sky-600, .text-sky-700,
+    .text-violet-600, .text-violet-700,
+    .text-cyan-600, .text-cyan-700,
+    .text-indigo-600, .text-indigo-700,
+    .text-purple-600, .text-purple-700
+) {
+    color: var(--admin-accent) !important;
+}
+
+.admin-shell :where(
+    .bg-fuchsia-600, .bg-teal-600, .bg-sky-600, .bg-violet-600,
+    .bg-cyan-600, .bg-indigo-600, .bg-purple-600
+) {
+    background: linear-gradient(135deg, #2f7d55 0%, #1d5f3e 100%) !important;
+    color: #ffffff !important;
 }
 
 .admin-sidebar :where(.text-slate-300, .text-slate-400, .text-slate-500),
@@ -994,31 +1215,150 @@ button, input, select, textarea {
 
 @media (max-width: 900px) {
     .admin-shell {
-        height: auto !important;
-        min-height: 100vh;
-        flex-direction: column;
-        overflow: visible;
+        display: block;
+        height: 100dvh !important;
+        min-height: 100dvh;
+        overflow: hidden;
+    }
+
+    .admin-mobile-header {
+        position: relative;
+        z-index: 45;
+        display: grid;
+        min-height: 72px;
+        grid-template-columns: 44px minmax(0, 1fr) 40px;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        border-bottom: 1px solid rgba(42, 72, 55, 0.14);
+        background: rgba(250, 252, 248, 0.92);
+        box-shadow: 0 14px 40px -32px rgba(15, 46, 29, 0.58);
+        backdrop-filter: blur(18px);
+    }
+
+    .admin-mobile-menu-button,
+    .admin-mobile-close {
+        display: inline-flex;
+        height: 44px;
+        width: 44px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--admin-border-strong);
+        border-radius: 13px;
+        background: #ffffff;
+        color: var(--admin-accent);
+        box-shadow: 0 10px 28px -22px rgba(25, 55, 36, 0.62);
+    }
+
+    .admin-mobile-brand {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        gap: 10px;
+        color: var(--admin-ink);
+    }
+
+    .admin-mobile-brand img {
+        height: 46px;
+        width: 64px;
+        flex: 0 0 auto;
+        object-fit: contain;
+    }
+
+    .admin-mobile-brand span {
+        min-width: 0;
+    }
+
+    .admin-mobile-brand strong,
+    .admin-mobile-brand small {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .admin-mobile-brand strong {
+        font-family: "Manrope", "Be Vietnam Pro", system-ui, sans-serif;
+        font-size: 0.86rem;
+        font-weight: 900;
+    }
+
+    .admin-mobile-brand small {
+        margin-top: 2px;
+        color: var(--admin-gold);
+        font-size: 0.62rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .admin-mobile-avatar {
+        display: inline-flex;
+        height: 40px;
+        width: 40px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(47, 125, 85, 0.2);
+        border-radius: 13px;
+        background: var(--admin-accent-soft);
+        color: var(--admin-accent);
+        font-weight: 900;
+    }
+
+    .admin-sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        display: block;
+        border: 0;
+        background: rgba(3, 12, 8, 0.52);
+        backdrop-filter: blur(4px);
     }
 
     .admin-sidebar {
-        width: 100% !important;
-        min-height: auto;
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 70;
+        width: min(86vw, 310px) !important;
+        height: 100dvh;
+        min-height: 100dvh;
         padding: 1rem !important;
+        transform: translateX(-104%);
+        transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: transform;
+    }
+
+    .admin-sidebar.is-mobile-open {
+        transform: translateX(0);
+    }
+
+    .admin-mobile-close {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 2;
+        border-color: rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.08);
+        color: #f8fafc;
     }
 
     .admin-sidebar nav {
-        flex-direction: row;
+        flex-direction: column;
         gap: 0.5rem;
-        overflow-x: auto;
-        padding-bottom: 0.25rem;
+        overflow-x: visible;
+        overflow-y: auto;
+        padding: 0 0 0.5rem;
     }
 
     .admin-sidebar nav a {
-        min-width: max-content;
+        min-width: 0;
     }
 
     .admin-main {
+        height: calc(100dvh - 72px);
         min-height: 0;
+        overflow: auto;
+        overscroll-behavior: contain;
     }
 }
 
@@ -1211,6 +1551,7 @@ button:disabled {
 }
 
 .admin-brand-card {
+    margin-bottom: 1rem !important;
     background:
         linear-gradient(145deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.025)) !important;
     box-shadow:
@@ -1218,8 +1559,12 @@ button:disabled {
         0 20px 42px -34px rgba(127, 183, 126, 0.7);
 }
 
+.admin-brand-card img {
+    height: 4.25rem;
+}
+
 .admin-nav a {
-    min-height: 48px;
+    min-height: 44px;
     border: 1px solid transparent;
     border-radius: 14px;
     padding-inline: 0.9rem;
@@ -1369,7 +1714,7 @@ button:disabled {
     }
 }
 
-@media (max-width: 1100px) {
+@media (min-width: 901px) and (max-width: 1100px) {
     .admin-sidebar {
         width: 238px !important;
     }
@@ -1382,95 +1727,96 @@ button:disabled {
 @media (max-width: 900px) {
     .admin-shell {
         min-height: 100dvh;
-        height: auto !important;
-        overflow: visible !important;
+        height: 100dvh !important;
+        overflow: hidden !important;
     }
 
     .admin-sidebar {
-        position: sticky;
+        position: fixed;
         top: 0;
-        z-index: 45;
-        display: grid;
-        width: 100% !important;
-        grid-template-columns: auto minmax(0, 1fr) auto;
-        align-items: center;
-        gap: 0.65rem;
-        padding: 0.65rem !important;
-        border-right: 0 !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 18px 42px -34px rgba(4, 16, 12, 0.95);
+        z-index: 70;
+        display: flex;
+        width: min(86vw, 310px) !important;
+        height: 100dvh;
+        align-items: stretch;
+        padding: 1rem !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-bottom: 0;
+        transform: translateX(-104%);
+        box-shadow: 18px 0 60px -38px rgba(6, 17, 13, 0.82);
+    }
+
+    .admin-sidebar.is-mobile-open {
+        transform: translateX(0);
     }
 
     .admin-brand-card {
-        width: 68px;
-        height: 52px;
-        margin: 0 !important;
-        padding: 0.25rem !important;
-        border-radius: 14px !important;
+        display: block;
+        width: auto;
+        height: auto;
+        margin: 0 0 1.5rem !important;
+        padding: 0.75rem !important;
+        border-radius: 1rem !important;
     }
 
     .admin-brand-card img {
         width: 100%;
-        height: 100%;
+        height: 5rem;
     }
 
     .admin-brand-caption,
     .admin-sidebar > div.mb-3 {
-        display: none;
+        display: block;
     }
 
     .admin-nav {
         min-width: 0;
-        overflow-x: auto;
-        flex-direction: row !important;
-        gap: 0.4rem !important;
-        padding-bottom: 0.1rem;
-        scrollbar-width: none;
-    }
-
-    .admin-nav::-webkit-scrollbar {
-        display: none;
+        overflow-x: visible;
+        overflow-y: auto;
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+        padding: 0 0 0.5rem;
     }
 
     .admin-nav a {
-        min-width: max-content;
+        min-width: 0;
         min-height: 46px;
         padding-inline: 0.8rem;
     }
 
     .admin-sidebar-footer {
-        display: flex;
-        margin: 0 !important;
-        gap: 0.35rem;
-        border-top: 0 !important;
-        padding: 0 !important;
+        display: block;
+        margin-top: 1.5rem !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        padding-top: 1rem !important;
     }
 
     .admin-sidebar-footer a,
     .admin-sidebar-footer button {
-        width: 46px !important;
-        height: 46px !important;
+        width: 100% !important;
+        height: 44px !important;
         min-height: 46px;
-        justify-content: center;
-        padding: 0 !important;
+        justify-content: flex-start;
+        padding: 0 0.75rem !important;
     }
 
     .admin-sidebar-footer span {
-        display: none;
+        display: inline;
     }
 
     .admin-main {
-        overflow: visible !important;
+        height: calc(100dvh - 72px);
+        overflow: auto !important;
     }
 }
 
 @media (max-width: 640px) {
     .admin-sidebar {
-        grid-template-columns: minmax(0, 1fr) auto;
+        display: flex;
     }
 
     .admin-brand-card {
-        display: none;
+        display: block;
     }
 
     .admin-nav a {
@@ -1626,4 +1972,174 @@ button:disabled {
     .public-shell footer :where(input, button) {
         width: 100%;
     }
+}
+
+/* ==========================================================================
+   ADMIN / EMPLOYEE COMPONENT KIT
+   One shared set of card, button and badge patterns so every management
+   page (tours, staff, provinces, districts, locations, bookings, group
+   tours) looks and behaves the same way instead of each page inventing
+   its own radius/shadow/accent. Brand accent stays green + gold only;
+   amber/rose are reserved for real status meaning (pending/danger).
+   ========================================================================== */
+
+.admin-card {
+    border-radius: 1.25rem;
+    border: 1px solid var(--admin-border);
+    background: var(--admin-surface-solid);
+    box-shadow: var(--admin-shadow);
+}
+
+.admin-panel-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.admin-btn {
+    display: inline-flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.9rem;
+    padding: 0 1.25rem;
+    font-weight: 800;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-btn:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.admin-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.admin-btn-primary {
+    border: 1px solid transparent;
+    color: #ffffff;
+    background: linear-gradient(135deg, #2f7d55 0%, #1d5f3e 100%);
+    box-shadow: 0 16px 34px -18px rgba(31, 94, 61, 0.75);
+}
+
+.admin-btn-primary:hover:not(:disabled) {
+    box-shadow: 0 20px 40px -16px rgba(31, 94, 61, 0.85);
+    filter: brightness(1.05);
+}
+
+.admin-btn-outline {
+    border: 1px solid var(--admin-border-strong);
+    color: var(--admin-ink-soft);
+    background: #ffffff;
+}
+
+.admin-btn-outline:hover:not(:disabled) {
+    border-color: rgba(47, 125, 85, 0.55);
+    color: var(--admin-accent);
+    background: var(--admin-accent-soft);
+}
+
+.admin-btn-danger {
+    border: 1px solid rgba(225, 29, 72, 0.25);
+    color: #be123c;
+    background: #fff1f2;
+}
+
+.admin-btn-danger:hover:not(:disabled) {
+    border-color: rgba(225, 29, 72, 0.5);
+    background: #ffe4e6;
+}
+
+.admin-btn-icon {
+    display: inline-flex;
+    height: 2.5rem;
+    width: 2.5rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    border: 1px solid var(--admin-border);
+    background: #ffffff;
+    color: var(--admin-ink-soft);
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.admin-btn-icon:hover:not(:disabled) {
+    border-color: rgba(47, 125, 85, 0.5);
+    color: var(--admin-accent);
+    background: var(--admin-accent-soft);
+}
+
+.admin-btn-icon.is-danger:hover:not(:disabled) {
+    border-color: rgba(225, 29, 72, 0.4);
+    color: #be123c;
+    background: #fff1f2;
+}
+
+.admin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 999px;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.admin-badge-success {
+    border: 1px solid #bbf7d0;
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.admin-badge-warning {
+    border: 1px solid #fde68a;
+    background: #fffbeb;
+    color: #92400e;
+}
+
+.admin-badge-danger {
+    border: 1px solid #fecdd3;
+    background: #fff1f2;
+    color: #be123c;
+}
+
+.admin-badge-info {
+    border: 1px solid #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.admin-badge-neutral {
+    border: 1px solid var(--admin-border);
+    background: var(--admin-surface-soft);
+    color: var(--admin-ink-soft);
+}
+
+.admin-stat-icon {
+    display: inline-flex;
+    height: 3rem;
+    width: 3rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.9rem;
+    background: var(--admin-accent-soft);
+    color: var(--admin-accent);
+}
+
+.admin-empty-state {
+    display: grid;
+    justify-items: center;
+    gap: 0.5rem;
+    padding: 3.5rem 1.5rem;
+    text-align: center;
+    color: var(--admin-muted);
+    font-weight: 700;
 }

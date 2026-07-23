@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import {
     ArrowRight,
     CalendarDays,
+    Check,
     ChevronLeft,
     ChevronRight,
     Compass,
@@ -570,7 +571,7 @@ export default function HomePage() {
                                         className="flex items-start gap-3 text-sm leading-7 text-slate-700"
                                     >
                                         <span className="mt-1.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#7FB77E] text-white">
-                                            ✓
+                                            <Check size={14} strokeWidth={3} aria-hidden="true" />
                                         </span>
                                         <span>{item}</span>
                                     </motion.li>

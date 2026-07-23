@@ -4,8 +4,11 @@ import { Toaster } from "react-hot-toast";
 import { AnimatePresence } from "framer-motion";
 import { LoaderCircle } from "lucide-react";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import GuestRoute from "./routes/GuestRoute";
 import AdminLayout from "./layouts/AdminLayout";
 import AuthLayout from "./layouts/AuthLayout";
+import AppErrorBoundary from "./components/AppErrorBoundary";
+import RouteMeta from "./components/RouteMeta";
 
 const LoginPage = lazy(() => import("./pages/auth/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/auth/RegisterPage"));
@@ -37,6 +40,8 @@ const BookingPage = lazy(() => import("./pages/admin/BookingPage"));
 const GroupTourManagementPage = lazy(() => import("./pages/admin/GroupTourManagementPage"));
 const GroupTourDetailPage = lazy(() => import("./pages/admin/GroupTourDetailPage"));
 const AdminBookingDetailPage = lazy(() => import("./pages/admin/AdminBookingDetailPage"));
+const AccessDeniedPage = lazy(() => import("./pages/system/AccessDeniedPage"));
+const NotFoundPage = lazy(() => import("./pages/system/NotFoundPage"));
 
 function RouteLoading() {
   return (
@@ -88,7 +93,9 @@ function AnimatedRoutes() {
           path="/login"
           element={
             <AuthLayout>
-              <LoginPage />
+              <GuestRoute>
+                <LoginPage />
+              </GuestRoute>
             </AuthLayout>
           }
         />
@@ -97,7 +104,9 @@ function AnimatedRoutes() {
           path="/register"
           element={
             <AuthLayout>
-              <RegisterPage />
+              <GuestRoute>
+                <RegisterPage />
+              </GuestRoute>
             </AuthLayout>
           }
         />
@@ -175,6 +184,7 @@ function AnimatedRoutes() {
         <Route path="/gioi-thieu" element={<AboutPage />} />
         <Route path="/lien-he" element={<ContactPage />} />
         <Route path="/faq" element={<FaqPage />} />
+        <Route path="/khong-co-quyen" element={<AccessDeniedPage />} />
 
         {/* EMPLOYEE */}
 
@@ -218,6 +228,7 @@ function AnimatedRoutes() {
           <Route path="bookings/:bookingId" element={<AdminBookingDetailPage />} />
           <Route path="staff" element={<StaffPage />} />
         </Route>
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </AnimatePresence>
   );
@@ -225,24 +236,27 @@ function AnimatedRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 4200,
-          style: {
-            border: "1px solid rgba(67, 91, 74, 0.18)",
-            borderRadius: "14px",
-            background: "#fffdf7",
-            color: "#17251c",
-            fontWeight: 700,
-          },
-        }}
-      />
-      <ScrollToTop />
-      <Suspense fallback={<RouteLoading />}>
-        <AnimatedRoutes />
-      </Suspense>
-    </BrowserRouter>
+    <AppErrorBoundary>
+      <BrowserRouter>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4200,
+            style: {
+              border: "1px solid rgba(67, 91, 74, 0.18)",
+              borderRadius: "14px",
+              background: "#fffdf7",
+              color: "#17251c",
+              fontWeight: 700,
+            },
+          }}
+        />
+        <RouteMeta />
+        <ScrollToTop />
+        <Suspense fallback={<RouteLoading />}>
+          <AnimatedRoutes />
+        </Suspense>
+      </BrowserRouter>
+    </AppErrorBoundary>
   );
 }

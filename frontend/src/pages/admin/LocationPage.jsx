@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
   getLocations,
@@ -90,7 +90,7 @@ export default function LocationPage() {
 
   // ================= LOAD DATA =================
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
 
     try {
 
@@ -114,7 +114,7 @@ export default function LocationPage() {
         res.data.totalElements
       );
 
-    } catch (err) {
+    } catch {
 
       toast.error(
         "Không thể tải danh sách địa điểm"
@@ -124,11 +124,11 @@ export default function LocationPage() {
 
       setTableLoading(false);
     }
-  };
+  }, [direction, page, search, selectedDistrict, selectedProvince, sortBy]);
 
   // ================= LOAD DISTRICTS =================
 
-  const loadDistricts = async () => {
+  const loadDistricts = useCallback(async () => {
 
     try {
 
@@ -137,17 +137,17 @@ export default function LocationPage() {
 
       setDistricts(res.data);
 
-    } catch (err) {
+    } catch {
 
       toast.error(
         "Không thể tải quận huyện"
       );
     }
-  };
+  }, []);
 
   // ================= LOAD PROVINCES =================
 
-  const loadProvinces = async () => {
+  const loadProvinces = useCallback(async () => {
 
     try {
 
@@ -156,13 +156,13 @@ export default function LocationPage() {
 
       setProvinces(res.data);
 
-    } catch (err) {
+    } catch {
 
       toast.error(
         "Không thể tải tỉnh thành"
       );
     }
-  };
+  }, []);
 
   // ================= FILTER DISTRICTS =================
 
@@ -183,20 +183,13 @@ export default function LocationPage() {
 
     loadProvinces();
 
-  }, []);
+  }, [loadDistricts, loadProvinces]);
 
   useEffect(() => {
 
     loadData();
 
-  }, [
-    page,
-    search,
-    selectedDistrict,
-    selectedProvince,
-    sortBy,
-    direction,
-  ]);
+  }, [loadData]);
 
   useEffect(() => {
 
@@ -350,7 +343,7 @@ export default function LocationPage() {
 
         loadData();
 
-      } catch (err) {
+      } catch {
 
         toast.error("Xóa thất bại");
       }
@@ -378,7 +371,7 @@ export default function LocationPage() {
 
             <div>
 
-              <h2 className="text-3xl font-extrabold text-slate-900">
+              <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">
                 Địa điểm
               </h2>
 
@@ -395,7 +388,7 @@ export default function LocationPage() {
 
               setOpen(true);
             }}
-            className="flex items-center gap-2 bg-slate-900 hover:bg-amber-600 text-white px-6 py-3 rounded-2xl transition-all shadow-lg"
+            className="flex items-center gap-2 bg-slate-900 hover:bg-amber-600 text-white px-6 py-3 rounded-xl transition-all shadow-lg"
           >
 
             <Plus size={20} />
@@ -412,7 +405,7 @@ export default function LocationPage() {
 
           {/* TOTAL */}
 
-          <div className="xl:col-span-2 bg-white px-5 py-4 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div className="xl:col-span-2 bg-white px-5 py-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
 
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
 
@@ -433,10 +426,10 @@ export default function LocationPage() {
           </div>
 
           {/* FILTER BOX */}
-          <div className="xl:col-span-10 bg-white p-3 rounded-3xl border border-slate-100 shadow-sm">
+          <div className="xl:col-span-10 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-3">
 
-              {/* SEARCH - Giữ nguyên */}
+              {/* SEARCH */}
               <div className="relative xl:col-span-3">
                 <Search
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
@@ -446,11 +439,11 @@ export default function LocationPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Tìm kiếm..."
-                  className="w-full h-12 pl-11 pr-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-amber-500 outline-none transition-all"
+                  className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 border-2 border-transparent focus:border-amber-500 outline-none transition-all"
                 />
               </div>
 
-              {/* PROVINCE - Giữ nguyên */}
+              {/* PROVINCE */}
               <div className="xl:col-span-2">
                 <select
                   value={selectedProvince}
@@ -458,7 +451,7 @@ export default function LocationPage() {
                     setSelectedProvince(e.target.value);
                     setSelectedDistrict("");
                   }}
-                  className="w-full h-12 px-4 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500 cursor-pointer"
+                  className="w-full h-12 px-4 rounded-xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500 cursor-pointer"
                 >
                   <option value="">Tỉnh thành</option>
                   {provinces.map((p) => (
@@ -467,12 +460,12 @@ export default function LocationPage() {
                 </select>
               </div>
 
-              {/* DISTRICT - Giữ nguyên */}
+              {/* DISTRICT */}
               <div className="xl:col-span-2">
                 <select
                   value={selectedDistrict}
                   onChange={(e) => setSelectedDistrict(e.target.value)}
-                  className="w-full h-12 px-4 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500 cursor-pointer"
+                  className="w-full h-12 px-4 rounded-xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500 cursor-pointer"
                 >
                   <option value="">Quận huyện</option>
                   {filteredDistricts.map((d) => (
@@ -481,7 +474,7 @@ export default function LocationPage() {
                 </select>
               </div>
 
-              {/* SORT - TĂNG LÊN 3 CỘT (Để rộng ra) */}
+              {/* SORT */}
               <div className="relative xl:col-span-3">
                 <ArrowUpAZ
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
@@ -490,7 +483,7 @@ export default function LocationPage() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full h-12 pl-11 pr-4 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500 appearance-none cursor-pointer"
+                  className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500 appearance-none cursor-pointer"
                 >
                   <option value="name">Sắp xếp theo địa điểm</option>
                   <option value="district">Sắp xếp theo quận huyện</option>
@@ -498,12 +491,12 @@ export default function LocationPage() {
                 </select>
               </div>
 
-              {/* DIRECTION & RESET - GIẢM XUỐNG 2 CỘT (Để bé lại) */}
+              {/* DIRECTION & RESET */}
               <div className="xl:col-span-2 flex gap-2">
                 <select
                   value={direction}
                   onChange={(e) => setDirection(e.target.value)}
-                  className="flex-1 h-12 px-4 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500 font-medium cursor-pointer"
+                  className="flex-1 h-12 px-4 rounded-xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500 font-medium cursor-pointer"
                 >
                   <option value="asc">A-Z</option>
                   <option value="desc">Z-A</option>
@@ -511,7 +504,7 @@ export default function LocationPage() {
 
                 <button
                   onClick={handleResetFilter}
-                  className="w-14 h-12 flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all bg-slate-50 shrink-0"
+                  className="w-14 h-12 flex items-center justify-center text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all bg-slate-50 shrink-0"
                   title="Đặt lại bộ lọc"
                 >
                   <RefreshCcw size={20} />
@@ -524,7 +517,7 @@ export default function LocationPage() {
 
         {/* TABLE */}
 
-        <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
 
           <div className="overflow-x-auto">
 
@@ -639,7 +632,7 @@ export default function LocationPage() {
 
                       <td data-label="Tỉnh thành" className="px-6 py-5">
 
-                        <span className="inline-flex px-3 py-1 rounded-full bg-sky-50 text-sky-700 text-xs font-bold whitespace-nowrap">
+                        <span className="inline-flex px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold whitespace-nowrap">
 
                           {l.provinceName}
                         </span>
@@ -785,9 +778,9 @@ export default function LocationPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Nhập tên địa điểm..."
-                    className="w-full h-[56px] px-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-amber-500 focus:bg-white outline-none transition-all shadow-sm"
+                    className="w-full h-12 px-5 rounded-xl bg-slate-50 border-2 border-transparent focus:border-emerald-600 focus:bg-white outline-none transition-all"
                   />
-                  {errors.name && <p className="text-xs text-red-500 mt-2 ml-2">{errors.name}</p>}
+                  {errors.name && <p className="text-xs text-rose-500 mt-2 ml-2">{errors.name}</p>}
                 </div>
 
                 <div>
@@ -795,14 +788,14 @@ export default function LocationPage() {
                   <select
                     value={districtId}
                     onChange={(e) => setDistrictId(e.target.value)}
-                    className="w-full h-[56px] px-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-amber-500 focus:bg-white outline-none transition-all cursor-pointer shadow-sm"
+                    className="w-full h-12 px-5 rounded-xl bg-slate-50 border-2 border-transparent focus:border-emerald-600 focus:bg-white outline-none transition-all cursor-pointer"
                   >
                     <option value="">-- Chọn quận huyện --</option>
                     {districts.map((d) => (
                       <option key={d.id} value={d.id}>{d.name}</option>
                     ))}
                   </select>
-                  {errors.districtId && <p className="text-xs text-red-500 mt-2 ml-2">{errors.districtId}</p>}
+                  {errors.districtId && <p className="text-xs text-rose-500 mt-2 ml-2">{errors.districtId}</p>}
                 </div>
 
                 <div>
@@ -811,7 +804,7 @@ export default function LocationPage() {
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     placeholder="Nhập địa chỉ chi tiết..."
-                    className="w-full h-[56px] px-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-amber-500 focus:bg-white outline-none transition-all shadow-sm"
+                    className="w-full h-12 px-5 rounded-xl bg-slate-50 border-2 border-transparent focus:border-emerald-600 focus:bg-white outline-none transition-all"
                   />
                 </div>
               </div>
@@ -825,7 +818,7 @@ export default function LocationPage() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Mô tả ngắn gọn về địa điểm..."
-                    className="w-full px-5 py-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-amber-500 focus:bg-white outline-none transition-all resize-none shadow-sm"
+                    className="w-full px-5 py-4 rounded-xl bg-slate-50 border-2 border-transparent focus:border-emerald-600 focus:bg-white outline-none transition-all resize-none"
                   />
                 </div>
               </div>

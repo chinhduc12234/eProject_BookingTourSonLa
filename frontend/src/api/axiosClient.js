@@ -1,11 +1,19 @@
 import axios from "axios";
 import { clearAuthSession } from "../utils/auth";
+import { getApiErrorMessage } from "../utils/apiError";
 
+const defaultApiBaseURL = import.meta.env.DEV
+  ? "http://localhost:8080/api"
+  : "/api";
 const apiBaseURL =
-  import.meta.env.VITE_API_BASE_URL?.trim() || "http://localhost:8080/api";
+  import.meta.env.VITE_API_BASE_URL?.trim() || defaultApiBaseURL;
 
 const axiosClient = axios.create({
   baseURL: apiBaseURL.replace(/\/+$/, ""),
+  timeout: 20000,
+  headers: {
+    Accept: "application/json",
+  },
 });
 
 axiosClient.interceptors.request.use(
@@ -31,6 +39,7 @@ let redirectingToLogin = false;
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    error.userMessage = getApiErrorMessage(error);
     const status = error?.response?.status;
     const hasToken = Boolean(localStorage.getItem("token"));
     const isAuthPage = ["/login", "/register"].includes(window.location.pathname);

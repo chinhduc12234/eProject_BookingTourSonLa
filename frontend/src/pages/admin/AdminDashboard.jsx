@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import {
   BarChart3,
   CalendarRange,
+  ChartPie,
   ChevronRight,
   Compass,
   Loader2,
@@ -30,7 +31,7 @@ const statConfig = [
     desc: "Yêu cầu lịch trình riêng",
     Icon: TicketCheck,
     to: "/admin/bookings",
-    tone: "bg-fuchsia-50 text-fuchsia-700",
+    tone: "bg-emerald-50 text-emerald-700",
   },
   {
     key: "groupTours",
@@ -38,7 +39,7 @@ const statConfig = [
     desc: "Lịch ghép đang vận hành",
     Icon: CalendarRange,
     to: "/admin/group-tours",
-    tone: "bg-teal-50 text-teal-700",
+    tone: "bg-emerald-50 text-emerald-700",
   },
   {
     key: "tours",
@@ -54,7 +55,7 @@ const statConfig = [
     desc: "Tài khoản vận hành",
     Icon: UsersRound,
     to: "/admin/staff",
-    tone: "bg-sky-50 text-sky-700",
+    tone: "bg-emerald-50 text-emerald-700",
   },
   {
     key: "provinces",
@@ -62,7 +63,7 @@ const statConfig = [
     desc: "Khu vực du lịch",
     Icon: Map,
     to: "/admin/provinces",
-    tone: "bg-amber-50 text-amber-700",
+    tone: "bg-amber-50 text-amber-800",
   },
   {
     key: "districts",
@@ -70,7 +71,7 @@ const statConfig = [
     desc: "Phân vùng địa lý",
     Icon: Compass,
     to: "/admin/districts",
-    tone: "bg-violet-50 text-violet-700",
+    tone: "bg-amber-50 text-amber-800",
   },
   {
     key: "locations",
@@ -78,40 +79,83 @@ const statConfig = [
     desc: "Điểm đến nổi bật",
     Icon: MapPinned,
     to: "/admin/locations",
-    tone: "bg-rose-50 text-rose-700",
+    tone: "bg-amber-50 text-amber-800",
+  },
+];
+
+const statByKey = Object.fromEntries(
+  statConfig.map((item) => [item.key, item]),
+);
+
+const dashboardSections = [
+  {
+    key: "operations",
+    title: "Điều hành tour",
+    desc: "Theo dõi và xử lý các đoàn đang vận hành",
+    Icon: CalendarRange,
+    keys: ["groupTours", "bookings"],
+    tone: "is-operations",
+  },
+  {
+    key: "catalog",
+    title: "Sản phẩm & điểm đến",
+    desc: "Quản lý nội dung tour và địa điểm công khai",
+    Icon: Mountain,
+    keys: ["tours", "locations"],
+    tone: "is-catalog",
+  },
+  {
+    key: "organization",
+    title: "Tổ chức & địa bàn",
+    desc: "Nhân sự cùng hệ thống tỉnh, quận huyện",
+    Icon: UsersRound,
+    keys: ["staff", "provinces", "districts"],
+    tone: "is-organization",
   },
 ];
 
 const quickActions = [
   {
-    title: "Quản lý tour ghép",
+    eyebrow: "Điều hành",
+    title: "Điều hành tour ghép",
     desc: "Theo dõi tiến độ đủ chỗ, phân công nhân viên chung và xác nhận toàn bộ đoàn.",
     to: "/admin/group-tours",
     Icon: CalendarRange,
   },
   {
-    title: "Quản lý đơn tour riêng",
+    eyebrow: "Điều hành",
+    title: "Xử lý đơn tour riêng",
     desc: "Xử lý riêng từng đoàn, cập nhật thanh toán, phân công nhân viên và xác nhận lịch trình.",
     to: "/admin/bookings",
     Icon: TicketCheck,
   },
   {
-    title: "Quản lý tour",
+    eyebrow: "Sản phẩm",
+    title: "Cập nhật danh sách tour",
     desc: "Tạo tour, sửa ảnh đại diện, giá, trạng thái và đi vào chi tiết lịch trình.",
     to: "/admin/tours",
     Icon: Mountain,
   },
   {
-    title: "Quản lý nhân viên",
+    eyebrow: "Tổ chức",
+    title: "Quản lý nhân sự",
     desc: "Thêm tài khoản nhân viên, cập nhật thông tin liên hệ và trạng thái hoạt động.",
     to: "/admin/staff",
     Icon: UsersRound,
   },
   {
-    title: "Quản lý địa điểm",
+    eyebrow: "Danh mục",
+    title: "Thiết lập điểm đến",
     desc: "Cập nhật tỉnh, huyện và các địa điểm dùng cho tour công khai.",
     to: "/admin/locations",
     Icon: MapPinned,
+  },
+  {
+    eyebrow: "Phân tích",
+    title: "Xem thống kê & báo cáo",
+    desc: "Theo dõi doanh thu, booking, trạng thái tour và các chỉ số điều hành quan trọng.",
+    to: "/admin/statistics",
+    Icon: ChartPie,
   },
 ];
 
@@ -233,33 +277,86 @@ export default function AdminDashboard() {
           </button>
         </div>
 
-        <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {statConfig.map(({ key, label, desc, Icon, to, tone }) => (
-            <Link
-              key={key}
-              to={to}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-100"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <span className={`flex h-12 w-12 items-center justify-center rounded-xl ${tone}`}>
-                  <Icon size={22} />
-                </span>
-                <ChevronRight size={18} className="text-slate-300" />
-              </div>
-              <div className="mt-5 text-3xl font-black text-slate-950">
-                {loading ? "--" : stats[key] ?? "Lỗi"}
-              </div>
-              <div className="mt-1 text-sm font-black text-slate-700">{label}</div>
-              <p className="mt-2 text-sm leading-5 text-slate-500">{desc}</p>
-            </Link>
-          ))}
+        <section className="mt-8" aria-labelledby="admin-overview-title">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
+              Sơ đồ quản trị
+            </p>
+            <h2 id="admin-overview-title" className="mt-2 text-2xl font-black text-slate-950">
+              Tổng quan theo từng nhóm công việc
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Chọn đúng khu vực cần xử lý thay vì tìm trong một danh sách chức năng dài.
+            </p>
+          </div>
+
+          <div className="mt-5 grid gap-5 lg:grid-cols-2 2xl:grid-cols-3">
+            {dashboardSections.map((section) => {
+              const SectionIcon = section.Icon;
+
+              return (
+                <article
+                  key={section.key}
+                  className={`admin-dashboard-section ${section.tone} rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5`}
+                >
+                  <header className="flex items-start gap-3">
+                    <span className="admin-dashboard-section-icon">
+                      <SectionIcon size={21} aria-hidden="true" />
+                    </span>
+                    <span className="min-w-0">
+                      <h3 className="text-base font-black text-slate-950">{section.title}</h3>
+                      <p className="mt-1 text-xs leading-5 text-slate-500">{section.desc}</p>
+                    </span>
+                  </header>
+
+                  <div className="mt-4 grid gap-2">
+                    {section.keys.map((key) => {
+                      const item = statByKey[key];
+                      const ItemIcon = item.Icon;
+
+                      return (
+                        <Link
+                          key={key}
+                          to={item.to}
+                          className="admin-dashboard-module group grid min-h-[76px] grid-cols-[44px_minmax(0,1fr)_auto_18px] items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 transition hover:border-emerald-300 hover:bg-white hover:shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-100"
+                        >
+                          <span className={`flex h-11 w-11 items-center justify-center rounded-xl ${item.tone}`}>
+                            <ItemIcon size={19} aria-hidden="true" />
+                          </span>
+                          <span className="min-w-0">
+                            <strong className="block text-sm font-black text-slate-800">
+                              {item.label}
+                            </strong>
+                            <small className="mt-1 block text-xs font-semibold leading-5 text-slate-500">
+                              {item.desc}
+                            </small>
+                          </span>
+                          <span
+                            className="text-2xl font-black tabular-nums text-slate-950"
+                            aria-label={`${item.label}: ${loading ? "đang tải" : stats[key] ?? "lỗi"}`}
+                          >
+                            {loading ? "--" : stats[key] ?? "Lỗi"}
+                          </span>
+                          <ChevronRight
+                            size={18}
+                            className="text-slate-300 transition group-hover:text-emerald-600"
+                            aria-hidden="true"
+                          />
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
         </section>
 
-        <section className="mt-8 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-2xl border border-slate-200 bg-slate-950 p-6 text-[#f8fafc] shadow-sm">
+        <section className="mt-8 grid gap-6 xl:grid-cols-[0.72fr_1.28fr]">
+          <div className="rounded-3xl border border-slate-200 bg-slate-950 p-6 text-[#f8fafc] shadow-sm">
             <div className="flex items-center gap-3">
               <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#7FB77E] text-[#06130d]">
-                <BarChart3 size={24} />
+                <BarChart3 size={24} aria-hidden="true" />
               </span>
               <div>
                 <div className="text-sm font-bold text-slate-300">Tổng dữ liệu đang quản lý</div>
@@ -272,25 +369,49 @@ export default function AdminDashboard() {
                 ? `${failedCount} nhóm dữ liệu chưa tải được. Kiểm tra máy chủ hoặc quyền quản trị nếu số liệu hiển thị "Lỗi".`
                 : "Các nhóm dữ liệu quản trị đã sẵn sàng. Chọn menu bên trái hoặc lối tắt bên dưới để thao tác."}
             </div>
+
+            <Link
+              to="/admin/statistics"
+              className="mt-5 inline-flex min-h-11 w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.06] px-4 text-sm font-black text-white transition hover:border-[#7FB77E]/50 hover:bg-[#7FB77E]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4a878]"
+            >
+              Mở báo cáo tổng hợp
+              <ChevronRight size={18} aria-hidden="true" />
+            </Link>
           </div>
 
-          <div className="grid gap-4">
-            {quickActions.map(({ title, desc, to, Icon }) => (
-              <Link
-                key={to}
-                to={to}
-                className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-100"
-              >
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 transition group-hover:bg-emerald-600 group-hover:text-white">
-                  <Icon size={22} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <h2 className="font-black text-slate-950">{title}</h2>
-                  <p className="mt-1 text-sm leading-5 text-slate-500">{desc}</p>
-                </div>
-                <ChevronRight size={20} className="shrink-0 text-slate-300 transition group-hover:text-emerald-600" />
-              </Link>
-            ))}
+          <div>
+            <div className="mb-4">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
+                Tác vụ thường dùng
+              </p>
+              <h2 className="mt-2 text-xl font-black text-slate-950">Đi nhanh đến công việc cần xử lý</h2>
+            </div>
+
+            <div className="grid gap-3 lg:grid-cols-2">
+              {quickActions.map(({ eyebrow, title, desc, to, Icon }) => (
+                <Link
+                  key={to}
+                  to={to}
+                  className="group flex min-h-[118px] items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-100"
+                >
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 transition group-hover:bg-emerald-600 group-hover:text-white">
+                    <Icon size={20} aria-hidden="true" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <small className="block text-[10px] font-black uppercase tracking-[0.14em] text-amber-700">
+                      {eyebrow}
+                    </small>
+                    <strong className="mt-1 block text-sm font-black text-slate-950">{title}</strong>
+                    <span className="mt-1.5 block text-xs leading-5 text-slate-500">{desc}</span>
+                  </span>
+                  <ChevronRight
+                    size={18}
+                    className="mt-1 shrink-0 text-slate-300 transition group-hover:text-emerald-600"
+                    aria-hidden="true"
+                  />
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
       </div>

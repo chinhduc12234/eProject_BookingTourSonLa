@@ -413,7 +413,7 @@ export default function TourListPage() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: `url('${scenicImages.mocChauTea}')`,
+            backgroundImage: `url('${scenicImages.taXuaRidge}')`,
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-br from-[#020617] via-[#020617]/85 to-[#020617]/40" />
@@ -465,7 +465,7 @@ export default function TourListPage() {
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Tìm theo tên tour, điểm đến..."
-                  className="h-13 w-full rounded-xl border border-white/10 bg-white/[0.06] py-3 pl-11 pr-4 text-white outline-none placeholder:text-slate-400 transition focus:border-[#7FB77E] focus:bg-[#7FB77E]/10 focus:ring-4 focus:ring-[#7FB77E]/15"
+                  className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] py-3 pl-11 pr-4 text-white outline-none placeholder:text-slate-400 transition focus:border-[#7FB77E] focus:bg-[#7FB77E]/10 focus:ring-4 focus:ring-[#7FB77E]/15"
                 />
               </div>
 

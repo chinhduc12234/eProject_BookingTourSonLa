@@ -1,5 +1,6 @@
 import {
   CalendarRange,
+  ChevronLeft,
   ImageIcon,
   ListTree,
   MapPin,
@@ -81,7 +82,7 @@ export default function TourReviewStep({
 
         <div className="flex items-center gap-4 mb-6">
 
-          <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-700">
+          <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
             <MapPin size={20} />
           </div>
 
@@ -244,7 +245,7 @@ export default function TourReviewStep({
 
         <div className="flex items-center gap-4 mb-6">
 
-          <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-700">
+          <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
             <ImageIcon size={20} />
           </div>
 
@@ -306,7 +307,7 @@ export default function TourReviewStep({
                       right-2
                       text-[10px]
                       font-bold
-                      bg-slate-900
+                      bg-amber-600
                       text-white
                       px-2
                       py-1
@@ -343,7 +344,7 @@ export default function TourReviewStep({
 
         <div className="flex items-center gap-4 mb-6">
 
-          <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-700">
+          <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
             <ListTree size={20} />
           </div>
 
@@ -421,8 +422,9 @@ export default function TourReviewStep({
                         </div>
 
                         {act.locationName && (
-                          <p className="mt-2 text-sm text-slate-600">
-                            📍 {act.locationName}
+                          <p className="mt-2 text-sm text-slate-600 flex items-center gap-1">
+                            <MapPin size={14} />
+                            {act.locationName}
                           </p>
                         )}
 
@@ -458,7 +460,7 @@ export default function TourReviewStep({
 
         <div className="flex items-center gap-4 mb-6">
 
-          <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-700">
+          <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
             <CalendarRange size={20} />
           </div>
 
@@ -587,15 +589,19 @@ export default function TourReviewStep({
             px-6
             rounded-2xl
             border
-            border-slate-200
-            text-slate-700
+            border-amber-300
+            text-amber-700
             font-bold
-            hover:bg-slate-50
+            inline-flex
+            items-center
+            gap-2
+            hover:bg-amber-50
             transition-all
             disabled:opacity-50
           "
         >
-          ← Quay lại
+          <ChevronLeft size={18} />
+          Quay lại
         </button>
 
         <div className="flex flex-col items-stretch sm:items-end gap-2">
@@ -616,13 +622,19 @@ export default function TourReviewStep({
               h-12
               px-8
               rounded-2xl
-              bg-slate-900
-              hover:bg-slate-800
+              bg-gradient-to-r
+              from-amber-500
+              to-amber-600
+              hover:from-amber-600
+              hover:to-amber-700
               text-white
               font-bold
               transition-all
+              hover:shadow-lg
+              hover:shadow-amber-200
               disabled:opacity-40
               disabled:cursor-not-allowed
+              disabled:hover:shadow-none
             "
           >
             {saving

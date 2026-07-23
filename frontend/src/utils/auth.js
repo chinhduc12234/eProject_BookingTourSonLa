@@ -36,6 +36,13 @@ export const getRole = () => {
     return localStorage.getItem("role");
 };
 
+export const roleHomePath = (role = getRole()) => {
+
+    if (role === "ADMIN") return "/admin";
+    if (role === "EMPLOYEE") return "/employee";
+    return "/";
+};
+
 export const isLoggedIn = () => {
 
     return !!localStorage.getItem("token");

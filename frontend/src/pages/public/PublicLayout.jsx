@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
     ArrowUp,
     Mail,
@@ -21,6 +21,7 @@ const navClass = ({ isActive }) =>
 
 export default function PublicLayout({ children }) {
     const { pathname } = useLocation();
+    const reduceMotion = useReducedMotion();
     const [open, setOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [scrollProgress, setScrollProgress] = useState(0);
@@ -49,6 +50,7 @@ export default function PublicLayout({ children }) {
     useEffect(() => {
         if (!open) return undefined;
 
+        const previousOverflow = document.body.style.overflow;
         const handleEscape = (event) => {
             if (event.key === "Escape") setOpen(false);
         };
@@ -56,7 +58,7 @@ export default function PublicLayout({ children }) {
         window.addEventListener("keydown", handleEscape);
 
         return () => {
-            document.body.style.overflow = "";
+            document.body.style.overflow = previousOverflow;
             window.removeEventListener("keydown", handleEscape);
         };
     }, [open]);
@@ -76,9 +78,11 @@ export default function PublicLayout({ children }) {
             try {
                 const response = await getCurrentUserProfile();
                 if (mounted) setProfile(response.data);
-            } catch {
+            } catch (error) {
                 if (mounted) {
-                    setAuthenticated(false);
+                    if (error?.response?.status === 401) {
+                        setAuthenticated(false);
+                    }
                     setProfile(null);
                 }
             }
@@ -254,7 +258,12 @@ export default function PublicLayout({ children }) {
                     type="button"
                     initial={{ opacity: 0, y: 12, scale: 0.9 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                    onClick={() =>
+                        window.scrollTo({
+                            top: 0,
+                            behavior: reduceMotion ? "auto" : "smooth",
+                        })
+                    }
                     className="public-back-to-top"
                     aria-label="Về đầu trang"
                     title="Về đầu trang"

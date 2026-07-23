@@ -5,7 +5,10 @@ import Swal from "sweetalert2";
 import { motion, useMotionValue, useMotionTemplate } from "framer-motion";
 import {
     ArrowRight,
+    Check,
     Cloud,
+    Eye,
+    EyeOff,
     Lock,
     Mail,
     Phone,
@@ -15,6 +18,7 @@ import {
     Wind,
 } from "lucide-react";
 import { photoCredits, scenicImages } from "../public/publicContent";
+import { getApiErrorMessage } from "../../utils/apiError";
 
 const containerVars = {
     hidden: { opacity: 0 },
@@ -40,6 +44,7 @@ const floatAnim = {
 export default function RegisterPage() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [form, setForm] = useState({
         fullName: "",
         email: "",
@@ -80,25 +85,20 @@ export default function RegisterPage() {
             await Swal.fire({
                 icon: "success",
                 title: "Đăng ký thành công",
-                text: "Chào mừng bạn gia nhập gia đình Sơn La Travel!",
+                text: "Chào mừng bạn gia nhập gia đình Tây Bắc Travel!",
                 background: "#0b1f17",
                 color: "#fff",
                 confirmButtonColor: "#7FB77E",
             });
             navigate("/login");
         } catch (err) {
-            const responseData = err?.response?.data;
-            const validationMessage = responseData?.errors
-                ? Object.values(responseData.errors).find(Boolean)
-                : null;
-
             Swal.fire({
                 icon: "error",
                 title: "Lỗi đăng ký",
-                text:
-                    validationMessage ||
-                    responseData?.message ||
+                text: getApiErrorMessage(
+                    err,
                     "Không thể tạo tài khoản. Vui lòng thử lại.",
+                ),
                 background: "#0b1f17",
                 color: "#fff",
                 confirmButtonColor: "#A67C52",
@@ -207,7 +207,7 @@ export default function RegisterPage() {
                                 className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.05] px-4 py-3 backdrop-blur-md"
                             >
                                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#A67C52]/20 text-[#d4a878]">
-                                    ✓
+                                    <Check size={15} strokeWidth={3} aria-hidden="true" />
                                 </span>
                                 <span className="text-sm font-medium text-slate-200">
                                     {line}
@@ -256,13 +256,24 @@ export default function RegisterPage() {
                                     const Icon = field.icon;
                                     return (
                                         <motion.div key={field.key} variants={fadeInUp}>
-                                            <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-[#d4a878]">
+                                            <label
+                                                htmlFor={`register-${field.key}`}
+                                                className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-[#d4a878]"
+                                            >
                                                 {field.label}
                                             </label>
                                             <div className="relative flex items-center">
-                                                <Icon className="absolute left-5 h-5 w-5 text-[#d4a878]" />
+                                                <Icon
+                                                    className="absolute left-5 h-5 w-5 text-[#d4a878]"
+                                                    aria-hidden="true"
+                                                />
                                                 <input
-                                                    type={field.type}
+                                                    id={`register-${field.key}`}
+                                                    type={
+                                                        field.key === "password" && showPassword
+                                                            ? "text"
+                                                            : field.type
+                                                    }
                                                     name={field.key}
                                                     autoComplete={{
                                                         fullName: "name",
@@ -271,21 +282,45 @@ export default function RegisterPage() {
                                                         password: "new-password",
                                                     }[field.key]}
                                                     required
+                                                    autoFocus={field.key === "fullName"}
+                                                    inputMode={field.key === "phone" ? "numeric" : undefined}
+                                                    pattern={field.key === "phone" ? "[0-9]{10,20}" : undefined}
+                                                    minLength={field.key === "password" ? 6 : undefined}
+                                                    maxLength={field.key === "fullName" ? 255 : field.key === "phone" ? 20 : 255}
                                                     placeholder={field.placeholder}
+                                                    value={form[field.key]}
                                                     onChange={(e) =>
                                                         setForm({
                                                             ...form,
                                                             [field.key]: e.target.value,
                                                         })
                                                     }
-                                                    className="w-full rounded-2xl border border-white/15 bg-white/[0.06] py-4 pl-14 pr-5 text-white outline-none transition-all placeholder:text-white/40 focus:border-[#A67C52] focus:bg-[#A67C52]/10 focus:ring-4 focus:ring-[#A67C52]/15"
+                                                    className={`w-full rounded-2xl border border-white/15 bg-white/[0.06] py-4 pl-14 text-white outline-none transition-all placeholder:text-white/40 focus:border-[#A67C52] focus:bg-[#A67C52]/10 focus:ring-4 focus:ring-[#A67C52]/15 ${
+                                                        field.key === "password" ? "pr-14" : "pr-5"
+                                                    }`}
                                                 />
+                                                {field.key === "password" && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowPassword((value) => !value)}
+                                                        className="absolute right-2 inline-flex h-11 w-11 items-center justify-center rounded-xl text-slate-300 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4a878]"
+                                                        aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                                                        aria-pressed={showPassword}
+                                                    >
+                                                        {showPassword ? (
+                                                            <EyeOff size={19} aria-hidden="true" />
+                                                        ) : (
+                                                            <Eye size={19} aria-hidden="true" />
+                                                        )}
+                                                    </button>
+                                                )}
                                             </div>
                                         </motion.div>
                                     );
                                 })}
 
                                 <motion.button
+                                    type="submit"
                                     variants={fadeInUp}
                                     whileHover={{ scale: 1.02, y: -2 }}
                                     whileTap={{ scale: 0.98 }}

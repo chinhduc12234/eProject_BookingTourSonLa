@@ -90,6 +90,7 @@ export default function FaqPage() {
                         <input
                             value={query}
                             onChange={(event) => setQuery(event.target.value)}
+                            aria-label="Tìm câu hỏi thường gặp"
                             className="h-14 w-full rounded-2xl border border-white/15 bg-white/[0.06] py-4 pl-14 pr-5 text-white outline-none placeholder:text-slate-400 transition focus:border-[#7FB77E] focus:bg-[#7FB77E]/10 focus:ring-4 focus:ring-[#7FB77E]/15"
                             placeholder="Tìm câu hỏi về đặt tour, thời tiết, giá tour..."
                         />
@@ -122,6 +123,8 @@ export default function FaqPage() {
                                     <button
                                         type="button"
                                         onClick={() => setOpenIndex(expanded ? -1 : index)}
+                                        aria-expanded={expanded}
+                                        aria-controls={`faq-answer-${index}`}
                                         className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
                                     >
                                         <span className="flex items-center gap-4">
@@ -152,6 +155,7 @@ export default function FaqPage() {
                                         {expanded && (
                                             <motion.div
                                                 key="content"
+                                                id={`faq-answer-${index}`}
                                                 initial={{ height: 0, opacity: 0 }}
                                                 animate={{ height: "auto", opacity: 1 }}
                                                 exit={{ height: 0, opacity: 0 }}

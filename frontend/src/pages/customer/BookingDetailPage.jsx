@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
   Banknote,
@@ -32,6 +33,7 @@ import {
 } from "../../api/bookingApi";
 import { resolveUploadedFileUrl } from "../../api/userApi";
 import AccountShell from "./AccountShell";
+import { scenicImages } from "../public/publicContent";
 import {
   bookingStatusMeta,
   bookingSteps,
@@ -272,12 +274,7 @@ export default function BookingDetailPage() {
     }
 
     setRemainingMethod(booking.remainingPaymentMethod || "CASH_ON_DEPARTURE");
-  }, [
-    booking?.id,
-    booking?.paymentPlan,
-    booking?.paymentStatus,
-    booking?.remainingPaymentMethod,
-  ]);
+  }, [booking]);
 
   useEffect(() => {
     if (!booking || !paymentSectionRef.current || stage !== "payment") return;
@@ -295,7 +292,7 @@ export default function BookingDetailPage() {
     const thumbnailIndex = gallery.findIndex((image) => image.isThumbnail);
 
     setActiveImageIndex(thumbnailIndex >= 0 ? thumbnailIndex : 0);
-  }, [booking?.id]);
+  }, [booking]);
 
   const statusMeta = getMeta(bookingStatusMeta, booking?.status);
   const paymentMeta = getMeta(paymentStatusMeta, booking?.paymentStatus);
@@ -421,9 +418,9 @@ export default function BookingDetailPage() {
   };
 
   const renderTransferPanel = ({ amount, paymentType, title, description }) => (
-    <div className="rounded-2xl border border-white/10 bg-[#020617]/40 p-4 sm:p-5">
+    <div className="rounded-2xl border border-[#7FB77E]/25 bg-gradient-to-b from-[#7FB77E]/[0.07] to-[#020617]/50 p-4 sm:p-5">
       <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
           <QrCode size={19} />
         </span>
         <div className="min-w-0">
@@ -434,28 +431,41 @@ export default function BookingDetailPage() {
         </div>
       </div>
 
-      <div className="mt-4 grid gap-4">
-        <div className="mx-auto w-full max-w-[220px] rounded-2xl bg-white p-3 shadow-sm">
-          <img
-            src={buildBankQrUrl({
-              amount,
-              bookingCode: booking?.bookingCode,
-              paymentType,
-            })}
-            alt="QR thanh toán ngân hàng"
-            className="aspect-square w-full object-contain"
-          />
+      <div className="mt-4 grid gap-4 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-start">
+        <div className="mx-auto w-full max-w-[200px] sm:mx-0">
+          <div className="rounded-2xl border border-white/10 bg-white p-3 shadow-[0_20px_45px_-24px_rgba(127,183,126,0.55)]">
+            <img
+              src={buildBankQrUrl({
+                amount,
+                bookingCode: booking?.bookingCode,
+                paymentType,
+              })}
+              alt="QR thanh toán ngân hàng"
+              className="aspect-square w-full object-contain"
+            />
+          </div>
+          <div className="mt-2 flex items-center justify-center gap-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-[#9de09c]">
+            <ShieldCheck size={12} />
+            Quét bằng app ngân hàng
+          </div>
         </div>
 
         <div className="min-w-0 grid gap-2 text-sm text-slate-300">
           <PaymentRow label="Ngân hàng" value={bankInfo.bankName} />
-          <PaymentRow label="Số tài khoản" value={bankInfo.accountNo} />
+          <PaymentRow
+            label="Số tài khoản"
+            value={
+              <span className="font-mono tracking-wider">
+                {bankInfo.accountNo}
+              </span>
+            }
+          />
           <PaymentRow label="Chủ tài khoản" value={bankInfo.accountName} />
           <PaymentRow
             label="Nội dung"
             value={`${booking?.bookingCode || ""} ${paymentType}`}
           />
-          <div className="mt-2 min-w-0 rounded-2xl border border-[#d4a878]/25 bg-[#d4a878]/10 p-3">
+          <div className="mt-2 min-w-0 rounded-2xl border border-[#d4a878]/30 bg-gradient-to-br from-[#d4a878]/15 to-[#d4a878]/5 p-3">
             <div className="text-xs font-bold text-[#f3d7b0]">Số tiền cần chuyển</div>
             <div className="mt-1 break-words text-xl font-black text-white">
               {formatCurrency(amount)}
@@ -463,10 +473,13 @@ export default function BookingDetailPage() {
           </div>
         </div>
       </div>
-      <div className="mt-4 rounded-xl border border-sky-300/25 bg-sky-300/10 p-3 text-xs leading-6 text-sky-100">
-        QR này phục vụ luồng thanh toán mô phỏng, không xác nhận giao dịch tự động.
-        Trạng thái chỉ thay đổi sau khi quản trị viên kiểm tra thủ công; không chuyển
-        tiền thật vào tài khoản mẫu.
+      <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-xs leading-6 text-slate-400">
+        <ShieldCheck size={15} className="mt-0.5 shrink-0 text-[#9de09c]" />
+        <p>
+          QR này phục vụ luồng thanh toán mô phỏng, không xác nhận giao dịch tự động.
+          Trạng thái chỉ thay đổi sau khi quản trị viên kiểm tra thủ công; không chuyển
+          tiền thật vào tài khoản mẫu.
+        </p>
       </div>
     </div>
   );
@@ -494,12 +507,22 @@ export default function BookingDetailPage() {
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px] 2xl:grid-cols-[minmax(0,1fr)_440px]">
           <section className="space-y-6">
             {stage === "payment" && (
-              <div className="rounded-2xl border border-sky-300/30 bg-sky-300/10 p-5 text-sky-50">
-                <div className="font-black text-white">Bước 2: Thanh toán đơn đặt tour</div>
-                <p className="mt-2 text-sm leading-7 text-sky-100/90">
-                  Đơn đặt tour đã được tạo thành công. Bạn hãy chọn thanh toán 100% hoặc đặt cọc 30%, sau đó gửi xác nhận để hệ thống ghi nhận yêu cầu của bạn.
-                </p>
-              </div>
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="flex items-start gap-3 rounded-2xl border border-[#7FB77E]/30 bg-[#7FB77E]/10 p-5 text-[#d9ffd8]"
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#7FB77E]/20 text-[#9de09c]">
+                  <CreditCard size={18} />
+                </span>
+                <div>
+                  <div className="font-black text-white">Bước 2: Thanh toán đơn đặt tour</div>
+                  <p className="mt-2 text-sm leading-7 text-[#d9ffd8]/90">
+                    Đơn đặt tour đã được tạo thành công. Bạn hãy chọn thanh toán 100% hoặc đặt cọc 30%, sau đó gửi xác nhận để hệ thống ghi nhận yêu cầu của bạn.
+                  </p>
+                </div>
+              </motion.div>
             )}
 
             <div className="overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.04] shadow-[0_30px_90px_-50px_rgba(15,23,42,0.8)]">
@@ -510,11 +533,18 @@ export default function BookingDetailPage() {
                     onClick={() => setLightboxImage(activeTourImage.src)}
                     className="group absolute inset-0 block h-full w-full outline-none text-left"
                   >
-                    <img
-                      src={activeTourImage.src}
-                      alt={booking.tourName}
-                      className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
-                    />
+                    <AnimatePresence mode="wait" initial={false}>
+                      <motion.img
+                        key={activeTourImage.id}
+                        src={activeTourImage.src}
+                        alt={booking.tourName}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.4, ease: "easeOut" }}
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                      />
+                    </AnimatePresence>
 
                     <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/90 via-[#020617]/20 to-transparent transition duration-300 group-hover:from-[#020617]/95" />
 
@@ -544,11 +574,20 @@ export default function BookingDetailPage() {
                     </div>
                   </button>
                 ) : (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[radial-gradient(circle_at_top,rgba(157,224,156,0.18),transparent_42%)] text-center text-slate-300 p-6">
-                    <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 text-[#9de09c]">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center text-slate-300 p-6">
+                    <img
+                      src={scenicImages.taXuaRidge}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      className="absolute inset-0 h-full w-full object-cover opacity-[0.16]"
+                    />
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(157,224,156,0.2),transparent_42%)]" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/70 to-[#020617]/30" />
+                    <span className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-[#9de09c]">
                       <ImageIcon size={28} />
                     </span>
-                    <p className="max-w-xs text-sm leading-7">
+                    <p className="relative max-w-xs text-sm leading-7">
                       Chưa có hình ảnh tour. Hệ thống vẫn hiển thị đầy đủ lịch trình, dịch vụ và thông tin đơn đặt tour cho bạn.
                     </p>
                   </div>
@@ -695,7 +734,7 @@ export default function BookingDetailPage() {
                   <AmountTile
                     label="Đã ghi nhận"
                     value={formatCurrency(paidAmount)}
-                    accent="text-emerald-200"
+                    accent="text-[#9de09c]"
                   />
                   <AmountTile
                     label="Còn lại"
@@ -1140,12 +1179,17 @@ export default function BookingDetailPage() {
                           type="button"
                           onClick={() => setPaymentChoice(key)}
                           className={[
-                            "min-w-0 rounded-2xl border p-4 text-left transition",
+                            "relative min-w-0 rounded-2xl border p-4 text-left transition",
                             active
-                              ? "border-[#7FB77E]/60 bg-[#7FB77E]/15"
+                              ? "border-[#7FB77E]/60 bg-[#7FB77E]/15 shadow-[0_0_0_1px_rgba(127,183,126,0.25)]"
                               : "border-white/10 bg-white/[0.03] hover:border-white/25",
                           ].join(" ")}
                         >
+                          {active && (
+                            <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#7FB77E] text-[#020617]">
+                              <CheckCircle2 size={14} />
+                            </span>
+                          )}
                           <Icon size={20} className="text-[#9de09c]" />
                           <div className="mt-3 break-words font-black text-white">{title}</div>
                           <div className="mt-1 break-words text-lg font-black text-[#d4a878]">
@@ -1204,7 +1248,7 @@ export default function BookingDetailPage() {
                     type="button"
                     onClick={() => handlePay(selectedPaymentType)}
                     disabled={paying || selectedPaymentAmount <= 0}
-                    className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#7FB77E] px-5 text-sm font-black text-[#020617] transition hover:bg-[#9de09c] disabled:opacity-60"
+                    className="btn-primary w-full"
                   >
                     {paying ? (
                       <Loader2 size={18} className="animate-spin" />
@@ -1219,43 +1263,58 @@ export default function BookingDetailPage() {
               )}
 
               {booking.paymentStatus === "PENDING_REVIEW" && (
-                <div className="mt-5 rounded-2xl border border-amber-300/30 bg-amber-300/10 p-4 text-sm leading-7 text-amber-50">
-                  <div className="font-black text-white">
-                    {remainingAmount > 0
-                      ? "Yêu cầu thanh toán đang được kiểm tra"
-                      : "Yêu cầu thanh toán đủ đang được kiểm tra"}
+                <div className="mt-5 flex items-start gap-3 rounded-2xl border border-amber-300/30 bg-amber-300/10 p-4 text-sm leading-7 text-amber-50">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-300/20 text-amber-100">
+                    <Clock3 size={17} />
+                  </span>
+                  <div>
+                    <div className="font-black text-white">
+                      {remainingAmount > 0
+                        ? "Yêu cầu thanh toán đang được kiểm tra"
+                        : "Yêu cầu thanh toán đủ đang được kiểm tra"}
+                    </div>
+                    <p className="mt-1">
+                      Hệ thống đã ghi nhận xác nhận chuyển khoản{" "}
+                      <b>{formatCurrency(paidAmount)}</b>. Quản trị viên sẽ kiểm tra giao dịch
+                      trước khi cập nhật trạng thái thành{" "}
+                      <b>{remainingAmount > 0 ? "Đã cọc" : "Đã thanh toán"}</b>.
+                      Bạn có thể hủy đặt lịch sau khi admin xử lý yêu cầu thanh toán này.
+                    </p>
                   </div>
-                  <p className="mt-1">
-                    Hệ thống đã ghi nhận xác nhận chuyển khoản{" "}
-                    <b>{formatCurrency(paidAmount)}</b>. Quản trị viên sẽ kiểm tra giao dịch
-                    trước khi cập nhật trạng thái thành{" "}
-                    <b>{remainingAmount > 0 ? "Đã cọc" : "Đã thanh toán"}</b>.
-                    Bạn có thể hủy đặt lịch sau khi admin xử lý yêu cầu thanh toán này.
-                  </p>
                 </div>
               )}
 
               {booking.paymentStatus === "PARTIAL" && canPay && (
                 <div className="mt-5 space-y-4">
-                  <div className="rounded-2xl border border-sky-300/20 bg-sky-300/10 p-4 text-sm leading-7 text-sky-100">
-                    Đơn đặt tour đã giữ chỗ bằng tiền cọc. Phần còn lại là{" "}
-                    <b>{formatCurrency(remainingAmount)}</b> và có thể thanh toán
-                    tiền mặt khi khởi hành hoặc chuyển khoản bằng QR.
+                  <div className="flex items-start gap-3 rounded-2xl border border-[#d4a878]/25 bg-[#d4a878]/10 p-4 text-sm leading-7 text-[#fde9c5]">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#d4a878]/20 text-[#f3d7b0]">
+                      <Banknote size={17} />
+                    </span>
+                    <div>
+                      Đơn đặt tour đã giữ chỗ bằng tiền cọc. Phần còn lại là{" "}
+                      <b>{formatCurrency(remainingAmount)}</b> và có thể thanh toán
+                      tiền mặt khi khởi hành hoặc chuyển khoản bằng QR.
+                    </div>
                   </div>
                 </div>
               )}
 
               {finalPaymentStatuses.includes(booking.paymentStatus) && (
-                <div className="mt-5 rounded-2xl border border-white/10 bg-[#020617]/40 p-4 text-sm leading-7 text-slate-300">
-                  <div className="font-black text-white">
-                    {booking.paymentStatus === "PAID"
-                      ? "Đơn đặt tour đã thanh toán đủ"
-                      : "Trạng thái thanh toán đã được chốt"}
+                <div className="mt-5 flex items-start gap-3 rounded-2xl border border-white/10 bg-[#020617]/40 p-4 text-sm leading-7 text-slate-300">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
+                    <ShieldCheck size={17} />
+                  </span>
+                  <div>
+                    <div className="font-black text-white">
+                      {booking.paymentStatus === "PAID"
+                        ? "Đơn đặt tour đã thanh toán đủ"
+                        : "Trạng thái thanh toán đã được chốt"}
+                    </div>
+                    <p className="mt-1">
+                      {booking.refundPolicyNote ||
+                        "Mọi thay đổi thanh toán tiếp theo sẽ do bộ phận điều hành xử lý."}
+                    </p>
                   </div>
-                  <p className="mt-1">
-                    {booking.refundPolicyNote ||
-                      "Mọi thay đổi thanh toán tiếp theo sẽ do bộ phận điều hành xử lý."}
-                  </p>
                 </div>
               )}
             </div>
@@ -1278,7 +1337,7 @@ export default function BookingDetailPage() {
                   type="button"
                   onClick={handleCancelBooking}
                   disabled={cancelling}
-                  className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-rose-300/35 bg-rose-300/10 px-4 text-sm font-black text-rose-100 transition hover:border-rose-200/60 hover:bg-rose-300/20 disabled:cursor-wait disabled:opacity-60"
+                  className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-rose-300/35 bg-rose-300/10 px-4 text-sm font-black text-rose-100 transition hover:border-rose-200/60 hover:bg-rose-300/20 disabled:cursor-wait disabled:opacity-60"
                 >
                   {cancelling ? <Loader2 size={17} className="animate-spin" /> : <XCircle size={17} />}
                   {cancelling ? "Đang hủy booking..." : "Yêu cầu hủy booking"}

@@ -94,7 +94,7 @@ function queueTone(key) {
   return {
     PENDING: "border-amber-200 bg-amber-50 text-amber-900",
     CONFIRMED: "border-emerald-200 bg-emerald-50 text-emerald-900",
-    IN_PROGRESS: "border-sky-200 bg-sky-50 text-sky-900",
+    IN_PROGRESS: "border-blue-200 bg-blue-50 text-blue-800",
     COMPLETED: "border-slate-200 bg-slate-100 text-slate-900",
     CANCELLED: "border-rose-200 bg-rose-50 text-rose-900",
   }[key] || "border-slate-200 bg-slate-50 text-slate-900";
@@ -256,28 +256,28 @@ export default function AdminStatisticsPage() {
                 label="Giá trị trung bình / đơn"
                 value={formatCurrency(stats?.averageBookingValue)}
                 desc="Tính trên booking chưa hủy, không tính đơn hủy"
-                tone="bg-violet-50 text-violet-700"
+                tone="bg-emerald-50 text-emerald-700"
               />
               <MetricCard
                 Icon={Users}
                 label="Khách còn hiệu lực"
                 value={numberFormat(stats?.customerCount)}
                 desc={`${numberFormat(activeBookings)} booking còn hiệu lực`}
-                tone="bg-sky-50 text-sky-700"
+                tone="bg-amber-50 text-amber-800"
               />
               <MetricCard
                 Icon={CalendarDays}
                 label="Đơn phát sinh"
                 value={numberFormat(totalBookings)}
                 desc={`${numberFormat(cancelledBookings)} đơn hủy • Tỷ lệ hủy ${cancellationRate}%`}
-                tone="bg-orange-50 text-orange-700"
+                tone="bg-emerald-50 text-emerald-700"
               />
               <MetricCard
                 Icon={CheckCircle2}
                 label="Lịch khởi hành có khách"
                 value={numberFormat(stats?.totalDepartures)}
                 desc={`${numberFormat(stats?.upcomingTours)} sắp khởi hành trong ${selectedMonthLabel}`}
-                tone="bg-teal-50 text-teal-700"
+                tone="bg-amber-50 text-amber-800"
               />
             </section>
 
@@ -328,9 +328,6 @@ export default function AdminStatisticsPage() {
                       {numberFormat(activeQueue.count)} booking • {numberFormat(activeQueue.customerCount)} khách • {formatCurrency(activeQueue.totalValue)}
                     </p>
                   </div>
-                  <Link to="/admin/bookings" className="inline-flex h-10 items-center justify-center rounded-xl border border-emerald-200 px-4 text-sm font-black text-emerald-700 hover:bg-emerald-50">
-                    Xem toàn bộ booking
-                  </Link>
                 </div>
                 {(activeQueue.items || []).length === 0 ? (
                   <div className="py-16 text-center text-sm font-bold text-slate-500">Không có tour/booking ở trạng thái này trong {selectedMonthLabel}.</div>
@@ -357,7 +354,7 @@ export default function AdminStatisticsPage() {
                         </div>
                       </div>
                     ))}
-                    {activeQueue.count > activeQueue.items.length && <div className="pt-2 text-center text-xs font-bold text-slate-500">Đang hiển thị {activeQueue.items.length} mục đầu tiên. Nhấn “Xem toàn bộ booking” để xem đầy đủ.</div>}
+                    {activeQueue.count > activeQueue.items.length && <div className="pt-2 text-center text-xs font-bold text-slate-500">Đang hiển thị {activeQueue.items.length} mục đầu tiên.</div>}
                   </div>
                 )}
               </div>
@@ -374,7 +371,7 @@ export default function AdminStatisticsPage() {
               <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <SummaryTile label="Tổng nhân viên" value={numberFormat(stats?.totalStaffCount)} desc="Nhân viên đang hoạt động" tone="bg-slate-50" />
                 <SummaryTile label="Đã được gán" value={numberFormat(stats?.assignedStaffCount)} desc={`${numberFormat(stats?.assignedBookingCount)} booking có nhân viên`} tone="bg-emerald-50" />
-                <SummaryTile label="Đang chạy tour" value={numberFormat(stats?.runningStaffCount)} desc="Đang phụ trách booking IN_PROGRESS" tone="bg-sky-50" />
+                <SummaryTile label="Đang chạy tour" value={numberFormat(stats?.runningStaffCount)} desc="Đang phụ trách booking IN_PROGRESS" tone="bg-blue-50" />
                 <SummaryTile label="Chưa được gán" value={numberFormat(stats?.unassignedStaffCount)} desc={`${numberFormat(stats?.unassignedBookingCount)} booking chưa có nhân viên`} tone="bg-amber-50" />
               </div>
               <div className="mt-6 overflow-x-auto">
@@ -387,10 +384,10 @@ export default function AdminStatisticsPage() {
                       <tr key={employee.employeeId} className="align-top hover:bg-slate-50">
                         <td className="px-4 py-4"><div className="flex items-center gap-3"><span className={`flex h-10 w-10 items-center justify-center rounded-xl ${employee.assignedBookingCount ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>{employee.assignedBookingCount ? <UserCheck size={18} /> : <UserX size={18} />}</span><div><div className="font-black text-slate-950">{employee.fullName}</div><div className="mt-1 text-xs font-semibold text-slate-500">{employee.email}</div></div></div></td>
                         <td className="px-4 py-4 font-black text-slate-900">{numberFormat(employee.assignedBookingCount)}</td>
-                        <td className="px-4 py-4 font-black text-sky-700">{numberFormat(employee.runningBookingCount)}</td>
+                        <td className="px-4 py-4 font-black text-blue-700">{numberFormat(employee.runningBookingCount)}</td>
                         <td className="px-4 py-4 font-black text-amber-700">{numberFormat(employee.upcomingBookingCount)}</td>
                         <td className="px-4 py-4 font-black text-slate-700">{numberFormat(employee.completedBookingCount)}</td>
-                        <td className="px-4 py-4"><div className="max-w-[360px] text-xs font-bold leading-5 text-slate-600">{employee.assignedTourNames?.length ? employee.assignedTourNames.join(" • ") : "Chưa được gán tour"}</div>{employee.runningTourNames?.length > 0 && <div className="mt-2 text-xs font-black text-sky-700">Đang chạy: {employee.runningTourNames.join(" • ")}</div>}</td>
+                        <td className="px-4 py-4"><div className="max-w-[360px] text-xs font-bold leading-5 text-slate-600">{employee.assignedTourNames?.length ? employee.assignedTourNames.join(" • ") : "Chưa được gán tour"}</div>{employee.runningTourNames?.length > 0 && <div className="mt-2 text-xs font-black text-blue-700">Đang chạy: {employee.runningTourNames.join(" • ")}</div>}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -412,7 +409,7 @@ export default function AdminStatisticsPage() {
                   <SummaryTile label="Đã thu xác nhận" value={formatCurrency(stats?.receivedRevenue)} desc="Đã trừ hoàn tiền" tone="bg-emerald-50" />
                   <SummaryTile label="Còn phải thu" value={formatCurrency(stats?.remainingRevenue)} desc="Giá trị hiệu lực - tiền đã thu" tone="bg-amber-50" />
                   <SummaryTile label="Giá trị đơn đã hủy" value={formatCurrency(stats?.cancelledBookingValue)} desc={`${numberFormat(cancelledBookings)} booking hủy`} tone="bg-rose-50" />
-                  <SummaryTile label="Tiền chờ kiểm tra" value={formatCurrency(stats?.pendingReviewAmount)} desc="Chưa cộng vào doanh thu" tone="bg-sky-50" />
+                  <SummaryTile label="Tiền chờ kiểm tra" value={formatCurrency(stats?.pendingReviewAmount)} desc="Chưa cộng vào doanh thu" tone="bg-blue-50" />
                   <SummaryTile label="Tiền đã hoàn" value={formatCurrency(stats?.refundedAmount)} desc="Theo các booking trong kỳ" tone="bg-slate-100" />
                 </div>
               </div>
@@ -428,7 +425,7 @@ export default function AdminStatisticsPage() {
                 <div className="mt-6 space-y-5">
                   <ProgressRow label="Đã thanh toán đủ" value={paidPayment?.count} amount={paidPayment?.amount} percent={paidPayment?.percent} />
                   <ProgressRow label="Đã đặt cọc" value={depositPayment?.count} amount={depositPayment?.amount} percent={depositPayment?.percent} tone="bg-amber-500" />
-                  <ProgressRow label="Chờ kiểm tra" value={pendingPayment?.count} amount={pendingPayment?.amount} percent={pendingPayment?.percent} tone="bg-sky-500" />
+                  <ProgressRow label="Chờ kiểm tra" value={pendingPayment?.count} amount={pendingPayment?.amount} percent={pendingPayment?.percent} tone="bg-blue-500" />
                   <ProgressRow label="Chưa thanh toán" value={unpaidPayment?.count} amount={unpaidPayment?.amount} percent={unpaidPayment?.percent} tone="bg-rose-500" />
                   {refundedPayment?.count > 0 && (
                     <ProgressRow label="Đã hoàn tiền" value={refundedPayment.count} amount={refundedPayment.amount} percent={refundedPayment.percent} tone="bg-slate-500" />
@@ -449,7 +446,7 @@ export default function AdminStatisticsPage() {
                       value={item.count}
                       amount={item.amount}
                       percent={item.percent}
-                      tone={item.key === "CANCELLED" ? "bg-rose-500" : item.key === "COMPLETED" ? "bg-slate-600" : item.key === "IN_PROGRESS" ? "bg-sky-500" : "bg-emerald-600"}
+                      tone={item.key === "CANCELLED" ? "bg-rose-500" : item.key === "COMPLETED" ? "bg-slate-600" : item.key === "IN_PROGRESS" ? "bg-blue-500" : "bg-emerald-600"}
                     />
                   ))}
                 </div>
@@ -517,7 +514,7 @@ export default function AdminStatisticsPage() {
                   <SummaryTile label="Đơn chờ xác nhận" value={numberFormat(stats?.pendingBookings)} desc="Cần nhân viên xử lý" tone="bg-amber-50" />
                   <SummaryTile label="Đơn đã xác nhận" value={numberFormat(stats?.confirmedBookings)} desc="Đã qua bước duyệt" tone="bg-emerald-50" />
                   <SummaryTile label="Khách trong đơn hủy" value={numberFormat(stats?.cancelledCustomerCount)} desc="Không tính vào khách hiệu lực" tone="bg-rose-50" />
-                  <SummaryTile label="Tỷ lệ hủy" value={`${cancellationRate}%`} desc={`${numberFormat(cancelledBookings)} / ${numberFormat(totalBookings)} booking`} tone="bg-orange-50" />
+                  <SummaryTile label="Tỷ lệ hủy" value={`${cancellationRate}%`} desc={`${numberFormat(cancelledBookings)} / ${numberFormat(totalBookings)} booking`} tone="bg-amber-50" />
                 </div>
               </div>
             </section>

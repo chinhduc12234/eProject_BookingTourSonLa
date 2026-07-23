@@ -8,7 +8,7 @@
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(16, 185, 129, 0.12), transparent),
     linear-gradient(180deg, #f0f4f8 0%, #e8f0eb 100%);
   color: #0f172a;
-  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family: "Be Vietnam Pro", "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
 /* ── Header ── */
@@ -874,12 +874,25 @@
 }
 
 .tl-activity-head {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
   padding: 16px 18px;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 14px;
   align-items: start;
   cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.tl-activity-head:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 3px solid rgba(16, 185, 129, 0.28);
+  outline-offset: -3px;
 }
 
 .tl-activity-time {

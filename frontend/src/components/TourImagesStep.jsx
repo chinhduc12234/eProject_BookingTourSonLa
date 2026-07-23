@@ -220,7 +220,7 @@ export default function TourImagesStep({
           <div>
 
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-600">
+              <div className="w-10 h-10 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
                 <ImagePlus size={20} />
               </div>
               <h2 className="text-2xl font-black text-slate-900">
@@ -241,8 +241,11 @@ export default function TourImagesStep({
               h-12
               px-5
               rounded-2xl
-              bg-slate-900
-              hover:bg-slate-800
+              bg-gradient-to-r
+              from-amber-500
+              to-amber-600
+              hover:from-amber-600
+              hover:to-amber-700
               text-white
               font-bold
               flex
@@ -250,6 +253,8 @@ export default function TourImagesStep({
               gap-2
               transition-all
               duration-300
+              hover:shadow-lg
+              hover:shadow-amber-200
               active:scale-95
             "
           >
@@ -319,16 +324,21 @@ export default function TourImagesStep({
                 <div className="xl:col-span-4">
 
                   <div
-                    className="
+                    className={`
                       relative
                       overflow-hidden
                       rounded-[32px]
                       border
-                      border-slate-100
                       bg-white
                       h-64
                       group
-                    "
+                      transition-all
+                      duration-300
+                      ${img.isThumbnail
+                        ? "border-amber-300 ring-2 ring-amber-100"
+                        : "border-slate-100"
+                      }
+                    `}
                   >
 
                     {img.imageUrl ? (
@@ -375,7 +385,7 @@ export default function TourImagesStep({
                           px-4
                           h-10
                           rounded-full
-                          bg-slate-900
+                          bg-amber-600
                           text-white
                           font-bold
                           flex
@@ -423,9 +433,9 @@ export default function TourImagesStep({
                         rounded-2xl
                         border
                         border-slate-100
-                        focus:border-slate-300
+                        focus:border-amber-500
                         focus:ring-2
-                        focus:ring-slate-100
+                        focus:ring-amber-100
                         transition-all
                         duration-300
                         bg-white
@@ -462,7 +472,7 @@ export default function TourImagesStep({
                             active:scale-95
                             ${uploadingIndex === index
                               ? "bg-slate-400"
-                              : "bg-slate-900 hover:bg-slate-800"
+                              : "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
                             }
                           `}
                         >
@@ -516,7 +526,7 @@ export default function TourImagesStep({
                         duration-300
                         active:scale-95
                         ${img.isThumbnail
-                          ? "bg-slate-900 text-white"
+                          ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white"
                           : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
                         }
                       `}

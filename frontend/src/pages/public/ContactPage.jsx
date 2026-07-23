@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { MessageSquare, Send, Sparkles } from "lucide-react";
+import { Check, MessageSquare, Send, Sparkles } from "lucide-react";
 import PublicLayout from "./PublicLayout";
 import { brand, contactCards, scenicImages, supportTopics } from "./publicContent";
 
@@ -220,7 +220,7 @@ export default function ContactPage() {
                                         className="flex items-start gap-3 text-sm leading-7 text-slate-700"
                                     >
                                         <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#A67C52]/15 text-[#A67C52]">
-                                            ✓
+                                            <Check size={12} strokeWidth={3} aria-hidden="true" />
                                         </span>
                                         <span>{item}</span>
                                     </motion.li>
@@ -232,7 +232,7 @@ export default function ContactPage() {
                             <div
                                 className="relative h-72 bg-cover bg-center transition-transform duration-1000 group-hover:scale-105"
                                 style={{
-                                    backgroundImage: `url('${scenicImages.sonLaLandscape}')`,
+                                    backgroundImage: `url('${scenicImages.sonLaReservoir}')`,
                                 }}
                             >
                                 <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent" />

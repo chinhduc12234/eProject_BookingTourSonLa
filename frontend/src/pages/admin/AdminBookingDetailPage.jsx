@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
@@ -90,6 +90,34 @@ const mergeStaffOptions = (...groups) => {
   return Array.from(uniqueStaff.values());
 };
 
+const resolveSelectedStaffAssignments = (booking) => {
+  if (booking?.assignedStaffMembers?.length) {
+    return booking.assignedStaffMembers
+      .filter((staff) => staff?.employeeId)
+      .map((staff) => ({
+        employeeId: String(staff.employeeId),
+        fullName: staff.fullName || "",
+        phone: staff.phone || "",
+        email: staff.email || "",
+        roleInTrip: staff.roleInTrip || defaultStaffRole,
+      }));
+  }
+
+  if (!booking?.assignedStaffId) {
+    return [];
+  }
+
+  return [
+    {
+      employeeId: String(booking.assignedStaffId),
+      fullName: booking.assignedStaffName || "",
+      phone: booking.assignedStaffPhone || "",
+      email: booking.assignedStaffEmail || "",
+      roleInTrip: defaultStaffRole,
+    },
+  ];
+};
+
 export default function AdminBookingDetailPage() {
   const { bookingId } = useParams();
   const [detail, setDetail] = useState(null);
@@ -102,37 +130,9 @@ export default function AdminBookingDetailPage() {
   const [internalNote, setInternalNote] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
 
-  const resolveSelectedStaffAssignments = (booking) => {
-    if (booking?.assignedStaffMembers?.length) {
-      return booking.assignedStaffMembers
-        .filter((staff) => staff?.employeeId)
-        .map((staff) => ({
-          employeeId: String(staff.employeeId),
-          fullName: staff.fullName || "",
-          phone: staff.phone || "",
-          email: staff.email || "",
-          roleInTrip: staff.roleInTrip || defaultStaffRole,
-        }));
-    }
-
-    if (!booking?.assignedStaffId) {
-      return [];
-    }
-
-    return [
-      {
-        employeeId: String(booking.assignedStaffId),
-        fullName: booking.assignedStaffName || "",
-        phone: booking.assignedStaffPhone || "",
-        email: booking.assignedStaffEmail || "",
-        roleInTrip: defaultStaffRole,
-      },
-    ];
-  };
-
-  const loadStaffOptions = async (
+  const loadStaffOptions = useCallback(async (
     keyword = "",
-    selectedAssignments = staffAssignments,
+    selectedAssignments = [],
   ) => {
     try {
       setStaffLoading(true);
@@ -163,7 +163,7 @@ export default function AdminBookingDetailPage() {
     } finally {
       setStaffLoading(false);
     }
-  };
+  }, []);
 
   const addStaffAssignment = (staff) => {
     const staffId = String(staff.id);
@@ -205,7 +205,7 @@ export default function AdminBookingDetailPage() {
     );
   };
 
-  const loadDetail = async () => {
+  const loadDetail = useCallback(async () => {
     try {
       setLoading(true);
       const detailResponse = await getAdminBookingDetail(bookingId);
@@ -223,11 +223,11 @@ export default function AdminBookingDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [bookingId, loadStaffOptions]);
 
   useEffect(() => {
     loadDetail();
-  }, [bookingId]);
+  }, [loadDetail]);
 
   useEffect(() => {
     if (!detail || window.location.hash !== "#timeline") return;
@@ -243,11 +243,11 @@ export default function AdminBookingDetailPage() {
     if (!staffPickerOpen) return undefined;
 
     const timer = window.setTimeout(() => {
-      loadStaffOptions(staffSearch);
+      loadStaffOptions(staffSearch, staffAssignments);
     }, 250);
 
     return () => window.clearTimeout(timer);
-  }, [staffPickerOpen, staffSearch]);
+  }, [loadStaffOptions, staffAssignments, staffPickerOpen, staffSearch]);
 
   const handleAdminAction = async ({
     confirm = false,
@@ -624,14 +624,14 @@ export default function AdminBookingDetailPage() {
                       </div>
                     )}
                   </div>
-                  <div className="rounded-2xl border border-sky-100 bg-sky-50 p-4">
-                    <div className="text-xs font-black uppercase tracking-wide text-sky-700">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="text-xs font-black uppercase tracking-wide text-slate-500">
                       Điểm xuất phát / đón khách
                     </div>
-                    <div className="mt-2 font-black text-sky-950">
+                    <div className="mt-2 font-black text-slate-950">
                       {detail.departureLocation || "Chưa cập nhật điểm xuất phát"}
                     </div>
-                    <div className="mt-1 text-sm font-semibold text-sky-800">
+                    <div className="mt-1 text-sm font-semibold text-slate-600">
                       Đón: {detail.pickupAddress || "Chưa có địa chỉ đón riêng"}
                     </div>
                   </div>
@@ -1153,9 +1153,9 @@ export default function AdminBookingDetailPage() {
       </div>
 
       {staffPickerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
-          <div className="w-full max-w-4xl rounded-3xl border border-slate-200 bg-white shadow-2xl">
-            <div className="flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/50 p-3 backdrop-blur-[8px] sm:p-5 md:p-6">
+          <div className="w-full max-w-4xl rounded-[32px] border border-slate-100 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
+            <div className="flex items-center justify-between gap-4 border-b border-slate-200 px-6 py-5">
               <div>
                 <h2 className="text-xl font-black text-slate-950">
                   Gán nhân viên phụ trách
@@ -1167,9 +1167,11 @@ export default function AdminBookingDetailPage() {
               <button
                 type="button"
                 onClick={() => setStaffPickerOpen(false)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 text-slate-500 transition hover:bg-slate-50"
+                aria-label="Đóng hộp thoại"
+                title="Đóng"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
               >
-                <X size={18} />
+                <X size={20} strokeWidth={2.5} />
               </button>
             </div>
 

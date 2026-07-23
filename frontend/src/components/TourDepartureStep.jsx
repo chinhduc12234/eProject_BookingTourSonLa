@@ -44,16 +44,6 @@ function isExpiredDeadline(value) {
   return Boolean(value) && new Date(value) < new Date();
 }
 
-function isPastDepartureDate(value) {
-  if (!value) return false;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const date = new Date(`${toDateInputValue(value)}T00:00:00`);
-  return date < today;
-}
-
 function shouldResetDeadline(currentDeadline, nextDepartureDate) {
   if (!nextDepartureDate) return false;
   if (!currentDeadline) return true;
@@ -173,8 +163,11 @@ export default function TourDepartureStep({
             h-12
             px-5
             rounded-2xl
-            bg-slate-900
-            hover:bg-slate-800
+            bg-gradient-to-r
+            from-amber-500
+            to-amber-600
+            hover:from-amber-600
+            hover:to-amber-700
             text-white
             font-bold
             flex
@@ -182,6 +175,8 @@ export default function TourDepartureStep({
             gap-2
             transition-all
             duration-300
+            hover:shadow-lg
+            hover:shadow-amber-200
             active:scale-95
           "
         >
@@ -235,11 +230,11 @@ export default function TourDepartureStep({
                   w-12
                   h-12
                   rounded-2xl
-                  bg-slate-50
+                  bg-amber-50
                   flex
                   items-center
                   justify-center
-                  text-slate-700
+                  text-amber-700
                   font-bold
                 "
               >
@@ -276,8 +271,8 @@ export default function TourDepartureStep({
                   ${row.status === "OPEN"
                     ? "bg-emerald-100 text-emerald-700"
                     : row.status === "FULL"
-                    ? "bg-slate-100 text-slate-700"
-                    : "bg-slate-100 text-slate-700"
+                    ? "bg-amber-100 text-amber-700"
+                    : "bg-slate-100 text-slate-600"
                   }
                 `}
               >
@@ -333,9 +328,9 @@ export default function TourDepartureStep({
                   rounded-2xl
                   border
                   border-slate-200
-                  focus:border-slate-900
+                  focus:border-amber-500
                   focus:ring-2
-                  focus:ring-slate-100
+                  focus:ring-amber-100
                   transition-all
                   duration-300
                   bg-white
@@ -367,9 +362,9 @@ export default function TourDepartureStep({
                   rounded-2xl
                   border
                   border-slate-200
-                  focus:border-slate-900
+                  focus:border-amber-500
                   focus:ring-2
-                  focus:ring-slate-100
+                  focus:ring-amber-100
                   transition-all
                   duration-300
                   bg-white
@@ -401,9 +396,9 @@ export default function TourDepartureStep({
                   rounded-2xl
                   border
                   border-slate-200
-                  focus:border-slate-900
+                  focus:border-amber-500
                   focus:ring-2
-                  focus:ring-slate-100
+                  focus:ring-amber-100
                   transition-all
                   duration-300
                   bg-white
@@ -442,9 +437,9 @@ export default function TourDepartureStep({
                   rounded-2xl
                   border
                   border-slate-200
-                  focus:border-slate-900
+                  focus:border-amber-500
                   focus:ring-2
-                  focus:ring-slate-100
+                  focus:ring-amber-100
                   transition-all
                   duration-300
                   bg-white
@@ -481,9 +476,9 @@ export default function TourDepartureStep({
                   rounded-2xl
                   border
                   border-slate-200
-                  focus:border-slate-900
+                  focus:border-amber-500
                   focus:ring-2
-                  focus:ring-slate-100
+                  focus:ring-amber-100
                   transition-all
                   duration-300
                   bg-white
@@ -520,9 +515,9 @@ export default function TourDepartureStep({
                   rounded-2xl
                   border
                   border-slate-200
-                  focus:border-slate-900
+                  focus:border-amber-500
                   focus:ring-2
-                  focus:ring-slate-100
+                  focus:ring-amber-100
                   transition-all
                   duration-300
                   bg-white
@@ -556,9 +551,9 @@ export default function TourDepartureStep({
                   rounded-2xl
                   border
                   border-slate-200
-                  focus:border-slate-900
+                  focus:border-amber-500
                   focus:ring-2
-                  focus:ring-slate-100
+                  focus:ring-amber-100
                   transition-all
                   duration-300
                   bg-white
@@ -592,9 +587,9 @@ export default function TourDepartureStep({
                   rounded-2xl
                   border
                   border-slate-200
-                  focus:border-slate-900
+                  focus:border-amber-500
                   focus:ring-2
-                  focus:ring-slate-100
+                  focus:ring-amber-100
                   transition-all
                   duration-300
                   bg-white
@@ -621,9 +616,9 @@ export default function TourDepartureStep({
                   rounded-2xl
                   border
                   border-slate-200
-                  focus:border-slate-900
+                  focus:border-amber-500
                   focus:ring-2
-                  focus:ring-slate-100
+                  focus:ring-amber-100
                   transition-all
                   duration-300
                   bg-white
@@ -638,16 +633,26 @@ export default function TourDepartureStep({
 
             <div className="flex items-end">
 
-              <label className="flex items-center gap-3 h-12 px-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-slate-400 transition-all cursor-pointer bg-slate-50">
+              <label
+                className={`flex items-center gap-3 h-12 px-4 rounded-2xl border-2 border-dashed transition-all cursor-pointer ${
+                  row.isPrivateDeparture
+                    ? "border-amber-400 bg-amber-50"
+                    : "border-slate-200 hover:border-slate-400 bg-slate-50"
+                }`}
+              >
                 <input
                   type="checkbox"
                   checked={row.isPrivateDeparture || false}
                   onChange={(e) =>
                     updateField(index, "isPrivateDeparture", e.target.checked)
                   }
-                  className="w-5 h-5 cursor-pointer"
+                  className="w-5 h-5 cursor-pointer accent-amber-600"
                 />
-                <span className="text-xs font-bold text-slate-700 uppercase">
+                <span
+                  className={`text-xs font-bold uppercase ${
+                    row.isPrivateDeparture ? "text-amber-700" : "text-slate-700"
+                  }`}
+                >
                   Tour riêng
                 </span>
               </label>

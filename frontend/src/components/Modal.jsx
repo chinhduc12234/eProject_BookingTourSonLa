@@ -1,23 +1,81 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 
-export default function Modal({ open, onClose, children, className = "" }) {
+const FOCUSABLE_SELECTOR = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(",");
+
+export default function Modal({
+  open,
+  onClose,
+  children,
+  className = "",
+  ariaLabel = "Hộp thoại quản trị",
+}) {
+  const dialogRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     if (!open) return undefined;
 
     const previousOverflow = document.body.style.overflow;
+    const previousActiveElement = document.activeElement;
     const handleKeyDown = (event) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+
+      if (event.key !== "Tab" || !dialogRef.current) return;
+
+      const focusableElements = [...dialogRef.current.querySelectorAll(FOCUSABLE_SELECTOR)]
+        .filter((element) => !element.hasAttribute("hidden"));
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        dialogRef.current.focus();
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
     };
 
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", handleKeyDown);
+    const focusFrame = window.requestAnimationFrame(() => {
+      const preferredFocus = dialogRef.current?.querySelector(
+        "[autofocus], input:not([disabled]), select:not([disabled]), textarea:not([disabled])",
+      );
+      (preferredFocus || dialogRef.current)?.focus();
+    });
 
     return () => {
+      window.cancelAnimationFrame(focusFrame);
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
+      if (previousActiveElement instanceof HTMLElement) {
+        previousActiveElement.focus();
+      }
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -28,9 +86,12 @@ export default function Modal({ open, onClose, children, className = "" }) {
       role="presentation"
     >
       <div
+        ref={dialogRef}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
+        aria-label={ariaLabel}
+        tabIndex={-1}
         className={`admin-modal-panel
           relative 
           w-full 

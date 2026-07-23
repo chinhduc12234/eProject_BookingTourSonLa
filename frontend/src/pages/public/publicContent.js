@@ -34,16 +34,13 @@ export const navLinks = [
 ];
 
 export const scenicImages = {
-    mocChauTea:
-        "https://upload.wikimedia.org/wikipedia/commons/7/71/Moc-chau-tea-doi-2094890_960_720.jpg",
-    mocChauTeaClose:
-        "https://c.pxhere.com/photos/b2/ea/moc_chau_son_la_vietnam_plantation_tea_field_agriculture-569124.jpg!d",
-    daiYemWaterfall:
-        "https://upload.wikimedia.org/wikipedia/commons/e/e9/Thacdaiyem.jpg",
-    sonLaLandscape:
-        "https://upload.wikimedia.org/wikipedia/commons/d/d2/S%C6%A1n_La_Province.JPG",
-    taXuaRidge:
-        "https://commons.wikimedia.org/wiki/Special:Redirect/file/S%E1%BB%91ng_l%C6%B0ng_kh%E1%BB%A7ng_long_T%C3%A0_X%C3%B9a.jpg?width=1600",
+    mocChauTea: "/images/destinations/moc-chau-tea.jpg",
+    mocChauTeaClose: "/images/destinations/moc-chau-tea-close.jpg",
+    daiYemWaterfall: "/images/destinations/thac-dai-yem.jpg",
+    sonLaLandscape: "/images/destinations/son-la-landscape.jpg",
+    taXuaRidge: "/images/destinations/ta-xua-ridge.jpg",
+    sonLaReservoir: "/images/destinations/son-la-reservoir-optimized.jpg",
+    maiChauValley: "/images/destinations/mai-chau-valley-optimized.jpg",
 };
 
 export const heroSlides = [
@@ -108,6 +105,18 @@ export const scenicGallery = [
         desc: "Những lớp núi nối nhau mở ra nhịp hành trình khoáng đạt và nhiều điểm dừng giàu bản sắc.",
         image: scenicImages.sonLaLandscape,
     },
+    {
+        title: "Hồ thủy điện Sơn La",
+        eyebrow: "Nghỉ dưỡng thiên nhiên",
+        desc: "Mặt hồ rộng giữa núi rừng, phù hợp lịch trình nghỉ dưỡng chậm và ngắm cảnh trên mặt nước.",
+        image: scenicImages.sonLaReservoir,
+    },
+    {
+        title: "Thung lũng Mai Châu",
+        eyebrow: "Bản Thái",
+        desc: "Thung lũng lúa xanh bao quanh bản làng người Thái, một trong những cung đường Tây Bắc quen thuộc.",
+        image: scenicImages.maiChauValley,
+    },
 ];
 
 export const photoCredits = [
@@ -116,6 +125,8 @@ export const photoCredits = [
     { label: "Thác Dải Yếm · ePi.Longo (CC BY-SA 2.0)", url: "https://commons.wikimedia.org/wiki/File:Thacdaiyem.jpg" },
     { label: "Mường La · Tycho (CC BY-SA 3.0)", url: "https://commons.wikimedia.org/wiki/File:S%C6%A1n_La_Province.JPG" },
     { label: "Tà Xùa · NKSTTSSHNVN (CC BY-SA 4.0)", url: "https://commons.wikimedia.org/wiki/File:S%E1%BB%91ng_l%C6%B0ng_kh%E1%BB%A7ng_long_T%C3%A0_X%C3%B9a.jpg" },
+    { label: "Hồ thủy điện Sơn La · Tycho (CC BY-SA 3.0)", url: "https://commons.wikimedia.org/wiki/File:S%C6%A1n_La_Dam_reservoir.JPG" },
+    { label: "Mai Châu · Shyamal (CC0)", url: "https://commons.wikimedia.org/wiki/File:Mai_Chau_pano.jpg" },
 ];
 
 export const heroPromises = [

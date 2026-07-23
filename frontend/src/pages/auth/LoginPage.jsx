@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import axiosClient from "../../api/axiosClient";
 import { saveAuth } from "../../utils/auth";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { motion, useMotionValue, useMotionTemplate } from "framer-motion";
 import {
     ArrowRight,
     Droplets,
+    Eye,
+    EyeOff,
     Leaf,
     Lock,
     Mail,
@@ -15,6 +17,7 @@ import {
     Sparkles,
 } from "lucide-react";
 import { photoCredits, scenicImages } from "../public/publicContent";
+import { getApiErrorMessage } from "../../utils/apiError";
 
 const containerVars = {
     hidden: { opacity: 0 },
@@ -41,6 +44,7 @@ export default function LoginPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [form, setForm] = useState({ email: "", password: "" });
 
     const mouseX = useMotionValue(0);
@@ -97,19 +101,22 @@ export default function LoginPage() {
             });
 
             const role = res.data.role;
-            const from = location.state?.from;
-            const redirectPath = from
-                ? `${from.pathname}${from.search || ""}`
-                : "/tai-khoan";
+            const returnLocation = location.state?.from;
+            const returnToBooking =
+                role === "CUSTOMER" &&
+                returnLocation?.pathname?.startsWith("/booking/")
+                    ? `${returnLocation.pathname}${returnLocation.search || ""}${returnLocation.hash || ""}`
+                    : null;
 
             if (role === "ADMIN") navigate("/admin");
             else if (role === "EMPLOYEE") navigate("/employee");
-            else navigate(redirectPath);
+            else if (returnToBooking) navigate(returnToBooking, { replace: true });
+            else navigate("/");
         } catch (err) {
             Swal.fire({
                 icon: "error",
                 title: "Thất bại",
-                text: err?.response?.data?.message || "Sai tài khoản hoặc mật khẩu",
+                text: getApiErrorMessage(err, "Sai tài khoản hoặc mật khẩu"),
                 background: "#0b1f17",
                 color: "#fff",
                 confirmButtonColor: "#A67C52",
@@ -254,17 +261,27 @@ export default function LoginPage() {
 
                             <form onSubmit={handleSubmit} className="mt-10 space-y-5">
                                 <motion.div variants={fadeInUp} className="relative">
-                                    <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
+                                    <label
+                                        htmlFor="login-email"
+                                        className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]"
+                                    >
                                         Email
                                     </label>
                                     <div className="relative flex items-center">
-                                        <Mail className="absolute left-5 h-5 w-5 text-[#9de09c]" />
+                                        <Mail
+                                            className="absolute left-5 h-5 w-5 text-[#9de09c]"
+                                            aria-hidden="true"
+                                        />
                                         <input
+                                            id="login-email"
                                             type="email"
                                             name="email"
                                             autoComplete="email"
                                             required
+                                            autoFocus
+                                            maxLength={255}
                                             placeholder="Email của bạn"
+                                            value={form.email}
                                             onChange={(e) =>
                                                 setForm({ ...form, email: e.target.value })
                                             }
@@ -274,26 +291,49 @@ export default function LoginPage() {
                                 </motion.div>
 
                                 <motion.div variants={fadeInUp} className="relative">
-                                    <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
+                                    <label
+                                        htmlFor="login-password"
+                                        className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]"
+                                    >
                                         Mật khẩu
                                     </label>
                                     <div className="relative flex items-center">
-                                        <Lock className="absolute left-5 h-5 w-5 text-[#9de09c]" />
+                                        <Lock
+                                            className="absolute left-5 h-5 w-5 text-[#9de09c]"
+                                            aria-hidden="true"
+                                        />
                                         <input
-                                            type="password"
+                                            id="login-password"
+                                            type={showPassword ? "text" : "password"}
                                             name="password"
                                             autoComplete="current-password"
                                             required
+                                            maxLength={255}
                                             placeholder="Mật khẩu"
+                                            value={form.password}
                                             onChange={(e) =>
                                                 setForm({ ...form, password: e.target.value })
                                             }
-                                            className="w-full rounded-2xl border border-white/15 bg-white/[0.08] py-4 pl-14 pr-5 text-white outline-none transition-all placeholder:text-white/45 focus:border-[#7FB77E] focus:bg-[#7FB77E]/10 focus:ring-4 focus:ring-[#7FB77E]/20"
+                                            className="w-full rounded-2xl border border-white/15 bg-white/[0.08] py-4 pl-14 pr-14 text-white outline-none transition-all placeholder:text-white/45 focus:border-[#7FB77E] focus:bg-[#7FB77E]/10 focus:ring-4 focus:ring-[#7FB77E]/20"
                                         />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword((value) => !value)}
+                                            className="absolute right-2 inline-flex h-11 w-11 items-center justify-center rounded-xl text-slate-300 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9de09c]"
+                                            aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                                            aria-pressed={showPassword}
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff size={19} aria-hidden="true" />
+                                            ) : (
+                                                <Eye size={19} aria-hidden="true" />
+                                            )}
+                                        </button>
                                     </div>
                                 </motion.div>
 
                                 <motion.button
+                                    type="submit"
                                     variants={fadeInUp}
                                     whileHover={{ scale: 1.02, y: -2 }}
                                     whileTap={{ scale: 0.98 }}
@@ -324,7 +364,7 @@ export default function LoginPage() {
                 </div>
             </div>
             <a
-                href={photoCredits.find((item) => item.label.includes("đồi chè"))?.url}
+                href={photoCredits.find((item) => item.label.includes("Đồi chè"))?.url}
                 target="_blank"
                 rel="noreferrer"
                 className="absolute bottom-4 left-6 z-20 text-[10px] font-semibold text-white/65 underline-offset-4 hover:text-white hover:underline"

@@ -225,6 +225,7 @@ export default function EmployeeDashboard() {
               type="button"
               onClick={() => setActiveTab("overview")}
               className={activeTab === "overview" ? "active-nav-btn" : ""}
+              aria-pressed={activeTab === "overview"}
             >
               <Grid3X3 /> <span>Tổng quan công việc</span>
             </button>
@@ -232,6 +233,7 @@ export default function EmployeeDashboard() {
               type="button"
               onClick={() => setActiveTab("bookings")}
               className={activeTab === "bookings" ? "active-nav-btn" : ""}
+              aria-pressed={activeTab === "bookings"}
             >
               <Calendar /> <span>Quản lý đặt chỗ</span>
             </button>
@@ -334,9 +336,10 @@ export default function EmployeeDashboard() {
             <div className="data-table-container">
               <div className="table-filter-bar">
                 <div className="search-box-wrapper">
-                  <Search className="search-icon-inside" />
+                  <Search className="search-icon-inside" aria-hidden="true" />
                   <input
                     type="text"
+                    aria-label="Tìm booking được phân công"
                     placeholder="Tìm mã đơn, khách hàng, tên tour..."
                     value={searchTerm}
                     onChange={(event) => setSearchTerm(event.target.value)}
@@ -367,6 +370,9 @@ export default function EmployeeDashboard() {
 
               <div className="table-responsive-wrapper">
                 <table className="custom-admin-table">
+                  <caption className="sr-only">
+                    Danh sách booking và tour đang được phân công cho nhân viên
+                  </caption>
                   <thead>
                     <tr>
                       <th>Đơn & khách</th>

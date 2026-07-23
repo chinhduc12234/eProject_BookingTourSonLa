@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   getProvinces,
   createProvince,
@@ -30,7 +30,7 @@ export default function ProvincePage() {
   const [totalElements, setTotalElements] = useState(0);
   const pageSize = 10;
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setTableLoading(true);
       const res = await getProvinces({
@@ -42,18 +42,18 @@ export default function ProvincePage() {
       setData(res.data.content || []);
       setTotalPages(res.data.totalPages || 0);
       setTotalElements(res.data.totalElements || 0);
-    } catch (err) {
+    } catch {
       toast.error("Không thể tải danh sách tỉnh thành", {
         style: { borderRadius: '12px', background: '#333', color: '#fff' }
       });
     } finally {
       setTableLoading(false);
     }
-  };
+  }, [page, search, sortOrder]);
 
   useEffect(() => {
     loadData();
-  }, [page, search, sortOrder]);
+  }, [loadData]);
 
   useEffect(() => {
     setPage(0);
@@ -133,7 +133,7 @@ export default function ProvincePage() {
         await deleteProvince(id);
         toast.success("Đã xóa tỉnh thành");
         loadData();
-      } catch (err) {
+      } catch {
         toast.error("Xóa thất bại");
       }
     }
@@ -145,7 +145,7 @@ export default function ProvincePage() {
         
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-emerald-600 rounded-2xl shadow-lg shadow-amber-200">
+            <div className="p-3 bg-emerald-600 rounded-2xl shadow-lg shadow-emerald-200">
               <MapPin className="text-white w-8 h-8" />
             </div>
             <div>
@@ -158,7 +158,7 @@ export default function ProvincePage() {
 
           <button
             onClick={() => { setOpen(true); setEditId(null); setName(""); setErrors({}); }}
-            className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-amber-700 text-white px-6 py-3 rounded-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-xl shadow-slate-200"
+            className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-amber-700 text-white px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-xl shadow-slate-200"
           >
             <Plus size={20} />
             <span className="font-bold">Thêm Tỉnh Mới</span>
@@ -166,7 +166,7 @@ export default function ProvincePage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
+          <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
             <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
               <MapPin size={24} />
             </div>
@@ -176,21 +176,21 @@ export default function ProvincePage() {
             </div>
           </div>
 
-          <div className="lg:col-span-3 bg-white p-2 rounded-3xl shadow-sm border border-slate-100 flex flex-col md:flex-row items-center gap-2">
+          <div className="lg:col-span-3 bg-white p-2 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row items-center gap-2">
             <div className="relative flex-1 w-full">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Tìm kiếm bản sắc quê hương..."
-                className="w-full pl-11 pr-4 py-3 rounded-2xl bg-slate-50 focus:bg-white outline-none border-2 border-transparent focus:border-amber-500 transition-all text-sm"
+                className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 focus:bg-white outline-none border-2 border-transparent focus:border-amber-500 transition-all text-sm"
               />
             </div>
             
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value)}
-              className="w-full md:w-40 px-4 py-3 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500 font-medium text-sm cursor-pointer"
+              className="w-full md:w-40 px-4 py-3 rounded-xl bg-slate-50 outline-none border-2 border-transparent focus:border-amber-500 font-medium text-sm cursor-pointer"
             >
               <option value="asc">Sắp xếp: A-Z</option>
               <option value="desc">Sắp xếp: Z-A</option>
@@ -206,7 +206,7 @@ export default function ProvincePage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-[32px] shadow-sm border border-slate-100 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="admin-responsive-table w-full text-left border-collapse">
               <thead>
@@ -310,8 +310,8 @@ export default function ProvincePage() {
                     if (errors.name) setErrors({ ...errors, name: "" });
                   }}
                   placeholder="Ví dụ: Lào Cai, Yên Bái..."
-                  className={`w-full px-5 py-4 rounded-[20px] bg-slate-50 outline-none border-2 transition-all ${
-                    errors.name ? "border-rose-400 bg-rose-50" : "border-transparent focus:border-amber-500 focus:bg-white"
+                  className={`w-full h-12 px-5 rounded-xl bg-slate-50 outline-none border-2 transition-all ${
+                    errors.name ? "border-rose-400 bg-rose-50" : "border-transparent focus:border-emerald-600 focus:bg-white"
                   }`}
                 />
                 {errors.name && <p className="text-rose-500 text-xs mt-2 font-bold ml-2 italic">{errors.name}</p>}
@@ -320,14 +320,14 @@ export default function ProvincePage() {
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={() => setOpen(false)}
-                  className="flex-1 px-6 py-4 bg-slate-100 text-slate-600 font-bold rounded-2xl hover:bg-slate-200 transition-colors"
+                  className="flex-1 px-6 py-4 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors"
                 >
                   Hủy bỏ
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={loading}
-                  className="flex-[2] px-6 py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-amber-600 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200"
+                  className="flex-[2] px-6 py-4 bg-slate-900 text-white font-bold rounded-xl hover:bg-amber-600 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200"
                 >
                   {loading && <Loader2 className="animate-spin" size={18} />}
                   {editId ? "Lưu thay đổi" : "Khởi tạo ngay"}

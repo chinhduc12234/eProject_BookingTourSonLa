@@ -1,3 +1,9 @@
+import {
+  Hash,
+  User,
+  CalendarDays,
+  Clock,
+} from "lucide-react";
 import { resolveUploadedFileUrl } from "../api/userApi";
 
 function normalizeMoneyInput(value) {
@@ -31,8 +37,8 @@ export default function TourInfoStep({
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
-          <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-600">
-            <span className="font-bold text-lg">#</span>
+          <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
+            <Hash size={20} />
           </div>
           <div>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Mã tour</p>
@@ -41,8 +47,8 @@ export default function TourInfoStep({
         </div>
 
         <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
-          <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-600">
-            <span className="font-bold text-lg">👤</span>
+          <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
+            <User size={20} />
           </div>
           <div>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Người tạo</p>
@@ -51,8 +57,8 @@ export default function TourInfoStep({
         </div>
 
         <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
-          <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-600">
-            <span className="font-bold text-lg">📅</span>
+          <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
+            <CalendarDays size={20} />
           </div>
           <div>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tạo lúc</p>
@@ -61,8 +67,8 @@ export default function TourInfoStep({
         </div>
 
         <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
-          <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-600">
-            <span className="font-bold text-lg">⏱️</span>
+          <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
+            <Clock size={20} />
           </div>
           <div>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Cập nhật</p>
@@ -98,9 +104,9 @@ export default function TourInfoStep({
                 rounded-2xl
                 border
                 border-slate-200
-                focus:border-slate-900
+                focus:border-amber-500
                 focus:ring-2
-                focus:ring-slate-100
+                focus:ring-amber-100
                 outline-none
                 transition-all
                 bg-white
@@ -126,9 +132,9 @@ export default function TourInfoStep({
                 rounded-2xl
                 border
                 border-slate-200
-                focus:border-slate-900
+                focus:border-amber-500
                 focus:ring-2
-                focus:ring-slate-100
+                focus:ring-amber-100
                 outline-none
                 transition-all
                 bg-white
@@ -160,9 +166,9 @@ export default function TourInfoStep({
             rounded-2xl
             border
             border-slate-200
-            focus:border-slate-900
+            focus:border-amber-500
             focus:ring-2
-            focus:ring-slate-100
+            focus:ring-amber-100
             outline-none
             transition-all
             mb-4
@@ -213,9 +219,9 @@ export default function TourInfoStep({
                 rounded-2xl
                 border
                 border-slate-200
-                focus:border-slate-900
+                focus:border-amber-500
                 focus:ring-2
-                focus:ring-slate-100
+                focus:ring-amber-100
                 outline-none
                 transition-all
                 bg-white
@@ -241,9 +247,9 @@ export default function TourInfoStep({
                 rounded-2xl
                 border
                 border-slate-200
-                focus:border-slate-900
+                focus:border-amber-500
                 focus:ring-2
-                focus:ring-slate-100
+                focus:ring-amber-100
                 outline-none
                 transition-all
                 bg-white
@@ -268,9 +274,9 @@ export default function TourInfoStep({
                 rounded-2xl
                 border
                 border-slate-200
-                focus:border-slate-900
+                focus:border-amber-500
                 focus:ring-2
-                focus:ring-slate-100
+                focus:ring-amber-100
                 outline-none
                 transition-all
                 bg-white
@@ -296,9 +302,9 @@ export default function TourInfoStep({
                 rounded-2xl
                 border
                 border-slate-200
-                focus:border-slate-900
+                focus:border-amber-500
                 focus:ring-2
-                focus:ring-slate-100
+                focus:ring-amber-100
                 outline-none
                 transition-all
                 bg-white
@@ -325,9 +331,9 @@ export default function TourInfoStep({
                 rounded-2xl
                 border
                 border-slate-200
-                focus:border-slate-900
+                focus:border-amber-500
                 focus:ring-2
-                focus:ring-slate-100
+                focus:ring-amber-100
                 outline-none
                 transition-all
                 bg-white
@@ -352,9 +358,9 @@ export default function TourInfoStep({
                 rounded-2xl
                 border
                 border-slate-200
-                focus:border-slate-900
+                focus:border-amber-500
                 focus:ring-2
-                focus:ring-slate-100
+                focus:ring-amber-100
                 outline-none
                 transition-all
                 bg-white
@@ -391,9 +397,9 @@ export default function TourInfoStep({
               rounded-2xl
               border
               border-slate-200
-              focus:border-slate-900
+              focus:border-amber-500
               focus:ring-2
-              focus:ring-slate-100
+              focus:ring-amber-100
               outline-none
               transition-all
               resize-none
@@ -422,9 +428,9 @@ export default function TourInfoStep({
               rounded-2xl
               border
               border-slate-200
-              focus:border-slate-900
+              focus:border-amber-500
               focus:ring-2
-              focus:ring-slate-100
+              focus:ring-amber-100
               outline-none
               transition-all
               resize-none
@@ -463,9 +469,9 @@ export default function TourInfoStep({
               rounded-2xl
               border
               border-slate-200
-              focus:border-slate-900
+              focus:border-amber-500
               focus:ring-2
-              focus:ring-slate-100
+              focus:ring-amber-100
               outline-none
               transition-all
               resize-none
@@ -498,9 +504,9 @@ export default function TourInfoStep({
               rounded-2xl
               border
               border-slate-200
-              focus:border-slate-900
+              focus:border-amber-500
               focus:ring-2
-              focus:ring-slate-100
+              focus:ring-amber-100
               outline-none
               transition-all
               resize-none

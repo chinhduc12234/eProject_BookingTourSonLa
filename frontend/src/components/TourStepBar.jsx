@@ -1,3 +1,5 @@
+import { Check } from "lucide-react";
+
 export default function TourStepBar({
   steps,
   current,
@@ -30,6 +32,8 @@ export default function TourStepBar({
                 <button
                   type="button"
                   onClick={() => setCurrent(index)}
+                  aria-current={active ? "step" : undefined}
+                  aria-label={`${s.label}${done ? " — đã hoàn tất" : active ? " — bước hiện tại" : ""}`}
                   className="
                     flex
                     flex-col
@@ -61,7 +65,7 @@ export default function TourStepBar({
                           : "border-slate-200 bg-white text-slate-400 hover:border-slate-300"}
                     `}
                   >
-                    {done ? "✓" : index + 1}
+                    {done ? <Check size={19} strokeWidth={3} aria-hidden="true" /> : index + 1}
                   </div>
 
                   <span

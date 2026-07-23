@@ -808,14 +808,12 @@ export default function EmployeeTimelinePage() {
                   <div
                     className={`tl-activity-card${expanded ? " is-expanded" : ""}`}
                   >
-                    <div
+                    <button
+                      type="button"
                       className="tl-activity-head"
                       onClick={() => toggleActivity(activity.id, activity.status)}
-                      onKeyDown={(e) =>
-                        e.key === "Enter" && toggleActivity(activity.id, activity.status)
-                      }
-                      role="button"
-                      tabIndex={0}
+                      aria-expanded={expanded}
+                      aria-controls={`activity-form-${activity.id}`}
                     >
                       <div className="tl-activity-time">
                         <Clock />
@@ -837,10 +835,11 @@ export default function EmployeeTimelinePage() {
                           <ChevronDown />
                         </div>
                       </div>
-                    </div>
+                    </button>
                     <AnimatePresence>
                       {expanded && (
                         <motion.div
+                          id={`activity-form-${activity.id}`}
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}

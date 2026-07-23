@@ -99,7 +99,7 @@ const normalizeServiceItems = (value) => {
 
 function DetailInfoTile({ Icon, label, value, hint }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#020617]/35 p-4">
+    <div className="rounded-2xl border border-white/15 bg-[#0b1f17]/80 p-4 shadow-[0_12px_30px_-24px_rgba(0,0,0,0.9)]">
       <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
         <Icon size={18} />
       </span>
@@ -344,12 +344,12 @@ export default function TourDetailPublicPage() {
 
       {/* BODY */}
       <section className="bg-[#020617] py-12">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[1fr_420px] lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:px-8 xl:grid-cols-[minmax(0,1fr)_420px]">
           <div className="min-w-0 space-y-8">
             {/* GALLERY */}
             {galleryImages.length > 0 && (
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 1, y: 0 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.55 }}
@@ -452,7 +452,7 @@ export default function TourDetailPublicPage() {
             )}
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 1, y: 0 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.55 }}
@@ -503,7 +503,7 @@ export default function TourDetailPublicPage() {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 1, y: 0 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.55 }}
@@ -524,7 +524,7 @@ export default function TourDetailPublicPage() {
               </div>
 
               {departures.length === 0 ? (
-                <div className="mt-5 rounded-2xl border border-dashed border-white/10 bg-white/[0.03] p-5 text-sm leading-7 text-slate-400">
+                <div className="mt-5 rounded-2xl border border-dashed border-white/20 bg-white/[0.06] p-5 text-sm leading-7 text-slate-200">
                   Tour này chưa có lịch khởi hành khả dụng.
                 </div>
               ) : (
@@ -546,7 +546,7 @@ export default function TourDetailPublicPage() {
                           "grid gap-4 rounded-2xl border p-4 text-left transition md:grid-cols-[1fr_1fr_1fr_auto] md:items-center",
                           isSelected
                             ? "border-[#7FB77E] bg-[#7FB77E]/14 shadow-soft-green"
-                            : "border-white/10 bg-[#020617]/35 hover:border-[#7FB77E]/40",
+                            : "border-white/20 bg-[#0b1f17]/80 hover:border-[#7FB77E]/60 hover:bg-[#102a20]",
                           !isOpen ? "cursor-not-allowed opacity-65" : "",
                         ].join(" ")}
                       >
@@ -573,17 +573,17 @@ export default function TourDetailPublicPage() {
                           </span>
                         </div>
                         <div>
-                          <div className="text-xs font-black uppercase tracking-widest text-slate-500">
+                          <div className="text-xs font-black uppercase tracking-widest text-slate-300">
                             Giá người lớn / trẻ em
                           </div>
                           <div className="mt-1 text-sm font-black text-slate-200">
                             {formatCurrency(departure.adultPrice || tour.price)}
-                            <span className="text-slate-500"> / </span>
+                            <span className="text-slate-300"> / </span>
                             {formatCurrency(departure.childPrice || departure.adultPrice || tour.price)}
                           </div>
                         </div>
                         <div>
-                          <div className="text-xs font-black uppercase tracking-widest text-slate-500">
+                          <div className="text-xs font-black uppercase tracking-widest text-slate-300">
                             Hạn đặt
                           </div>
                           <div className="mt-1 text-sm font-bold text-slate-200">
@@ -614,7 +614,7 @@ export default function TourDetailPublicPage() {
 
             {/* INFO */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 1, y: 0 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.55 }}
@@ -623,12 +623,12 @@ export default function TourDetailPublicPage() {
               <h2 className="text-2xl font-black text-white">
                 Thông tin tour
               </h2>
-              <div className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-300">
+              <div className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-200">
                 {tour.description || "Mô tả chi tiết đang được cập nhật."}
               </div>
 
               <div className="mt-6 grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border border-[#7FB77E]/20 bg-[#7FB77E]/[0.06] p-5">
+                <div className="rounded-2xl border border-[#7FB77E]/35 bg-[#0d2418]/90 p-5">
                   <div className="flex items-center gap-3">
                     <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#7FB77E]/20 text-[#9de09c]">
                       <CheckCircle2 size={18} />
@@ -637,7 +637,7 @@ export default function TourDetailPublicPage() {
                       Dịch vụ bao gồm
                     </span>
                   </div>
-                  <div className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-300">
+                  <div className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-200">
                     <ServiceContent
                       value={tour.includedServices}
                       emptyText="Chưa có thông tin dịch vụ bao gồm."
@@ -645,7 +645,7 @@ export default function TourDetailPublicPage() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-[#A67C52]/20 bg-[#A67C52]/[0.06] p-5">
+                <div className="rounded-2xl border border-[#A67C52]/35 bg-[#251b12]/90 p-5">
                   <div className="flex items-center gap-3">
                     <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#A67C52]/20 text-[#d4a878]">
                       <ShieldCheck size={18} />
@@ -654,7 +654,7 @@ export default function TourDetailPublicPage() {
                       Chưa bao gồm
                     </span>
                   </div>
-                  <div className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-300">
+                  <div className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-200">
                     <ServiceContent
                       value={tour.excludedServices}
                       emptyText="Chưa có thông tin dịch vụ không bao gồm."
@@ -665,67 +665,71 @@ export default function TourDetailPublicPage() {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 1, y: 0 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.55 }}
-              className="grid gap-4 md:grid-cols-2"
+              className="relative isolate grid gap-4 rounded-3xl p-2 lg:grid-cols-2"
             >
-              <div className="rounded-2xl border border-[#7FB77E]/20 bg-[#7FB77E]/[0.06] p-5">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 -z-10 rounded-3xl bg-dots-fade"
+              />
+              <div className="min-w-0 rounded-2xl border border-[#7FB77E]/45 bg-[#0d2418]/95 p-5 backdrop-blur-[2px]">
                 <div className="flex items-center gap-3">
                   <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#7FB77E]/18 text-[#9de09c]">
                     <ListChecks size={19} />
                   </span>
-                  <div>
+                  <div className="min-w-0">
                     <h2 className="text-xl font-black text-white">
                       Quy trình đặt tour
                     </h2>
-                    <p className="text-sm text-slate-400">
+                    <p className="text-sm leading-6 text-slate-200">
                       Các bước được trình bày rõ ràng trong suốt quá trình đặt tour.
                     </p>
                   </div>
                 </div>
-                <div className="mt-5 grid gap-3 text-sm leading-7 text-slate-300">
+                <div className="mt-5 grid gap-3 text-[0.95rem] leading-7 text-slate-200">
                   {[
                     "Chọn lịch khởi hành còn chỗ và nhập thông tin liên hệ.",
                     "Kiểm tra danh sách hành khách, điểm đón và yêu cầu đặc biệt.",
                     "Chọn thanh toán cọc 30% hoặc thanh toán toàn bộ.",
                     "Nhận mã đơn và theo dõi trong lịch sử tài khoản.",
                   ].map((item, index) => (
-                    <div key={item} className="flex gap-3 rounded-xl border border-white/10 bg-[#020617]/30 p-3">
+                    <div key={item} className="flex min-w-0 items-start gap-3 rounded-xl border border-white/20 bg-[#07150f]/90 p-3">
                       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#9de09c] text-xs font-black text-[#020617]">
                         {index + 1}
                       </span>
-                      <span>{item}</span>
+                      <span className="min-w-0 break-words">{item}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-[#A67C52]/20 bg-[#A67C52]/[0.06] p-5">
+              <div className="min-w-0 rounded-2xl border border-[#A67C52]/45 bg-[#251b12]/95 p-5 backdrop-blur-[2px]">
                 <div className="flex items-center gap-3">
                   <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#A67C52]/18 text-[#f3d7b0]">
                     <Route size={19} />
                   </span>
-                  <div>
+                  <div className="min-w-0">
                     <h2 className="text-xl font-black text-white">
                       Lưu ý vận hành
                     </h2>
-                    <p className="text-sm text-slate-400">
+                    <p className="text-sm leading-6 text-slate-200">
                       Thông tin áp dụng khi điều hành và xác nhận tour.
                     </p>
                   </div>
                 </div>
-                <div className="mt-5 grid gap-3 text-sm leading-7 text-slate-300">
+                <div className="mt-5 grid gap-3 text-[0.95rem] leading-7 text-slate-200">
                   {[
                     "Giá có thể khác theo từng lịch khởi hành và số lượng khách.",
                     "Thông tin hành khách nên nhập đầy đủ để điều hành liên hệ khi cần.",
                     "Nếu đi theo đoàn hoặc tour riêng, cần nhập tên đoàn/tổ chức.",
                     "Các yêu cầu ăn uống, sức khỏe, phòng riêng nên ghi ở phần yêu cầu đặc biệt.",
                   ].map((item) => (
-                    <div key={item} className="flex gap-3 rounded-xl border border-white/10 bg-[#020617]/30 p-3">
+                    <div key={item} className="flex min-w-0 items-start gap-3 rounded-xl border border-white/20 bg-[#1d160e]/90 p-3">
                       <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#f3d7b0]" />
-                      <span>{item}</span>
+                      <span className="min-w-0 break-words">{item}</span>
                     </div>
                   ))}
                 </div>
@@ -746,11 +750,11 @@ export default function TourDetailPublicPage() {
                   {days.map((day, idx) => (
                     <motion.div
                       key={day.id}
-                      initial={{ opacity: 0, x: -20 }}
+                      initial={{ opacity: 1, x: 0 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true, margin: "-60px" }}
                       transition={{ duration: 0.5, delay: idx * 0.05 }}
-                      className="relative rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] p-6 sm:pl-16"
+                      className="relative rounded-2xl border border-white/15 bg-gradient-to-br from-white/[0.09] to-white/[0.045] p-6 sm:pl-16 shadow-[0_18px_40px_-34px_rgba(0,0,0,0.95)]"
                     >
                       <span className="absolute left-2 top-6 hidden h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#9de09c] to-[#4f8f4d] text-xs font-black text-[#020617] shadow-soft-green sm:flex">
                         {day.dayNumber}
@@ -773,7 +777,7 @@ export default function TourDetailPublicPage() {
                           {day.activities.map((activity) => (
                             <div
                               key={activity.id}
-                              className="group rounded-xl border border-white/10 bg-[#020617]/50 p-4 transition hover:border-[#7FB77E]/30 hover:bg-[#020617]/70"
+                              className="group rounded-xl border border-white/15 bg-[#07150f]/90 p-4 transition hover:border-[#7FB77E]/55 hover:bg-[#0d2418]"
                             >
                               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                 <div>
@@ -823,13 +827,13 @@ export default function TourDetailPublicPage() {
             </div>
           </div>
 
-          <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
+          <aside className="space-y-5 xl:sticky xl:top-24 xl:self-start">
             <motion.div
-              initial={{ opacity: 0, y: 18 }}
+              initial={{ opacity: 1, y: 0 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.55 }}
-              className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-5"
+              className="rounded-2xl border border-white/15 bg-gradient-to-b from-white/[0.09] to-white/[0.045] p-5 shadow-[0_18px_40px_-34px_rgba(0,0,0,0.95)]"
             >
               <div className="flex items-center gap-3 border-b border-white/10 pb-4">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
@@ -855,7 +859,7 @@ export default function TourDetailPublicPage() {
               </div>
             </motion.div>
 
-            <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-5">
+            <div className="rounded-2xl border border-white/15 bg-gradient-to-b from-white/[0.09] to-white/[0.045] p-5 shadow-[0_18px_40px_-34px_rgba(0,0,0,0.95)]">
               <div className="flex items-center gap-3 border-b border-white/10 pb-4">
                 <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
                   <ShieldCheck size={20} />

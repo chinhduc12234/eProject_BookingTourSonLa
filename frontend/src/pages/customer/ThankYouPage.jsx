@@ -17,6 +17,13 @@ import toast from "react-hot-toast";
 
 import { getBookingDetail } from "../../api/bookingApi";
 import PublicLayout from "../public/PublicLayout";
+import { scenicImages } from "../public/publicContent";
+import {
+  bookingStatusMeta,
+  getMeta,
+  paymentStatusMeta,
+  StatusPill,
+} from "./accountShared";
 
 export default function ThankYouPage() {
   const navigate = useNavigate();
@@ -84,24 +91,9 @@ export default function ThankYouPage() {
         }).format(new Date(`${value}T00:00:00`))
       : "Đang cập nhật";
 
-  const bookingStatus = ({
-    PENDING: "Đang chờ xác nhận",
-    CONFIRMED: "Đã được xác nhận",
-    IN_PROGRESS: "Đang diễn ra",
-    COMPLETED: "Đã hoàn thành",
-    CANCELLED: "Đã hủy",
-  })[booking?.status] || "Đang chờ xác nhận";
-  const paymentStatus = ({
-    UNPAID: "Chưa thanh toán",
-    PENDING_REVIEW: "Chờ kiểm tra",
-    PARTIAL: "Đã ghi nhận một phần",
-    PAID: "Đã thanh toán",
-    REFUNDED: "Đã hoàn tiền",
-    PARTIALLY_REFUNDED: "Hoàn tiền một phần",
-    FORFEITED: "Đã khấu trừ",
-    FAILED: "Giao dịch lỗi",
-  })[booking?.paymentStatus] || "Chờ kiểm tra";
-  
+  const bookingStatus = getMeta(bookingStatusMeta, booking?.status);
+  const paymentStatus = getMeta(paymentStatusMeta, booking?.paymentStatus);
+
   return (
     <PublicLayout>
       <section className="thank-you-page relative min-h-[calc(100vh-80px)] overflow-hidden bg-[#020617] py-10 text-slate-100 selection:bg-[#7FB77E]/30 sm:py-14 lg:py-16">
@@ -110,9 +102,21 @@ export default function ThankYouPage() {
         <div className="pointer-events-none absolute -right-32 bottom-10 h-80 w-80 rounded-full bg-[#A67C52]/15 blur-[110px]" />
 
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="thank-you-hero overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-white/[0.08] via-white/[0.035] to-[#7FB77E]/10 shadow-[0_32px_100px_-45px_rgba(127,183,126,0.6)] backdrop-blur-xl">
-            <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:p-10">
-              <div>
+          <div className="thank-you-hero relative isolate min-h-[560px] overflow-hidden rounded-[28px] border border-white/20 bg-[#020617] shadow-[0_32px_100px_-45px_rgba(127,183,126,0.6)]">
+            <div className="thank-you-hero-art absolute inset-0" aria-hidden="true">
+              <img
+                src={scenicImages.taXuaRidge}
+                alt=""
+                loading="eager"
+                decoding="async"
+                className="h-full w-full scale-105 object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(2,6,23,0.96)_0%,rgba(2,6,23,0.82)_36%,rgba(2,6,23,0.5)_68%,rgba(2,6,23,0.7)_100%)]" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#020617]/90 via-transparent to-[#020617]/35" />
+              <div className="absolute inset-0 bg-[#7FB77E]/[0.04] mix-blend-screen" />
+            </div>
+            <div className="relative z-10 grid min-h-[560px] gap-8 p-6 sm:p-10 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:p-14">
+              <div className="max-w-2xl drop-shadow-[0_4px_20px_rgba(0,0,0,0.45)]">
                 <div className="mb-6 flex items-center gap-4">
                   <div className="relative shrink-0">
                     <div className="absolute inset-0 scale-125 rounded-full bg-[#7FB77E]/30 blur-2xl" />
@@ -159,7 +163,7 @@ export default function ThankYouPage() {
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-white/10 bg-[#020617]/45 p-5 shadow-inner sm:p-6">
+              <div className="rounded-3xl border border-white/25 bg-[#020617]/65 p-5 shadow-[0_24px_70px_-34px_rgba(0,0,0,0.95)] backdrop-blur-md sm:p-6">
                 <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-4">
                   <div>
                     <p className="text-xs font-black uppercase tracking-[0.18em] text-[#d4a878]">
@@ -169,9 +173,7 @@ export default function ThankYouPage() {
                       {booking?.tourName || "Hành trình Tây Bắc của bạn"}
                     </h2>
                   </div>
-                  <span className="rounded-full border border-[#7FB77E]/30 bg-[#7FB77E]/10 px-3 py-1.5 text-xs font-black text-[#9de09c]">
-                    {bookingStatus}
-                  </span>
+                  <StatusPill meta={bookingStatus} />
                 </div>
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
@@ -196,7 +198,7 @@ export default function ThankYouPage() {
                     {
                       Icon: CreditCard,
                       label: "Trạng thái thanh toán",
-                      value: paymentStatus,
+                      value: <StatusPill meta={paymentStatus} />,
                     },
                   ].map(({ Icon, label, value }) => (
                     <div
@@ -205,7 +207,7 @@ export default function ThankYouPage() {
                     >
                       <Icon size={18} className="text-[#9de09c]" />
                       <p className="mt-3 text-xs font-bold text-slate-400">{label}</p>
-                      <p className="mt-1 break-words text-sm font-black text-white">{value}</p>
+                      <div className="mt-1 break-words text-sm font-black text-white">{value}</div>
                     </div>
                   ))}
                 </div>

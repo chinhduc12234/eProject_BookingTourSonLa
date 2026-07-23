@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
   getAllStaff,
@@ -112,7 +112,7 @@ export default function StaffPage() {
 
   // ================= LOAD DATA =================
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
 
     try {
 
@@ -151,7 +151,7 @@ export default function StaffPage() {
         res.data.totalElements
       );
 
-    } catch (err) {
+    } catch {
 
       toast.error(
         "Không thể tải danh sách nhân viên"
@@ -161,7 +161,7 @@ export default function StaffPage() {
 
       setTableLoading(false);
     }
-  };
+  }, [direction, filterActive, filterGender, page, search, sortBy]);
 
   // ================= EFFECT =================
 
@@ -169,14 +169,7 @@ export default function StaffPage() {
 
     loadData();
 
-  }, [
-    page,
-    search,
-    filterGender,
-    filterActive,
-    sortBy,
-    direction,
-  ]);
+  }, [loadData]);
 
   useEffect(() => {
 
@@ -457,7 +450,7 @@ export default function StaffPage() {
 
         loadData();
 
-      } catch (err) {
+      } catch {
 
         toast.error(
           "Không thể xóa nhân viên"
@@ -478,7 +471,7 @@ export default function StaffPage() {
 
           <div className="flex items-center gap-4">
 
-            <div className="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-200">
+            <div className="p-3 bg-[#2f7d55] rounded-2xl shadow-lg shadow-emerald-900/20">
 
               <User className="text-white w-8 h-8" />
 
@@ -502,7 +495,7 @@ export default function StaffPage() {
               resetForm();
               setOpen(true);
             }}
-            className="flex items-center gap-2 bg-slate-900 hover:bg-blue-600 text-white px-6 py-3 rounded-2xl transition-all shadow-lg"
+            className="flex items-center gap-2 bg-slate-900 hover:bg-[#2f7d55] text-white px-6 py-3 rounded-2xl transition-all shadow-lg"
           >
 
             <Plus size={20} />
@@ -521,7 +514,7 @@ export default function StaffPage() {
 
           <div className="xl:col-span-2 bg-white px-5 py-4 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
 
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-700 shrink-0">
 
               <User size={24} />
 
@@ -560,7 +553,7 @@ export default function StaffPage() {
                   placeholder="Tìm nhân viên..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full h-12 pl-11 pr-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-blue-500 outline-none transition-all"
+                  className="w-full h-12 pl-11 pr-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-emerald-600 outline-none transition-all"
                 />
               </div>
 
@@ -575,7 +568,7 @@ export default function StaffPage() {
                       e.target.value
                     )
                   }
-                  className="w-full h-12 px-4 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-blue-500 cursor-pointer"
+                  className="w-full h-12 px-4 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-emerald-600 cursor-pointer"
                 >
                   <option value="">
                     Giới tính
@@ -606,7 +599,7 @@ export default function StaffPage() {
                       e.target.value
                     )
                   }
-                  className="w-full h-12 px-4 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-blue-500 cursor-pointer"
+                  className="w-full h-12 px-4 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-emerald-600 cursor-pointer"
                 >
                   <option value="">
                     Trạng thái
@@ -633,7 +626,7 @@ export default function StaffPage() {
                       e.target.value
                     )
                   }
-                  className="w-full h-12 px-4 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-blue-500 cursor-pointer"
+                  className="w-full h-12 px-4 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-emerald-600 cursor-pointer"
                 >
 
                   <option value="fullName">
@@ -669,7 +662,7 @@ export default function StaffPage() {
                       e.target.value
                     )
                   }
-                  className="flex-1 h-12 px-4 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-blue-500 font-medium cursor-pointer"
+                  className="flex-1 h-12 px-4 rounded-2xl bg-slate-50 outline-none border-2 border-transparent focus:border-emerald-600 font-medium cursor-pointer"
                 >
                   <option value="asc">
                     A-Z
@@ -695,7 +688,7 @@ export default function StaffPage() {
 
                     setPage(0);
                   }}
-                  className="w-14 h-12 flex items-center justify-center text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all bg-slate-50 shrink-0"
+                  className="w-14 h-12 flex items-center justify-center text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-2xl transition-all bg-slate-50 shrink-0"
                 >
 
                   <RefreshCcw size={20} />
@@ -758,7 +751,7 @@ export default function StaffPage() {
                       className="py-20 text-center"
                     >
 
-                      <Loader2 className="w-10 h-10 animate-spin mx-auto text-blue-500" />
+                      <Loader2 className="w-10 h-10 animate-spin mx-auto text-emerald-600" />
 
                       <p className="mt-4 text-slate-400">
                         Đang tải dữ liệu...
@@ -854,7 +847,7 @@ export default function StaffPage() {
 
                       <td data-label="Giới tính" className="px-6 py-5">
 
-                        <span className="inline-flex px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold whitespace-nowrap">
+                        <span className="inline-flex px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold whitespace-nowrap">
 
                           {staff.gender === "MALE"
                             ? "Nam"
@@ -907,7 +900,7 @@ export default function StaffPage() {
                             }
                             aria-label={`Chỉnh sửa ${staff.fullName}`}
                             title="Chỉnh sửa nhân viên"
-                            className="p-2.5 rounded-xl bg-white border border-slate-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all"
+                            className="p-2.5 rounded-xl bg-white border border-slate-100 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all"
                           >
 
                             <Edit3 size={18} />
@@ -1028,7 +1021,7 @@ export default function StaffPage() {
                       )
                     }
                     placeholder="Nhập tên đầy đủ..."
-                    className="w-full h-[56px] px-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white outline-none transition-all shadow-sm"
+                    className="w-full h-[56px] px-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-emerald-600 focus:bg-white outline-none transition-all shadow-sm"
                   />
 
                   {errors.fullName && (
@@ -1057,7 +1050,7 @@ export default function StaffPage() {
                     className={`w-full h-[56px] px-5 rounded-2xl border-2 outline-none transition-all shadow-sm ${
                       editId
                         ? "bg-slate-100 border-slate-100"
-                        : "bg-slate-50 border-transparent focus:border-blue-500 focus:bg-white"
+                        : "bg-slate-50 border-transparent focus:border-emerald-600 focus:bg-white"
                     }`}
                   />
 
@@ -1083,7 +1076,7 @@ export default function StaffPage() {
                       )
                     }
                     placeholder="Nhập số điện thoại..."
-                    className="w-full h-[56px] px-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white outline-none transition-all shadow-sm"
+                    className="w-full h-[56px] px-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-emerald-600 focus:bg-white outline-none transition-all shadow-sm"
                   />
 
                   {errors.phone && (
@@ -1110,7 +1103,7 @@ export default function StaffPage() {
                         )
                       }
                       placeholder="Nhập mật khẩu..."
-                      className="w-full h-[56px] px-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white outline-none transition-all shadow-sm"
+                      className="w-full h-[56px] px-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-emerald-600 focus:bg-white outline-none transition-all shadow-sm"
                     />
 
                     {errors.password && (
@@ -1220,7 +1213,7 @@ export default function StaffPage() {
                           e.target.value
                         )
                       }
-                      className="w-full h-[56px] px-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white outline-none transition-all cursor-pointer shadow-sm"
+                      className="w-full h-[56px] px-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-emerald-600 focus:bg-white outline-none transition-all cursor-pointer shadow-sm"
                     >
 
                       <option value="OTHER">
@@ -1251,7 +1244,7 @@ export default function StaffPage() {
                           e.target.value
                         )
                       }
-                      className="w-full h-[56px] px-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white outline-none transition-all shadow-sm"
+                      className="w-full h-[56px] px-5 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-emerald-600 focus:bg-white outline-none transition-all shadow-sm"
                     />
                   </div>
                 </div>
@@ -1298,7 +1291,7 @@ export default function StaffPage() {
                 <button
                   onClick={handleSave}
                   disabled={loading || uploadingAvatar}
-                  className="min-w-[200px] h-[54px] px-8 rounded-xl bg-slate-900 hover:bg-blue-600 text-white font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200 disabled:opacity-50"
+                  className="min-w-[200px] h-[54px] px-8 rounded-xl bg-slate-900 hover:bg-[#2f7d55] text-white font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200 disabled:opacity-50"
                 >
 
                   {(loading || uploadingAvatar) && (

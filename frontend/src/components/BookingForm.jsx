@@ -535,9 +535,17 @@ export default function BookingForm({
           tabIndex="-1"
           className="booking-form-step rounded-2xl border border-white/10 bg-white/[0.035] p-4 outline-none"
         >
-          <label className="mb-2 block text-xs font-black uppercase tracking-widest text-[#d4a878]">
-            Hình thức đặt tour
-          </label>
+          <div className="mb-4 flex items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#7FB77E]/15 text-[#9de09c]">
+              <ClipboardList size={16} />
+            </span>
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-wide text-white">
+                Hình thức đặt tour
+              </h3>
+              <p className="text-xs text-slate-400">{formStepItems[0].description}</p>
+            </div>
+          </div>
           <div className="grid gap-2 sm:grid-cols-1">
             {bookingTypes.map((item) => {
               const active = form.bookingType === item.value;

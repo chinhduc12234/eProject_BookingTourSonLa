@@ -238,9 +238,14 @@ export default function AccountHomePage() {
             </div>
           ) : (
             <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.03] p-8 text-center">
-              <CalendarDays className="mx-auto h-10 w-10 text-slate-400" />
-              <p className="mt-4 text-sm font-bold text-slate-300">
+              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-[#7FB77E]/12 text-[#9de09c]">
+                <CalendarDays size={22} />
+              </span>
+              <p className="mt-4 text-base font-black text-white">
                 Bạn chưa có đơn đặt tour nào.
+              </p>
+              <p className="mt-1 text-xs text-slate-400">
+                Khám phá các hành trình Tây Bắc và đặt tour đầu tiên của bạn.
               </p>
               <Link to="/tours" className="btn-primary mt-5 text-sm">
                 Xem tour

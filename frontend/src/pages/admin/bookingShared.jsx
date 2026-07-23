@@ -37,7 +37,7 @@ export const statusMeta = {
   },
   IN_PROGRESS: {
     label: "Đang đi tour",
-    className: "border-sky-200 bg-sky-50 text-sky-800",
+    className: "border-blue-200 bg-blue-50 text-blue-800",
   },
   COMPLETED: {
     label: "Hoàn thành",
@@ -79,7 +79,7 @@ export const paymentMeta = {
   },
   PARTIAL: {
     label: "Đã cọc",
-    className: "border-sky-200 bg-sky-50 text-sky-800",
+    className: "border-blue-200 bg-blue-50 text-blue-800",
   },
   PAID: {
     label: "Đã thanh toán",
@@ -91,11 +91,11 @@ export const paymentMeta = {
   },
   PARTIALLY_REFUNDED: {
     label: "Hoàn một phần",
-    className: "border-violet-200 bg-violet-50 text-violet-800",
+    className: "border-[#e8c79f] bg-[#fbf1e3] text-[#8a5a24]",
   },
   FORFEITED: {
     label: "Mất cọc",
-    className: "border-orange-200 bg-orange-50 text-orange-800",
+    className: "border-rose-300 bg-rose-100 text-rose-900",
   },
   FAILED: {
     label: "Thanh toán lỗi",

@@ -316,7 +316,7 @@ export default function BookingPage() {
                               className="shrink-0"
                               aria-hidden="true"
                             />
-                            <span className="block">Chi Tiết</span>
+                            <span className="block">Chi tiết</span>
                           </Link>
                           {["CONFIRMED", "IN_PROGRESS", "COMPLETED"].includes(
                             booking.status,

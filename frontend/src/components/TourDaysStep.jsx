@@ -1,5 +1,4 @@
 import {
-  CalendarDays,
   MapPin,
   Plus,
   Trash2,
@@ -224,8 +223,11 @@ export default function TourDaysStep({
             h-12
             px-5
             rounded-[32px]
-            bg-slate-900
-            hover:bg-slate-800
+            bg-gradient-to-r
+            from-amber-500
+            to-amber-600
+            hover:from-amber-600
+            hover:to-amber-700
             text-white
             font-bold
             flex
@@ -234,6 +236,7 @@ export default function TourDaysStep({
             transition-all
             duration-300
             shadow-sm
+            hover:shadow-amber-200
             active:scale-95
           "
         >
@@ -275,15 +278,15 @@ export default function TourDaysStep({
                   w-12
                   h-12
                   rounded-2xl
-                  bg-slate-50
+                  bg-amber-50
                   flex
                   items-center
                   justify-center
-                  text-slate-900
+                  text-amber-700
                   font-bold
                   shadow-sm
                   border
-                  border-slate-100
+                  border-amber-100
                 "
               >
 
@@ -310,16 +313,29 @@ export default function TourDaysStep({
               onClick={() =>
                 removeDay(dayIndex)
               }
+              aria-label={`Xóa ngày ${day.dayNumber}`}
+              title={`Xóa ngày ${day.dayNumber}`}
               className="
                 h-11
-                px-4
+                w-11
+                shrink-0
                 rounded-2xl
-                bg-rose-500
-                hover:bg-rose-600
-                text-white
+                border
+                border-rose-200
+                bg-rose-50
+                text-rose-600
+                inline-flex
+                items-center
+                justify-center
                 transition-all
                 duration-300
                 shadow-sm
+                hover:border-rose-500
+                hover:bg-rose-500
+                hover:text-white
+                focus-visible:outline-none
+                focus-visible:ring-4
+                focus-visible:ring-rose-100
                 active:scale-95
               "
             >
@@ -351,9 +367,9 @@ export default function TourDaysStep({
                 rounded-2xl
                 border
                 border-slate-200
-                focus:border-slate-900
+                focus:border-amber-500
                 focus:ring-2
-                focus:ring-slate-100
+                focus:ring-amber-100
                 transition-all
                 duration-300
                 bg-white
@@ -379,9 +395,9 @@ export default function TourDaysStep({
                 rounded-2xl
                 border
                 border-slate-200
-                focus:border-slate-900
+                focus:border-amber-500
                 focus:ring-2
-                focus:ring-slate-100
+                focus:ring-amber-100
                 transition-all
                 duration-300
                 resize-none
@@ -440,9 +456,9 @@ export default function TourDaysStep({
                           rounded-xl
                           border
                           border-slate-200
-                          focus:border-slate-900
+                          focus:border-amber-500
                           focus:ring-2
-                          focus:ring-slate-100
+                          focus:ring-amber-100
                           transition-all
                           duration-300
                           bg-white
@@ -474,9 +490,9 @@ export default function TourDaysStep({
                           rounded-xl
                           border
                           border-slate-200
-                          focus:border-slate-900
+                          focus:border-amber-500
                           focus:ring-2
-                          focus:ring-slate-100
+                          focus:ring-amber-100
                           transition-all
                           duration-300
                           bg-white
@@ -508,9 +524,9 @@ export default function TourDaysStep({
                           rounded-xl
                           border
                           border-slate-200
-                          focus:border-slate-900
+                          focus:border-amber-500
                           focus:ring-2
-                          focus:ring-slate-100
+                          focus:ring-amber-100
                           transition-all
                           duration-300
                           bg-white
@@ -529,16 +545,28 @@ export default function TourDaysStep({
                             activityIndex
                           )
                         }
+                        aria-label={`Xóa hoạt động ${activityIndex + 1} của ngày ${day.dayNumber}`}
+                        title={`Xóa hoạt động ${activityIndex + 1}`}
                         className="
                           w-full
                           h-11
                           rounded-xl
-                          bg-rose-500
-                          hover:bg-rose-600
-                          text-white
+                          border
+                          border-rose-200
+                          bg-rose-50
+                          text-rose-600
+                          inline-flex
+                          items-center
+                          justify-center
                           transition-all
                           duration-300
                           shadow-sm
+                          hover:border-rose-500
+                          hover:bg-rose-500
+                          hover:text-white
+                          focus-visible:outline-none
+                          focus-visible:ring-4
+                          focus-visible:ring-rose-100
                           active:scale-95
                         "
                       >
@@ -578,9 +606,9 @@ export default function TourDaysStep({
                           rounded-xl
                           border
                           border-slate-200
-                          focus:border-slate-900
+                          focus:border-amber-500
                           focus:ring-2
-                          focus:ring-slate-100
+                          focus:ring-amber-100
                           transition-all
                           duration-300
                           bg-white
@@ -591,8 +619,9 @@ export default function TourDaysStep({
 
                     <div className="flex items-end">
                       {activity.locationName && (
-                        <p className="text-xs text-slate-600 pb-2 font-medium">
-                          📍 {activity.locationName}
+                        <p className="text-xs text-slate-600 pb-2 font-medium flex items-center gap-1">
+                          <MapPin size={12} />
+                          {activity.locationName}
                         </p>
                       )}
                     </div>
@@ -621,9 +650,9 @@ export default function TourDaysStep({
                       rounded-xl
                       border
                       border-slate-200
-                      focus:border-slate-900
+                      focus:border-amber-500
                       focus:ring-2
-                      focus:ring-slate-100
+                      focus:ring-amber-100
                       transition-all
                       duration-300
                       resize-none
@@ -644,9 +673,9 @@ export default function TourDaysStep({
                 h-11
                 px-4
                 rounded-2xl
-                bg-slate-50
-                hover:bg-slate-100
-                text-slate-900
+                bg-amber-50
+                hover:bg-amber-100
+                text-amber-700
                 font-semibold
                 flex
                 items-center
@@ -655,7 +684,7 @@ export default function TourDaysStep({
                 duration-300
                 shadow-sm
                 border
-                border-slate-200
+                border-amber-200
               "
             >
 

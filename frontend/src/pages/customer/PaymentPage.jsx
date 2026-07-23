@@ -11,7 +11,8 @@ import {
   Phone,
   Calendar,
   Users,
-  CreditCard
+  CreditCard,
+  ShieldCheck
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -55,8 +56,6 @@ export default function PaymentPage() {
       if (hasRedirected.current) return;
 
       try {
-        console.log("PaymentPage - Loading data from localStorage");
-
         const tempDeparture = localStorage.getItem("booking_temp_departure");
         const tempComplete = localStorage.getItem("booking_temp_complete");
 
@@ -73,7 +72,7 @@ export default function PaymentPage() {
         try {
           departure = JSON.parse(tempDeparture);
           complete = JSON.parse(tempComplete);
-        } catch (parseError) {
+        } catch {
           if (!hasRedirected.current) {
             hasRedirected.current = true;
             toast.error("Dữ liệu không hợp lệ, vui lòng thử lại");
@@ -136,7 +135,8 @@ export default function PaymentPage() {
         return;
       }
 
-      const { tourId, ...bookingPayload } = bookingData;
+      const bookingPayload = { ...bookingData };
+      delete bookingPayload.tourId;
 
       const bookingResponse = await createBooking(bookingPayload);
       const bookingId = bookingResponse.data.id;
@@ -165,7 +165,7 @@ export default function PaymentPage() {
   if (loading) {
     return (
       <PublicLayout>
-        <div className="flex min-h-[calc(100vh-80px)] items-center justify-center bg-[#020617]">
+        <div className="booking-flow flex min-h-[calc(100vh-80px)] items-center justify-center">
           <div className="flex flex-col items-center gap-4">
             <Loader2 className="h-12 w-12 animate-spin text-[#7FB77E]" />
             <p className="text-sm font-bold text-slate-300">
@@ -180,9 +180,17 @@ export default function PaymentPage() {
   if (!tourData || !bookingData || !departureData) {
     return (
       <PublicLayout>
-        <div className="bg-[#020617] px-4 py-24 text-center text-slate-300">
-          Không tìm thấy thông tin đặt tour. Vui lòng quay lại và thử lại.
-        </div>
+        <section className="booking-flow flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-16">
+          <div className="booking-dark-panel w-full max-w-xl rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-center">
+            <ShieldCheck className="mx-auto h-12 w-12 text-[#9de09c]" />
+            <h1 className="mt-4 text-2xl font-black text-white">
+              Không tìm thấy thông tin đặt tour
+            </h1>
+            <p className="mt-3 text-sm leading-7 text-slate-300">
+              Không tìm thấy thông tin đặt tour. Vui lòng quay lại và thử lại.
+            </p>
+          </div>
+        </section>
       </PublicLayout>
     );
   }
@@ -215,24 +223,28 @@ export default function PaymentPage() {
 
   return (
     <PublicLayout>
-      <section className="bg-[#020617] py-10 sm:py-14 text-slate-100">
+      <section className="booking-flow py-10 sm:py-14 text-slate-100">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 rounded-lg border border-white/10 px-4 py-2 text-sm text-slate-400 hover:bg-white/5 transition"
+            className="btn-outline text-sm"
           >
             <ArrowLeft size={17} />
             Quay lại chỉnh sửa
           </button>
 
-          <h1 className="mt-6 text-3xl font-black text-white sm:text-4xl">
+          <span className="section-tag mt-6">
+            <CreditCard size={12} /> Xác nhận & thanh toán
+          </span>
+
+          <h1 className="mt-3 text-3xl font-black text-white sm:text-4xl">
             Xác nhận thông tin & Thanh toán
           </h1>
 
           <div className="mt-8 grid gap-8 lg:grid-cols-3">
             {/* CỘT 1: TÓM TẮT ĐƠN HÀNG VÀ CHI TIẾT GIÁ TOUR */}
             <div className="lg:col-span-1 space-y-5">
-              <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-5">
+              <div className="booking-dark-panel rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-5">
                 {coverImage && (
                   <img
                     src={coverImage}
@@ -240,10 +252,10 @@ export default function PaymentPage() {
                     className="w-full h-44 object-cover rounded-xl mb-4 border border-white/10"
                   />
                 )}
-                <span className="inline-block rounded bg-[#7FB77E]/20 px-2 py-0.5 text-xs font-bold text-[#9de09c] mb-2">
-                  Mã Tour: #{tour.id}
+                <span className="section-tag mb-2">
+                  Mã Tour #{tour.id}
                 </span>
-                <h2 className="text-lg font-black text-white leading-snug">{tour.title}</h2>
+                <h2 className="mt-2 text-lg font-black text-white leading-snug">{tour.title}</h2>
 
                 <div className="mt-4 space-y-3 border-t border-white/10 pt-4 text-sm">
                   <div className="flex items-start gap-2">
@@ -298,11 +310,15 @@ export default function PaymentPage() {
             {/* CỘT 2 & 3: THÔNG TIN KHÁCH HÀNG & PHƯƠNG THỨC QUÉT QR */}
             <div className="lg:col-span-2 space-y-5">
               {/* CHI TIẾT THÔNG TIN NGƯỜI ĐẶT & HÀNH KHÁCH */}
-              <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-5">
-                <h3 className="text-base font-black text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2">
-                  <User size={18} className="text-[#7FB77E]" />
-                  Thông tin liên hệ & Danh sách hành khách
-                </h3>
+              <div className="booking-dark-panel rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.02] p-5">
+                <div className="flex items-center gap-3 border-b border-white/10 pb-4 mb-4">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
+                    <User size={20} />
+                  </span>
+                  <h3 className="text-base font-black text-white">
+                    Thông tin liên hệ & Danh sách hành khách
+                  </h3>
+                </div>
 
                 <div className="grid gap-4 sm:grid-cols-3 bg-white/[0.02] p-4 rounded-xl border border-white/5 mb-4 text-sm">
                   <div className="flex items-center gap-2">
@@ -358,11 +374,15 @@ export default function PaymentPage() {
               </div>
 
               {/* TÍCH HỢP VIETQR & PHƯƠNG THỨC THANH TOÁN */}
-              <div className="rounded-2xl border border-[#7FB77E]/30 bg-gradient-to-br from-[#7FB77E]/10 via-[#020617]/40 to-[#A67C52]/10 p-5">
-                <h3 className="text-base font-black text-white mb-4 flex items-center gap-2">
-                  <QrCode size={20} className="text-[#9de09c]" />
-                  QR hỗ trợ chuyển khoản thủ công
-                </h3>
+              <div className="booking-dark-panel rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] p-5">
+                <div className="flex items-center gap-3 border-b border-white/10 pb-4 mb-4">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#7FB77E]/15 text-[#9de09c]">
+                    <QrCode size={20} />
+                  </span>
+                  <h3 className="text-base font-black text-white">
+                    QR hỗ trợ chuyển khoản thủ công
+                  </h3>
+                </div>
 
                 <div className="grid gap-6 md:grid-cols-5 items-center">
                   <div className="md:col-span-2 flex flex-col items-center p-4 bg-white rounded-xl shadow-lg border border-white/10">
@@ -383,7 +403,7 @@ export default function PaymentPage() {
                   <div className="md:col-span-3 space-y-3">
                     <span className="text-xs font-bold text-slate-300 block">Bước 1: Chọn hạn mức chuyển khoản</span>
 
-                    <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition ${paymentMethod === "full" ? "border-[#7FB77E] bg-[#7FB77E]/10" : "border-white/10 hover:bg-white/5"}`}>
+                    <label className={`flex items-center gap-3 p-3 rounded-2xl border cursor-pointer transition ${paymentMethod === "full" ? "border-[#7FB77E] bg-[#7FB77E]/10 shadow-soft-green" : "border-white/10 bg-[#020617]/35 hover:border-[#7FB77E]/40"}`}>
                       <input
                         type="radio"
                         name="paymentMethod"
@@ -398,7 +418,7 @@ export default function PaymentPage() {
                       </div>
                     </label>
 
-                    <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition ${paymentMethod === "deposit" ? "border-[#7FB77E] bg-[#7FB77E]/10" : "border-white/10 hover:bg-white/5"}`}>
+                    <label className={`flex items-center gap-3 p-3 rounded-2xl border cursor-pointer transition ${paymentMethod === "deposit" ? "border-[#7FB77E] bg-[#7FB77E]/10 shadow-soft-green" : "border-white/10 bg-[#020617]/35 hover:border-[#7FB77E]/40"}`}>
                       <input
                         type="radio"
                         name="paymentMethod"
@@ -419,7 +439,7 @@ export default function PaymentPage() {
                       <p className="font-bold text-white flex items-center gap-1">
                         <CreditCard size={13} className="text-[#d4a878]" /> Bước 2: Kiểm tra nội dung chuyển khoản
                       </p>
-                      <p>Hệ thống tự điền nội dung: <span className="bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-mono font-bold text-xs">{transferDesc}</span></p>
+                      <p>Hệ thống tự điền nội dung: <span className="bg-[#f4c27a]/20 text-[#f4c27a] px-1.5 py-0.5 rounded font-mono font-bold text-xs">{transferDesc}</span></p>
                     </div>
                   </div>
                 </div>
@@ -438,7 +458,7 @@ export default function PaymentPage() {
               <button
                 onClick={handleConfirmBooking}
                 disabled={submitting}
-                className="w-full bg-[#7FB77E] hover:bg-[#6ca36b] text-slate-900 font-black py-4 rounded-xl text-base transition flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-60 shadow-lg shadow-[#7FB77E]/10"
+                className="btn-primary w-full text-base disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {submitting ? (
                   <>
