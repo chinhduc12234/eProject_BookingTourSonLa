@@ -66,3 +66,15 @@ npm run build
 ## Ghi chú thanh toán
 
 Thanh toán hiện tại là luồng mô phỏng/thủ công trong hệ thống. Customer chọn thanh toán và hệ thống cập nhật trạng thái nội bộ (`PAID` hoặc `PARTIAL`); chưa có kết nối cổng thanh toán thực tế như VNPay/MoMo/ngân hàng. Xem thêm `KNOWN_LIMITATIONS.md`.
+
+## Dữ liệu 10 tour hoàn chỉnh
+
+Để khôi phục gallery ảnh thật, lịch trình theo ngày và các đợt khởi hành của
+10 tour `TOUR0001` đến `TOUR0010`, chạy từ thư mục gốc dự án:
+
+```powershell
+C:\MAMP\bin\mysql\bin\mysql.exe --default-character-set=utf8mb4 -uroot -proot booking_tour_sonla -e "SOURCE database/seed_10_complete_tours_2026.sql"
+```
+
+Ảnh được lưu trong `backend/uploads/tours/seed-2026`. Tác giả, giấy phép và
+đường dẫn nguồn được ghi tại `database/TOUR_IMAGE_SOURCES.md`.
